@@ -34,8 +34,8 @@ export default function HeroSection() {
           <span className="text-yellow-400">Delivered Instantly.</span>
         </h1>
 
-        {/* SUBTEXT - CHANGED TO BRIGHT TURQUOISE */}
-        <p className="text-lg md:text-xl text-cyan-400 max-w-2xl">
+        {/* SUBTEXT - CHANGED TO BRIGHT RED */}
+        <p className="text-lg md:text-xl text-red-500 max-w-2xl">
           From AI tools to creative software — shop in USD, pay your way, receive instantly. Trusted by buyers across 3 continents.
         </p>
 
