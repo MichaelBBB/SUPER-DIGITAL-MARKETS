@@ -3,10 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 
 export default function LiveSalesTracker() {
-  const [usa, setUsa] = useState(14879);
-  const [india, setIndia] = useState(22350);
-  const [china, setChina] = useState(18661);
-  const [sa, setSa] = useState(3429);
+  const [usa, setUsa] = useState(18500);
+  const [india, setIndia] = useState(24200);
+  const [china, setChina] = useState(12800);
+  const [sa, setSa] = useState(3788);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -22,7 +22,6 @@ export default function LiveSalesTracker() {
     return () => clearInterval(timer);
   }, []);
 
-  // useMemo ensures the total recalculates whenever any country changes
   const totalSales = useMemo(() => usa + india + china + sa, [usa, india, china, sa]);
 
   return (
