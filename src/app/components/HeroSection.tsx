@@ -14,11 +14,10 @@ export default function HeroSection() {
           className="w-full h-full bg-cover bg-center"
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=2070&auto=format&fit=crop')" }}
         />
-        {/* CHANGED: Reduced opacity so the Earth background is much brighter */}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/30 via-slate-900/10 to-slate-900/30" />
       </div>
 
-      {/* CONTENT CONTAINER - UNCHANGED */}
+      {/* CONTENT CONTAINER */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-16 md:py-24 flex flex-col gap-8">
         
         {/* LIVE BADGE */}
@@ -35,8 +34,8 @@ export default function HeroSection() {
           <span className="text-yellow-400">Delivered Instantly.</span>
         </h1>
 
-        {/* SUBTEXT */}
-        <p className="text-lg md:text-xl text-slate-300 max-w-2xl">
+        {/* SUBTEXT - CHANGED TO BRIGHT TURQUOISE */}
+        <p className="text-lg md:text-xl text-cyan-400 max-w-2xl">
           From AI tools to creative software — shop in USD, pay your way, receive instantly. Trusted by buyers across 3 continents.
         </p>
 
