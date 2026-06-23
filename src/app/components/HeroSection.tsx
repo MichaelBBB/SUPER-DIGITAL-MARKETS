@@ -6,45 +6,68 @@ import { ShoppingBag, CreditCard } from 'lucide-react';
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full min-h-[85vh] flex flex-col justify-between bg-slate-900 text-white overflow-hidden">
+    <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-slate-900">
       
-      {/* BACKGROUND IMAGE */}
+      {/* BACKGROUND IMAGE WITH OVERLAY */}
       <div className="absolute inset-0 z-0">
         <div 
-          className="w-full h-full bg-cover bg-center opacity-80"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')" }}
+          className="w-full h-full bg-cover bg-center"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=2070&auto=format&fit=crop')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-transparent to-slate-900" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/85 via-slate-900/50 to-slate-900/80" />
       </div>
 
-      {/* TOP MAIN BUTTONS */}
-      <div className="relative z-10 flex flex-wrap gap-4 p-6 md:p-12 pt-20">
-        <Link href="/products" className="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-full transition flex items-center gap-2 shadow-lg shadow-cyan-500/20">
-          <ShoppingBag className="w-5 h-5" />
-          Browse All 30 Products
-        </Link>
-        <Link href="/how-to-pay" className="px-6 py-3 border-2 border-cyan-500 text-cyan-400 hover:bg-cyan-500/10 font-bold rounded-full transition flex items-center gap-2">
-          <CreditCard className="w-5 h-5" />
-          How to Pay
-        </Link>
-      </div>
+      {/* CONTENT CONTAINER */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-16 md:py-24 flex flex-col gap-8">
+        
+        {/* LIVE BADGE */}
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full self-start">
+          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          <span className="text-xs font-semibold tracking-wide text-cyan-300 uppercase">Live Global Marketplace</span>
+          <span className="text-xs text-slate-300">USA • India • China • South Africa</span>
+        </div>
 
-      {/* CATEGORY BUTTONS */}
-      <div className="relative z-10 flex flex-wrap justify-center gap-3 md:gap-4 px-6 pb-28 md:pb-36">
-        <button className="px-5 py-2 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-500 transition text-sm md:text-base">
-          AI Tools <span className="text-cyan-400 ml-1">8</span>
-        </button>
-        <button className="px-5 py-2 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-500 transition text-sm md:text-base">
-          Creative <span className="text-cyan-400 ml-1">7</span>
-        </button>
-        <button className="px-5 py-2 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-500 transition text-sm md:text-base">
-          Entertainment <span className="text-cyan-400 ml-1">6</span>
-        </button>
-        <button className="px-5 py-2 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-500 transition text-sm md:text-base">
-          Business <span className="text-cyan-400 ml-1">9</span>
-        </button>
-      </div>
+        {/* HEADLINE */}
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight max-w-3xl">
+          The World's Top 30<br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Digital Products</span><br />
+          <span className="text-yellow-400">Delivered Instantly.</span>
+        </h1>
 
+        {/* SUBTEXT */}
+        <p className="text-lg md:text-xl text-slate-300 max-w-2xl">
+          From AI tools to creative software — shop in USD, pay your way, receive instantly. Trusted by buyers across 3 continents.
+        </p>
+
+        {/* MAIN CTA BUTTONS */}
+        <div className="flex flex-wrap gap-4 pt-2">
+          <Link href="/products" className="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-full transition flex items-center gap-2 shadow-lg shadow-cyan-500/20">
+            <ShoppingBag className="w-5 h-5" />
+            Browse All 30 Products
+          </Link>
+          <Link href="/how-to-pay" className="px-6 py-3 border-2 border-cyan-400 text-cyan-300 hover:bg-cyan-500/10 font-bold rounded-full transition flex items-center gap-2">
+            <CreditCard className="w-5 h-5" />
+            How to Pay
+          </Link>
+        </div>
+
+        {/* CATEGORY BUTTONS - PROPERLY SPACED */}
+        <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-6">
+          <button className="px-5 py-2 bg-slate-800/70 backdrop-blur-sm border border-slate-600 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-400 transition text-sm font-medium">
+            AI Tools <span className="text-cyan-400 ml-1">8</span>
+          </button>
+          <button className="px-5 py-2 bg-slate-800/70 backdrop-blur-sm border border-slate-600 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-400 transition text-sm font-medium">
+            Creative <span className="text-cyan-400 ml-1">7</span>
+          </button>
+          <button className="px-5 py-2 bg-slate-800/70 backdrop-blur-sm border border-slate-600 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-400 transition text-sm font-medium">
+            Entertainment <span className="text-cyan-400 ml-1">6</span>
+          </button>
+          <button className="px-5 py-2 bg-slate-800/70 backdrop-blur-sm border border-slate-600 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-400 transition text-sm font-medium">
+            Business <span className="text-cyan-400 ml-1">9</span>
+          </button>
+        </div>
+
+      </div>
     </section>
   );
 }
