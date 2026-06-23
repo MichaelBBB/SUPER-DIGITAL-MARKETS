@@ -8,16 +8,17 @@ export default function HeroSection() {
   return (
     <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-slate-900">
       
-      {/* BACKGROUND IMAGE WITH OVERLAY */}
+      {/* BACKGROUND IMAGE - BRIGHTER OVERLAY APPLIED */}
       <div className="absolute inset-0 z-0">
         <div 
           className="w-full h-full bg-cover bg-center"
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=2070&auto=format&fit=crop')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/85 via-slate-900/50 to-slate-900/80" />
+        {/* CHANGED: Reduced opacity so the Earth background is much brighter */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/30 via-slate-900/10 to-slate-900/30" />
       </div>
 
-      {/* CONTENT CONTAINER */}
+      {/* CONTENT CONTAINER - UNCHANGED */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-16 md:py-24 flex flex-col gap-8">
         
         {/* LIVE BADGE */}
@@ -51,7 +52,7 @@ export default function HeroSection() {
           </Link>
         </div>
 
-        {/* CATEGORY BUTTONS - PROPERLY SPACED */}
+        {/* CATEGORY BUTTONS */}
         <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-6">
           <button className="px-5 py-2 bg-slate-800/70 backdrop-blur-sm border border-slate-600 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-400 transition text-sm font-medium">
             AI Tools <span className="text-cyan-400 ml-1">8</span>
