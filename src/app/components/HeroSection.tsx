@@ -9,9 +9,9 @@ export default function HeroSection() {
     <section className="relative w-full min-h-[85vh] flex flex-col justify-between bg-slate-900 text-white overflow-hidden">
       
       {/* BACKGROUND IMAGE */}
-      {/* IMPORTANT: If your background image disappears, change '/earth-bg.jpg' to your actual image name */}
+      {/* IMPORTANT: Change '/earth-bg.jpg' to your actual image name in the public folder! */}
       <div className="absolute inset-0 z-0">
-        <div className="w-full h-full bg-[url('/earth-bg.jpg')] bg-cover bg-center opacity-90"></div>
+        <div className="w-full h-full bg-slate-900 bg-[url('/earth-bg.jpg')] bg-cover bg-center opacity-90"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/30 via-transparent to-slate-900"></div>
       </div>
 
@@ -27,7 +27,7 @@ export default function HeroSection() {
         </Link>
       </div>
 
-      {/* CATEGORY BUTTONS - FIXED: Added pb-24 to push them up so they aren't obscured */}
+      {/* CATEGORY BUTTONS */}
       <div className="relative z-10 flex flex-wrap justify-center gap-3 md:gap-4 px-6 pb-24 md:pb-32">
         <button className="px-5 py-2 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-500 transition text-sm md:text-base">
           AI Tools <span className="text-cyan-400 ml-1">8</span>
