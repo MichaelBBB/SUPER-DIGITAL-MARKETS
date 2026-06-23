@@ -8,15 +8,13 @@ export default function HeroSection() {
   return (
     <section className="relative w-full min-h-[85vh] flex flex-col justify-between bg-slate-900 text-white overflow-hidden">
       
-      {/* BACKGROUND IMAGE - Reliable external URL with automatic gradient fallback */}
+      {/* BACKGROUND IMAGE */}
       <div className="absolute inset-0 z-0">
         <div 
           className="w-full h-full bg-cover bg-center opacity-80"
-          style={{ 
-            backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop'), linear-gradient(135deg, #0f172a 0%, #020617 100%)"
-          }}
-        ></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-transparent to-slate-900"></div>
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-transparent to-slate-900" />
       </div>
 
       {/* TOP MAIN BUTTONS */}
@@ -31,7 +29,7 @@ export default function HeroSection() {
         </Link>
       </div>
 
-      {/* CATEGORY BUTTONS - Properly spaced so they are fully visible */}
+      {/* CATEGORY BUTTONS */}
       <div className="relative z-10 flex flex-wrap justify-center gap-3 md:gap-4 px-6 pb-28 md:pb-36">
         <button className="px-5 py-2 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-full text-white hover:bg-cyan-500/20 hover:border-cyan-500 transition text-sm md:text-base">
           AI Tools <span className="text-cyan-400 ml-1">8</span>
