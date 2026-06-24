@@ -3,10 +3,11 @@
 import { useState, useEffect, useMemo } from 'react';
 
 export default function LiveSalesTracker() {
-  const [usa, setUsa] = useState(18500);
-  const [india, setIndia] = useState(24200);
-  const [china, setChina] = useState(12800);
-  const [sa, setSa] = useState(3788);
+  // UPDATED: Starting numbers to match your preferred Version 2
+  const [usa, setUsa] = useState(32709);
+  const [india, setIndia] = useState(38546);
+  const [china, setChina] = useState(27062);
+  const [sa, setSa] = useState(17928);
 
   useEffect(() => {
     const timer = setInterval(() => {
