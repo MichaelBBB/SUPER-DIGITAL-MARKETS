@@ -28,7 +28,8 @@ export default function ChofetzStudyPage() {
               <span className="text-amber-400 text-lg">📖</span>
             </div>
             <div>
-              <h1 className="font-semibold text-amber-100">ChofetzStudy</h1>
+              {/* TEXT FIXED HERE */}
+              <h1 className="font-semibold text-amber-100">Chofetz Chaim Study</h1>
               <p className="text-xs text-amber-400/70">Sacred Text Platform</p>
             </div>
           </div>
@@ -40,6 +41,7 @@ export default function ChofetzStudyPage() {
               alt="Traditional scholars" 
               fill 
               className="object-cover opacity-80 hover:opacity-100 transition"
+              unoptimized // Added this to prevent Next.js optimization errors on local files
             />
           </div>
 
@@ -85,6 +87,7 @@ export default function ChofetzStudyPage() {
               fill 
               className="object-cover rounded-full border-4 border-amber-800/50 shadow-2xl relative z-10"
               priority
+              unoptimized // Added this to prevent Next.js optimization errors
             />
           </div>
 
