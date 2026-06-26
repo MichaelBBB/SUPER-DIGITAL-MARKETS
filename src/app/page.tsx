@@ -2,7 +2,7 @@
 
 export default function ChofetzStudyPage() {
   return (
-    <div className="min-h-screen bg-[#0a1128] text-amber-50 font-serif relative overflow-hidden selection:bg-amber-900/40">
+    <div className="min-h-screen bg-[#0a1128] text-amber-50 font-serif relative overflow-hidden">
       
       {/* MAIN LAYOUT */}
       <div className="relative z-10 flex flex-col md:flex-row min-h-screen">
@@ -14,7 +14,6 @@ export default function ChofetzStudyPage() {
               <span className="text-amber-400 text-lg">📖</span>
             </div>
             <div>
-              {/* TITLE CORRECTED HERE */}
               <h1 className="font-semibold text-amber-100">Chofetz Chaim Study</h1>
               <p className="text-xs text-amber-400/70">Sacred Text Platform</p>
             </div>
@@ -38,59 +37,24 @@ export default function ChofetzStudyPage() {
               <span>📂</span> Collections
             </button>
           </nav>
-
-          <div className="mt-auto pt-4 border-t border-amber-900/30">
-            <div className="flex items-center gap-3 px-3 py-2 bg-white/5 rounded-lg">
-              <div className="w-8 h-8 rounded-full bg-amber-900/50 flex items-center justify-center text-amber-300 text-sm">N</div>
-              <div className="flex-1">
-                <p className="text-sm text-amber-100">Rabbi M. Goldstein</p>
-                <p className="text-xs text-amber-400/70">Educator Account</p>
-              </div>
-            </div>
-          </div>
         </aside>
 
         {/* MAIN CONTENT */}
         <main className="flex-1 p-8 md:p-12 flex flex-col items-center justify-start text-center">
           
-          {/* ✨ THE FANCY GOLDEN FRAME WITH TRIPLE IMAGES ✨ */}
-          <div className="w-full max-w-4xl mb-10 p-4 bg-gradient-to-b from-amber-700/30 to-transparent border-2 border-amber-500/60 rounded-xl shadow-[0_0_30px_rgba(245,158,11,0.2)] backdrop-blur-sm">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
-              {/* Image 1: Four Sages */}
-              <div className="relative aspect-[3/4] rounded-lg overflow-hidden border border-amber-400/40 shadow-lg group">
-                <img 
-                  src="/four-sages.jpg" 
-                  alt="Traditional scholars" 
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition"></div>
-              </div>
-
-              {/* Image 2: Manuscript */}
-              <div className="relative aspect-[3/4] rounded-lg overflow-hidden border border-amber-400/40 shadow-lg group">
-                <img 
-                  src="/manuscript-bg.jpg" 
-                  alt="Hebrew manuscript" 
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
-                />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition"></div>
-              </div>
-
-              {/* Image 3: Chofetz Chaim Portrait */}
-              <div className="relative aspect-[3/4] rounded-lg overflow-hidden border border-amber-400/40 shadow-lg group">
-                <img 
-                  src="/chofetz-chaim.jpg" 
-                  alt="Rabbi Chofetz Chaim" 
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
-                />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition"></div>
-              </div>
-
+          {/* ✨ FANCY GOLDEN FRAME WITH CHOFETZ CHAIM PORTRAIT ✨ */}
+          <div className="w-full max-w-md mb-10 p-4 bg-gradient-to-b from-amber-700/30 to-transparent border-2 border-amber-500/60 rounded-xl shadow-[0_0_30px_rgba(245,158,11,0.2)] backdrop-blur-sm">
+            <div className="relative aspect-square rounded-lg overflow-hidden border border-amber-400/40 shadow-lg group">
+              <img 
+                src="/chofetz-chaim.jpg" 
+                alt="Rabbi Yisrael Meir Kagan (Chofetz Chaim)" 
+                className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition"></div>
             </div>
           </div>
 
-          {/* TEXT CONTENT BELOW THE FRAMES */}
+          {/* TEXT CONTENT BELOW THE FRAME */}
           <div className="max-w-2xl mx-auto space-y-6 mt-8">
             <span className="inline-block px-4 py-1.5 bg-amber-900/30 border border-amber-700/40 rounded-full text-xs font-medium tracking-wide text-amber-300 uppercase">
               Sacred Text Library
