@@ -37,6 +37,16 @@ export default function ChofetzStudyPage() {
               <span>📂</span> Collections
             </button>
           </nav>
+
+          <div className="mt-auto pt-4 border-t border-amber-900/30">
+            <div className="flex items-center gap-3 px-3 py-2 bg-white/5 rounded-lg">
+              <div className="w-8 h-8 rounded-full bg-amber-900/50 flex items-center justify-center text-amber-300 text-sm">N</div>
+              <div className="flex-1">
+                <p className="text-sm text-amber-100">Rabbi M. Goldstein</p>
+                <p className="text-xs text-amber-400/70">Educator Account</p>
+              </div>
+            </div>
+          </div>
         </aside>
 
         {/* MAIN CONTENT */}
