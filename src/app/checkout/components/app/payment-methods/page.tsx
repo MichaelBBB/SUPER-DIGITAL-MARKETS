@@ -21,7 +21,7 @@ export default function PaymentMethodsInfo() {
     {
       id: 'alipay',
       name: 'Alipay',
-      flag: '🇨',
+      flag: '🇨🇳',
       badge: 'CHINA PRIMARY',
       badgeColor: 'text-blue-400',
       description: "China's most popular digital payment platform. Fast, secure, and widely accepted.",
