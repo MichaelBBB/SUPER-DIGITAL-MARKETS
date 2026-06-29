@@ -63,7 +63,6 @@ export default function Home() {
           <div className="hidden md:flex space-x-8">
             <a href="#" className="hover:text-blue-400 transition">Home</a>
             <a href="#products" className="hover:text-blue-400 transition">Products</a>
-            <a href="/chofetz-study" className="hover:text-blue-400 transition">Chofetz Study</a>
             <a href="#" className="hover:text-blue-400 transition">Contact</a>
           </div>
 
@@ -83,7 +82,6 @@ export default function Home() {
           <div className="md:hidden mt-4 pb-4 space-y-2">
             <a href="#" className="block hover:text-blue-400">Home</a>
             <a href="#products" className="block hover:text-blue-400">Products</a>
-            <a href="/chofetz-study" className="block hover:text-blue-400">Chofetz Study</a>
             <a href="#" className="block hover:text-blue-400">Contact</a>
           </div>
         )}
@@ -104,12 +102,6 @@ export default function Home() {
               className="px-8 py-4 bg-blue-500 hover:bg-blue-600 rounded-full font-bold text-lg transition transform hover:scale-105 shadow-lg"
             >
               Browse Products
-            </a>
-            <a 
-              href="/chofetz-study" 
-              className="px-8 py-4 border-2 border-white hover:bg-white hover:text-slate-900 rounded-full font-bold text-lg transition"
-            >
-              Visit Chofetz Study
             </a>
           </div>
         </div>
