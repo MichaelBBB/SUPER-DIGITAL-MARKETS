@@ -1,58 +1,45 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function LiveSalesTracker() {
-  // UPDATED: Starting numbers to match your preferred Version 2
-  const [usa, setUsa] = useState(32709);
-  const [india, setIndia] = useState(38546);
-  const [china, setChina] = useState(27062);
-  const [sa, setSa] = useState(17928);
+  // We start with the number you prefer: 116,250
+  const [total, setTotal] = useState(116250);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      const jump = Math.floor(Math.random() * 5) + 1;
-      const random = Math.random();
+    // 1. Check if there is a saved number in your browser's memory
+    const savedTotal = localStorage.getItem('live_sales_total');
+    
+    if (savedTotal) {
+      setTotal(parseInt(savedTotal));
+    } else {
+      // If not, save the starting number
+      localStorage.setItem('live_sales_total', total.toString());
+    }
 
-      if (random < 0.25) setUsa(prev => prev + jump);
-      else if (random < 0.5) setIndia(prev => prev + jump);
-      else if (random < 0.75) setChina(prev => prev + jump);
-      else setSa(prev => prev + jump);
-    }, 2000);
+    // 2. Simulate live sales (adds random numbers every few seconds)
+    // Note: In real life, this would come from your Peach Webhook!
+    const timer = setInterval(() => {
+      const jump = Math.floor(Math.random() * 3) + 1; // Adds 1, 2, or 3
+      setTotal(prev => {
+        const newTotal = prev + jump;
+        // Save the new number to browser memory so it persists after restart
+        localStorage.setItem('live_sales_total', newTotal.toString());
+        return newTotal;
+      });
+    }, 3000); // Updates every 3 seconds
 
     return () => clearInterval(timer);
   }, []);
 
-  const totalSales = useMemo(() => usa + india + china + sa, [usa, india, china, sa]);
-
   return (
     <div className="w-full py-12 px-4 bg-slate-900 text-white">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8">Live Sales Tracker</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="p-6 bg-slate-800 rounded-xl border border-slate-700">
-            <div className="text-xl font-bold text-blue-400 mb-2">USA</div>
-            <div className="text-3xl font-bold font-mono">{usa.toLocaleString()}</div>
-          </div>
-          <div className="p-6 bg-slate-800 rounded-xl border border-slate-700">
-            <div className="text-xl font-bold text-orange-400 mb-2">INDIA</div>
-            <div className="text-3xl font-bold font-mono">{india.toLocaleString()}</div>
-          </div>
-          <div className="p-6 bg-slate-800 rounded-xl border border-slate-700">
-            <div className="text-xl font-bold text-red-400 mb-2">CHINA</div>
-            <div className="text-3xl font-bold font-mono">{china.toLocaleString()}</div>
-          </div>
-          <div className="p-6 bg-slate-800 rounded-xl border border-slate-700">
-            <div className="text-xl font-bold text-green-400 mb-2">SOUTH AFRICA</div>
-            <div className="text-3xl font-bold font-mono">{sa.toLocaleString()}</div>
-          </div>
-        </div>
-
-        <div className="p-8 bg-slate-800 rounded-xl border border-blue-500/30">
+      <div className="max-w-7xl mx-auto text-center">
+        <h2 className="text-3xl font-bold mb-6">Live Sales Tracker</h2>
+        <div className="p-8 bg-slate-800 rounded-xl border border-blue-500/30 inline-block shadow-lg">
           <div className="text-sm font-bold text-slate-400 uppercase mb-2">GLOBAL TOTAL (TODAY)</div>
           <div className="text-5xl font-extrabold text-blue-400 font-mono">
-            {totalSales.toLocaleString()}
+            {total.toLocaleString()}
           </div>
         </div>
       </div>
