@@ -12,7 +12,7 @@ export default function Home() {
       name: "AI Business Automation Suite",
       price: 299,
       category: "Software",
-      image: "/product-1.jpg" // Make sure this exists in public/ or use a placeholder
+      image: "/product-1.jpg"
     },
     {
       id: 2,
