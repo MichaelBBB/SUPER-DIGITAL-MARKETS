@@ -1,117 +1,159 @@
 'use client';
 
-export default function ChofetzStudyPage() {
+import { useState } from 'react';
+
+export default function Home() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Sample product data - replace with your actual products
+  const products = [
+    {
+      id: 1,
+      name: "AI Business Automation Suite",
+      price: 299,
+      category: "Software",
+      image: "/product-1.jpg" // Make sure this exists in public/ or use a placeholder
+    },
+    {
+      id: 2,
+      name: "Digital Marketing Masterclass",
+      price: 149,
+      category: "Course",
+      image: "/product-2.jpg"
+    },
+    {
+      id: 3,
+      name: "E-commerce Growth Toolkit",
+      price: 199,
+      category: "Template",
+      image: "/product-3.jpg"
+    },
+    {
+      id: 4,
+      name: "Social Media Content Pack",
+      price: 79,
+      category: "Design",
+      image: "/product-4.jpg"
+    },
+    {
+      id: 5,
+      name: "SEO Optimization Guide",
+      price: 49,
+      category: "Guide",
+      image: "/product-5.jpg"
+    },
+    {
+      id: 6,
+      name: "Email Marketing Templates",
+      price: 39,
+      category: "Template",
+      image: "/product-6.jpg"
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-[#0a1128] text-amber-50 font-serif relative overflow-hidden">
+    <div className="min-h-screen bg-white">
       
-      {/* MAIN LAYOUT */}
-      <div className="relative z-10 flex flex-col md:flex-row min-h-screen">
-        
-        {/* SIDEBAR */}
-        <aside className="w-full md:w-72 bg-[#0d1530] border-r border-amber-900/30 p-6 flex flex-col gap-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-amber-700/20 rounded-lg flex items-center justify-center">
-              <span className="text-amber-400 text-lg">📖</span>
-            </div>
-            <div>
-              <h1 className="font-semibold text-amber-100">Chofetz Chaim Study</h1>
-              <p className="text-xs text-amber-400/70">Sacred Text Platform</p>
-            </div>
-          </div>
-
-          <nav className="flex flex-col gap-2 text-sm mt-4">
-            <button className="flex items-center gap-3 px-4 py-3 bg-amber-900/30 border border-amber-700/40 rounded-lg text-amber-100">
-              <span>📚</span> Text Library
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-amber-200/80 transition">
-              <span>⚖️</span> Side-by-Side Study
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-amber-200/80 transition">
-              <span>🔍</span> Search Texts
-            </button>
-            <div className="h-px bg-amber-900/30 my-2" />
-            <button className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-amber-200/80 transition">
-              <span>🔖</span> Bookmarks <span className="ml-auto bg-amber-800/40 text-xs px-2 py-0.5 rounded-full">7</span>
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-lg text-amber-200/80 transition">
-              <span>📂</span> Collections
-            </button>
-          </nav>
-
-          <div className="mt-auto pt-4 border-t border-amber-900/30">
-            <div className="flex items-center gap-3 px-3 py-2 bg-white/5 rounded-lg">
-              <div className="w-8 h-8 rounded-full bg-amber-900/50 flex items-center justify-center text-amber-300 text-sm">N</div>
-              <div className="flex-1">
-                <p className="text-sm text-amber-100">Rabbi M. Goldstein</p>
-                <p className="text-xs text-amber-400/70">Educator Account</p>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* MAIN CONTENT */}
-        <main className="flex-1 p-8 md:p-12 flex flex-col items-center justify-start text-center">
+      {/* NAVIGATION */}
+      <nav className="bg-slate-900 text-white py-4 px-6 fixed w-full z-50 shadow-lg">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="text-2xl font-bold text-blue-400">Super Digital</div>
           
-          {/* ✨ FANCY GOLDEN FRAME WITH CHOFETZ CHAIM PORTRAIT ✨ */}
-          <div className="w-full max-w-md mb-10 p-4 bg-gradient-to-b from-amber-700/30 to-transparent border-2 border-amber-500/60 rounded-xl shadow-[0_0_30px_rgba(245,158,11,0.2)] backdrop-blur-sm">
-            <div className="relative aspect-square rounded-lg overflow-hidden border border-amber-400/40 shadow-lg group">
-              <img 
-                src="/chofetz-chaim.jpg" 
-                alt="Rabbi Yisrael Meir Kagan (Chofetz Chaim)" 
-                className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition"></div>
-            </div>
+          {/* Desktop Menu */}
+          <div className="hidden md:flex space-x-8">
+            <a href="#" className="hover:text-blue-400 transition">Home</a>
+            <a href="#products" className="hover:text-blue-400 transition">Products</a>
+            <a href="/chofetz-study" className="hover:text-blue-400 transition">Chofetz Study</a>
+            <a href="#" className="hover:text-blue-400 transition">Contact</a>
           </div>
 
-          {/* TEXT CONTENT BELOW THE FRAME */}
-          <div className="max-w-2xl mx-auto space-y-6 mt-8">
-            <span className="inline-block px-4 py-1.5 bg-amber-900/30 border border-amber-700/40 rounded-full text-xs font-medium tracking-wide text-amber-300 uppercase">
-              Sacred Text Library
-            </span>
-            
-            <h1 className="text-3xl md:text-5xl font-bold text-amber-50 leading-tight">
-              The Complete Writings of<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300">the Chofetz Chaim</span>
-            </h1>
-            
-            <p className="text-lg md:text-xl text-amber-200/80 font-light">
-              &amp; All Six Chapters of Pirkei Avot
-            </p>
-            
-            <p className="text-amber-200/60 max-w-lg mx-auto">
-              A scholarly platform for Rabbis and educators — full text search, side-by-side comparison, and passage bookmarking for lesson preparation.
-            </p>
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden text-white"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
 
-            <div className="flex flex-wrap justify-center gap-4 pt-4">
-              <button className="px-6 py-3 bg-amber-700 hover:bg-amber-600 text-white font-medium rounded-full transition shadow-lg shadow-amber-900/30 flex items-center gap-2">
-                <span>📖</span> Open Side-by-Side Study
-              </button>
-              <button className="px-6 py-3 border border-amber-700/50 hover:bg-amber-900/20 text-amber-200 font-medium rounded-full transition flex items-center gap-2">
-                <span>🔍</span> Search All Texts
-              </button>
-            </div>
-
-            <div className="flex justify-center gap-8 pt-8 text-sm text-amber-400/70">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-amber-300">8</p>
-                <p>Works by Chofetz Chaim</p>
-              </div>
-              <div className="w-px bg-amber-900/40" />
-              <div className="text-center">
-                <p className="text-2xl font-bold text-amber-300">6</p>
-                <p>Pirkei Avot Chapters</p>
-              </div>
-              <div className="w-px bg-amber-900/40" />
-              <div className="text-center">
-                <p className="text-2xl font-bold text-amber-300">543+</p>
-                <p>Indexed Passages</p>
-              </div>
-            </div>
+        {/* Mobile Menu Dropdown */}
+        {isMenuOpen && (
+          <div className="md:hidden mt-4 pb-4 space-y-2">
+            <a href="#" className="block hover:text-blue-400">Home</a>
+            <a href="#products" className="block hover:text-blue-400">Products</a>
+            <a href="/chofetz-study" className="block hover:text-blue-400">Chofetz Study</a>
+            <a href="#" className="block hover:text-blue-400">Contact</a>
           </div>
-        </main>
+        )}
+      </nav>
 
-      </div>
+      {/* HERO SECTION */}
+      <section className="pt-32 pb-20 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
+            Sales Of The Top 30 <span className="text-blue-400">Digital Products</span><br/>Worldwide!!
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto">
+            Premium digital assets, courses, and tools designed to help you scale your business faster than ever before.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a 
+              href="#products" 
+              className="px-8 py-4 bg-blue-500 hover:bg-blue-600 rounded-full font-bold text-lg transition transform hover:scale-105 shadow-lg"
+            >
+              Browse Products
+            </a>
+            <a 
+              href="/chofetz-study" 
+              className="px-8 py-4 border-2 border-white hover:bg-white hover:text-slate-900 rounded-full font-bold text-lg transition"
+            >
+              Visit Chofetz Study
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* PRODUCT GRID SECTION */}
+      <section id="products" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">Featured Digital Products</h2>
+            <p className="text-gray-600 text-lg">Hand-picked resources for serious entrepreneurs</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {products.map((product) => (
+              <div key={product.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition duration-300 transform hover:-translate-y-2">
+                {/* Placeholder Image Box - Replace src with real images later */}
+                <div className="h-48 bg-gray-200 flex items-center justify-center text-gray-400">
+                  <span className="text-sm">Product Image</span>
+                </div>
+                
+                <div className="p-6">
+                  <span className="text-xs font-bold text-blue-500 uppercase tracking-wide">{product.category}</span>
+                  <h3 className="text-xl font-bold text-slate-900 mt-2 mb-2">{product.name}</h3>
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-2xl font-bold text-slate-900">${product.price}</span>
+                    <button className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-blue-600 transition">
+                      Buy Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="bg-slate-900 text-gray-400 py-12">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <p>&copy; 2024 Super Digital Markets. All rights reserved.</p>
+        </div>
+      </footer>
+
     </div>
   );
 }
