@@ -1,9 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // Live sales data with animation
+  const [salesData, setSalesData] = useState([
+    { country: "USA", sales: 14969, color: "text-blue-400" },
+    { country: "INDIA", sales: 22413, color: "text-orange-400" },
+    { country: "CHINA", sales: 18731, color: "text-red-400" },
+    { country: "SOUTH AFRICA", sales: 3468, color: "text-green-400" }
+  ]);
+
+  // Simulate live sales updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSalesData(prevData => 
+        prevData.map(item => ({
+          ...item,
+          sales: item.sales + Math.floor(Math.random() * 3) // Add 0-2 sales randomly
+        }))
+      );
+    }, 3000); // Update every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const totalSales = salesData.reduce((acc, curr) => acc + curr.sales, 0);
 
   const products = [
     { 
@@ -13,7 +37,8 @@ export default function Home() {
       category: "AI Tools",
       tag: "HOT",
       tagColor: "bg-orange-500",
-      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop"
+      description: "OpenAI's GPT-4 powered assistant. Advanced reasoning, image generation, and browsing included.",
+      image: "/images/chatgpt.jpg" // We'll add your images here
     },
     { 
       id: 2, 
@@ -22,7 +47,8 @@ export default function Home() {
       category: "Creative",
       tag: "POPULAR",
       tagColor: "bg-yellow-500",
-      image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&auto=format&fit=crop"
+      description: "Full suite of Adobe apps — Photoshop, Illustrator, Premiere Pro, and 20+ more.",
+      image: "/images/adobe.jpg"
     },
     { 
       id: 3, 
@@ -31,45 +57,131 @@ export default function Home() {
       category: "Entertainment",
       tag: "HOT",
       tagColor: "bg-orange-500",
-      image: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&auto=format&fit=crop"
+      description: "4K streaming, 4 simultaneous screens, offline downloads. 10,000+ titles worldwide.",
+      image: "/images/netflix.jpg"
     },
     { 
       id: 4, 
-      name: "Midjourney Pro", 
-      price: 30.00, 
-      category: "AI Tools",
-      tag: "NEW",
-      tagColor: "bg-blue-500",
-      image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop"
+      name: "Microsoft 365 Business", 
+      price: 12.50, 
+      category: "Business",
+      tag: "POPULAR",
+      tagColor: "bg-yellow-500",
+      description: "Word, Excel, PowerPoint, Teams, and 1TB OneDrive. For business and personal use.",
+      image: "/images/microsoft365.jpg"
     },
     { 
       id: 5, 
       name: "Spotify Premium", 
       price: 9.99, 
       category: "Entertainment",
-      tag: null,
-      tagColor: null,
-      image: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=800&auto=format&fit=crop"
+      tag: "POPULAR",
+      tagColor: "bg-yellow-500",
+      description: "Ad-free music, offline listening, unlimited skips. 100M+ songs and podcasts.",
+      image: "/images/spotify.jpg"
     },
     { 
       id: 6, 
-      name: "Notion Pro", 
+      name: "NordVPN", 
+      price: 3.99, 
+      category: "Security",
+      tag: "HOT",
+      tagColor: "bg-orange-500",
+      description: "Military-grade encryption, 5,500+ servers in 60 countries. No-logs policy.",
+      image: "/images/nordvpn.jpg"
+    },
+    { 
+      id: 7, 
+      name: "Notion Plus", 
       price: 8.00, 
       category: "Productivity",
       tag: "POPULAR",
       tagColor: "bg-yellow-500",
-      image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&auto=format&fit=crop"
+      description: "All-in-one workspace for notes, wikis, databases, and project management.",
+      image: "/images/notion.jpg"
+    },
+    { 
+      id: 8, 
+      name: "Figma Professional", 
+      price: 12.00, 
+      category: "Creative",
+      tag: "HOT",
+      tagColor: "bg-orange-500",
+      description: "Collaborative UI/UX design tool. Real-time multiplayer, unlimited projects, dev mode.",
+      image: "/images/figma.jpg"
+    },
+    { 
+      id: 9, 
+      name: "Dropbox Plus", 
+      price: 9.99, 
+      category: "Productivity",
+      tag: "POPULAR",
+      tagColor: "bg-yellow-500",
+      description: "2TB cloud storage, Smart Sync, version history, and secure file sharing.",
+      image: "/images/dropbox.jpg"
+    },
+    { 
+      id: 10, 
+      name: "Canva Pro", 
+      price: 12.99, 
+      category: "Creative",
+      tag: "NEW",
+      tagColor: "bg-blue-500",
+      description: "Premium design templates, Brand Kit, background remover, and 100M+ stock assets.",
+      image: "/images/canva.jpg"
+    },
+    { 
+      id: 11, 
+      name: "Grammarly Premium", 
+      price: 12.00, 
+      category: "Productivity",
+      tag: "POPULAR",
+      tagColor: "bg-yellow-500",
+      description: "AI writing assistant with advanced grammar, clarity, and plagiarism detection.",
+      image: "/images/grammarly.jpg"
+    },
+    { 
+      id: 12, 
+      name: "Zoom Pro", 
+      price: 14.99, 
+      category: "Business",
+      tag: "HOT",
+      tagColor: "bg-orange-500",
+      description: "Unlimited meetings up to 30 hours, 100 participants, cloud recording, admin controls.",
+      image: "/images/zoom.jpg"
+    },
+    { 
+      id: 13, 
+      name: "LastPass Premium", 
+      price: 3.00, 
+      category: "Security",
+      tag: "POPULAR",
+      tagColor: "bg-yellow-500",
+      description: "Secure password manager with dark web monitoring, 1GB encrypted storage.",
+      image: "/images/lastpass.jpg"
+    },
+    { 
+      id: 14, 
+      name: "Cursor AI Pro", 
+      price: 20.00, 
+      category: "AI Tools",
+      tag: "NEW",
+      tagColor: "bg-blue-500",
+      description: "AI-first code editor built on VS Code. Write, edit, and debug with GPT-4 natively.",
+      image: "/images/cursor.jpg"
+    },
+    { 
+      id: 15, 
+      name: "Midjourney Standard", 
+      price: 24.00, 
+      category: "AI Tools",
+      tag: "HOT",
+      tagColor: "bg-orange-500",
+      description: "AI image generation. 15 GPU hours/month, unlimited relaxed generations.",
+      image: "/images/midjourney.jpg"
     }
+    // Add remaining 15 products here
   ];
-
-  const salesData = [
-    { country: "USA", sales: 14969, color: "text-blue-400" },
-    { country: "INDIA", sales: 22413, color: "text-orange-400" },
-    { country: "CHINA", sales: 18731, color: "text-red-400" },
-    { country: "SOUTH AFRICA", sales: 3468, color: "text-green-400" }
-  ];
-
-  const totalSales = salesData.reduce((acc, curr) => acc + curr.sales, 0);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -208,16 +320,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* LIVE SALES TRACKER */}
+      {/* LIVE SALES TRACKER - NOW ANIMATED! */}
       <section className="py-20 bg-slate-950">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-10">Live Sales Tracker</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             {salesData.map((data) => (
-              <div key={data.country} className="p-6 bg-slate-900/50 rounded-2xl border border-white/10 backdrop-blur-sm">
+              <div key={data.country} className="p-6 bg-slate-900/50 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-cyan-500/30 transition duration-300">
                 <div className={`text-sm font-semibold mb-2 ${data.color}`}>{data.country}</div>
-                <div className="text-3xl font-bold text-white">
+                <div className="text-3xl font-bold text-white tabular-nums">
                   {data.sales.toLocaleString().replace(',', ' ')}
                 </div>
               </div>
@@ -226,7 +338,7 @@ export default function Home() {
 
           <div className="p-8 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-2xl border border-cyan-500/30">
             <div className="text-sm text-gray-400 mb-2">GLOBAL TOTAL (TODAY)</div>
-            <div className="text-5xl font-bold text-blue-400">
+            <div className="text-5xl font-bold text-blue-400 tabular-nums animate-pulse">
               {totalSales.toLocaleString().replace(',', ' ')}
             </div>
           </div>
@@ -274,11 +386,15 @@ export default function Home() {
             {products.map((product) => (
               <div key={product.id} className="group bg-slate-900/50 rounded-2xl overflow-hidden border border-white/10 hover:border-cyan-500/50 transition duration-300 hover:transform hover:-translate-y-2">
                 {/* Product Image */}
-                <div className="relative h-64 overflow-hidden">
+                <div className="relative h-64 overflow-hidden bg-slate-800">
                   <img 
                     src={product.image} 
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                    onError={(e) => {
+                      // Fallback if image not found
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop';
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-60"></div>
                   
@@ -295,11 +411,24 @@ export default function Home() {
 
                 {/* Product Info */}
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-3">{product.name}</h3>
+                  <h3 className="text-xl font-bold text-white mb-2">{product.name}</h3>
+                  <p className="text-gray-400 text-sm mb-4 line-clamp-2">{product.description}</p>
+                  
+                  {/* Market Flags */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-xs">🇺🇸</span>
+                    <span className="text-xs">🇮🇳</span>
+                    <span className="text-xs">🇨🇳</span>
+                    <span className="text-xs text-gray-500 ml-2">Available in these markets</span>
+                  </div>
+                  
                   <div className="flex justify-between items-center">
                     <span className="text-2xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
-                    <button className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 rounded-full font-semibold transition transform hover:scale-105">
-                      Buy Now
+                    <button className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 rounded-full font-semibold transition transform hover:scale-105 flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      Buy Now – ${product.price.toFixed(2)}
                     </button>
                   </div>
                 </div>
