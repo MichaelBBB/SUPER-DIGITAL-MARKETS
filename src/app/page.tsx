@@ -6,17 +6,20 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
   
-  // Load sales data from localStorage or use defaults
+  // UPDATED: Higher starting sales numbers
   const [salesData, setSalesData] = useState([
-    { country: "USA", sales: 14969, color: "text-blue-400" },
-    { country: "INDIA", sales: 22413, color: "text-orange-400" },
-    { country: "CHINA", sales: 18731, color: "text-red-400" },
-    { country: "SOUTH AFRICA", sales: 3468, color: "text-green-400" }
+    { country: "USA", sales: 23865, color: "text-blue-400" },
+    { country: "INDIA", sales: 31284, color: "text-orange-400" },
+    { country: "CHINA", sales: 27589, color: "text-red-400" },
+    { country: "SOUTH AFRICA", sales: 12317, color: "text-green-400" }
   ]);
+
+  // UPDATED: Changed to v2 to force refresh for returning users
+  const STORAGE_KEY = 'superDigitalSales_v2';
 
   // Load saved sales data from localStorage on mount
   useEffect(() => {
-    const savedSales = localStorage.getItem('superDigitalSales');
+    const savedSales = localStorage.getItem(STORAGE_KEY);
     if (savedSales) {
       try {
         const parsed = JSON.parse(savedSales);
@@ -29,7 +32,7 @@ export default function Home() {
 
   // Save sales data to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('superDigitalSales', JSON.stringify(salesData));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(salesData));
   }, [salesData]);
 
   // Simulate live sales updates
@@ -196,7 +199,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* LIVE SALES TRACKER - NOW PERSISTS! */}
+      {/* LIVE SALES TRACKER */}
       <section className="py-20 bg-slate-950">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-10">Live Sales Tracker</h2>
@@ -289,7 +292,7 @@ export default function Home() {
                   
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-xs">🇺🇸</span>
-                    <span className="text-xs">🇮</span>
+                    <span className="text-xs">🇮🇳</span>
                     <span className="text-xs">🇨🇳</span>
                     <span className="text-xs text-gray-500 ml-2">Available in these markets</span>
                   </div>
