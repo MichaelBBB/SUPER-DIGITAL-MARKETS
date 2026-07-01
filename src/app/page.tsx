@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link'; // ✅ FIXED: Added Link import
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
   
-  // UPDATED: Higher starting sales numbers
   const [salesData, setSalesData] = useState([
     { country: "USA", sales: 23865, color: "text-blue-400" },
     { country: "INDIA", sales: 31284, color: "text-orange-400" },
@@ -14,10 +14,8 @@ export default function Home() {
     { country: "SOUTH AFRICA", sales: 12317, color: "text-green-400" }
   ]);
 
-  // UPDATED: Changed to v2 to force refresh for returning users
   const STORAGE_KEY = 'superDigitalSales_v2';
 
-  // Load saved sales data from localStorage on mount
   useEffect(() => {
     const savedSales = localStorage.getItem(STORAGE_KEY);
     if (savedSales) {
@@ -30,12 +28,10 @@ export default function Home() {
     }
   }, []);
 
-  // Save sales data to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(salesData));
   }, [salesData]);
 
-  // Simulate live sales updates
   useEffect(() => {
     const interval = setInterval(() => {
       setSalesData(prevData => 
@@ -45,7 +41,6 @@ export default function Home() {
         }))
       );
     }, 3000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -110,7 +105,7 @@ export default function Home() {
             <div className="hidden md:flex items-center gap-8">
               <a href="#" className="text-sm text-gray-300 hover:text-white transition">Home</a>
               <a href="#products" className="text-sm text-gray-300 hover:text-white transition">Products</a>
-              <a href="/payment-methods" className="text-sm text-gray-300 hover:text-white transition">How Do I Pay?</a>
+              <Link href="/payment-methods" className="text-sm text-gray-300 hover:text-white transition">How Do I Pay?</Link>
               <div className="flex items-center gap-3 px-3 py-1.5 bg-green-500/20 rounded-full border border-green-500/30">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-xs text-green-400">LIVE</span>
@@ -134,7 +129,7 @@ export default function Home() {
             <div className="md:hidden mt-4 pb-4 space-y-2">
               <a href="#" className="block px-4 py-2 hover:bg-white/5 rounded-lg">Home</a>
               <a href="#products" className="block px-4 py-2 hover:bg-white/5 rounded-lg">Products</a>
-              <a href="/payment-methods" className="block px-4 py-2 hover:bg-white/5 rounded-lg">How Do I Pay?</a>
+              <Link href="/payment-methods" className="block px-4 py-2 hover:bg-white/5 rounded-lg">How Do I Pay?</Link>
             </div>
           )}
         </div>
@@ -291,9 +286,9 @@ export default function Home() {
                   <p className="text-gray-400 text-sm mb-4 line-clamp-2">{product.description}</p>
                   
                   <div className="flex items-center gap-2 mb-4">
-                    <span className="text-xs">🇺🇸</span>
+                    <span className="text-xs">🇸</span>
                     <span className="text-xs">🇮🇳</span>
-                    <span className="text-xs">🇨🇳</span>
+                    <span className="text-xs">🇳</span>
                     <span className="text-xs text-gray-500 ml-2">Available in these markets</span>
                   </div>
                   
@@ -313,7 +308,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 💳 PAYMENT METHODS SECTION - PERMANENTLY ATTACHED */}
+      {/* PAYMENT METHODS SECTION - PERMANENTLY ATTACHED */}
       <section className="py-20 bg-slate-900/30 border-y border-white/10">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
@@ -329,42 +324,31 @@ export default function Home() {
 
           {/* Payment Methods Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-            {/* Razorpay */}
             <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
               <div className="text-3xl mb-2">🇮🇳</div>
               <div className="font-semibold text-white text-sm mb-1">Razorpay</div>
               <div className="text-[10px] text-blue-400 font-bold">INDIA PRIMARY</div>
             </div>
-
-            {/* Alipay */}
             <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
               <div className="text-3xl mb-2">🇨🇳</div>
               <div className="font-semibold text-white text-sm mb-1">Alipay</div>
               <div className="text-[10px] text-blue-400 font-bold">CHINA PRIMARY</div>
             </div>
-
-            {/* Payoneer */}
             <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
               <div className="text-3xl mb-2">🇺🇸</div>
               <div className="font-semibold text-white text-sm mb-1">Payoneer</div>
               <div className="text-[10px] text-red-400 font-bold">USA PRIMARY</div>
             </div>
-
-            {/* Google Pay */}
             <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
               <div className="text-3xl mb-2">🌍</div>
               <div className="font-semibold text-white text-sm mb-1">Google Pay</div>
               <div className="text-[10px] text-blue-400 font-bold">GLOBAL</div>
             </div>
-
-            {/* Peach Payments */}
             <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
-              <div className="text-3xl mb-2">🇦</div>
+              <div className="text-3xl mb-2">🇿🇦</div>
               <div className="font-semibold text-white text-sm mb-1">Peach Payments</div>
               <div className="text-[10px] text-orange-400 font-bold">SA PRIMARY</div>
             </div>
-
-            {/* Capitec */}
             <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
               <div className="text-3xl mb-2">🏦</div>
               <div className="font-semibold text-white text-sm mb-1">Capitec</div>
@@ -372,9 +356,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* View All Button */}
+          {/* FIXED: Using Link to prevent page refresh */}
           <div className="text-center">
-            <a 
+            <Link 
               href="/payment-methods" 
               className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-400 rounded-full font-semibold transition"
             >
@@ -382,7 +366,7 @@ export default function Home() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </a>
+            </Link>
           </div>
         </div>
       </section>
