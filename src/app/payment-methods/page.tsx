@@ -1,196 +1,163 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
 
-const paymentMethods = [
-  { 
-    id: 'razorpay', 
-    name: 'Razorpay', 
-    region: 'India', 
-    tag: 'INDIA PRIMARY', 
-    tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800',
-    flag: '🇮🇳'
-  },
-  { 
-    id: 'alipay', 
-    name: 'Alipay', 
-    region: 'China', 
-    tag: 'CHINA PRIMARY', 
-    tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800',
-    flag: '🇳'
-  },
-  { 
-    id: 'payoneer', 
-    name: 'Payoneer', 
-    region: 'USA', 
-    tag: 'USA PRIMARY', 
-    tagColor: 'bg-red-900/50 text-red-400 border-red-800',
-    flag: '🇺🇸'
-  },
-  { 
-    id: 'googlepay', 
-    name: 'Google Pay', 
-    region: 'Global', 
-    tag: 'GLOBAL', 
-    tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800',
-    flag: ''
-  },
-  { 
-    id: 'peach', 
-    name: 'Peach Payments', 
-    region: 'South Africa', 
-    tag: 'SA PRIMARY', 
-    tagColor: 'bg-orange-900/50 text-orange-400 border-orange-800',
-    flag: '🇿🇦'
-  },
-  { 
-    id: 'capitec', 
-    name: 'Capitec Bank Transfer', 
-    region: 'South Africa', 
-    tag: 'MANUAL', 
-    tagColor: 'bg-slate-800 text-slate-400 border-slate-700',
-    flag: '🇿🇦'
-  },
-];
-
-export default function PaymentMethods() {
-  // Default to 'capitec' to match your screenshot
-  const [activeId, setActiveId] = useState('capitec');
-
+export default function PaymentGuide() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white pt-24 pb-12 px-6">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-slate-950 text-white py-20 px-4 md:px-8">
+      <div className="max-w-7xl mx-auto">
         
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Select Payment Method</h1>
-          <p className="text-gray-400">Choose the best option for your region</p>
+        {/* Page Title */}
+        <div className="text-center mb-12">
+          <div className="inline-block px-4 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-sm font-semibold mb-4">
+            SECURE CHECKOUT
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            How Do I <span className="text-yellow-400">Pay?</span>
+          </h1>
+          <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+            Follow these simple steps to complete your purchase securely.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           
-          {/* LEFT SIDE: Payment List */}
-          <div className="lg:col-span-5 space-y-3">
-            {paymentMethods.map((method) => (
-              <button
-                key={method.id}
-                onClick={() => setActiveId(method.id)}
-                className={`w-full text-left p-4 rounded-xl border transition-all duration-200 flex items-center justify-between group ${
-                  activeId === method.id
-                    ? 'bg-slate-900 border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.1)]'
-                    : 'bg-slate-900/30 border-slate-800 hover:bg-slate-900 hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl">{method.flag}</span>
-                  <div>
-                    <div className="font-semibold text-white group-hover:text-cyan-400 transition">
-                      {method.name}
-                    </div>
-                    <div className="text-xs text-gray-500">{method.region}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <span className={`px-2 py-1 rounded text-[10px] font-bold border ${method.tagColor}`}>
-                    {method.tag}
-                  </span>
-                  {activeId === method.id && (
-                    <div className="w-5 h-5 bg-cyan-500 rounded-full flex items-center justify-center">
-                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
+          {/* LEFT COLUMN: The 4 Steps */}
+          <div className="space-y-4">
+            
+            {/* Step 01 */}
+            <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 flex gap-5 items-start">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                  <span className="text-cyan-500">01</span> Choose Your Product
+                </h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Browse all 30 digital products and click "Buy Now" on your selection.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 02 */}
+            <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 flex gap-5 items-start">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                  <span className="text-cyan-500">02</span> Select Payment Method
+                </h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Choose from Razorpay (India), Alipay (China), Payoneer (USA), Google Pay, Peach Payments, or direct bank transfer.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 03 */}
+            <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 flex gap-5 items-start">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                  <span className="text-cyan-500">03</span> Complete Payment
+                </h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Follow the secure checkout flow. For bank transfers, use the Capitec details below and email your proof of payment.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 04 */}
+            <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 flex gap-5 items-start">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                  <span className="text-cyan-500">04</span> Instant Delivery
+                </h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Your digital product is delivered immediately to your email after payment confirmation.
+                </p>
+              </div>
+            </div>
+
           </div>
 
-          {/* RIGHT SIDE: Details Panel */}
-          <div className="lg:col-span-7">
-            <div className="p-8 bg-slate-900/50 rounded-2xl border border-slate-800 backdrop-blur-sm h-full">
+          {/* RIGHT COLUMN: Capitec Bank Details */}
+          <div className="space-y-6">
+            
+            {/* Bank Card */}
+            <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl shadow-cyan-500/5">
               
-              {/* Capitec Specific Content (Matches Screenshot Exactly) */}
-              {activeId === 'capitec' && (
-                <>
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold flex items-center gap-2">
-                        🇦 Capitec Bank Transfer
-                      </h2>
-                      <p className="text-gray-400 text-sm">South Africa Market</p>
-                    </div>
-                    <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-2xl">
-                      🏦
-                    </div>
+              {/* Header */}
+              <div className="flex items-start justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-2xl shadow-lg shadow-blue-600/20">
+                    🇿🇦
                   </div>
-
-                  <p className="text-gray-300 mb-8">
-                    Direct bank transfer to our Capitec account.
-                  </p>
-
-                  <div className="space-y-6">
-                    {/* Currencies */}
-                    <div>
-                      <div className="text-xs text-gray-500 font-semibold mb-2 uppercase tracking-wider">
-                        Currencies
-                      </div>
-                      <div className="text-xl font-mono text-white">
-                        ZAR (South African Rand)
-                      </div>
-                    </div>
-
-                    {/* Accepted Methods */}
-                    <div>
-                      <div className="text-xs text-gray-500 font-semibold mb-3 uppercase tracking-wider">
-                        Accepted Methods
-                      </div>
-                      <div className="flex flex-wrap gap-3">
-                        <span className="flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 text-sm text-green-400">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          EFT
-                        </span>
-                        <span className="flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 text-sm text-green-400">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Internet Banking
-                        </span>
-                        <span className="flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 text-sm text-green-400">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Capitec App
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Action Button */}
-                    <button className="w-full mt-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                      Pay with Capitec Bank Transfer
-                    </button>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Capitec Bank</h2>
+                    <p className="text-gray-400 text-sm">South Africa • Savings Account</p>
                   </div>
-                </>
-              )}
-
-              {/* Placeholder for other methods */}
-              {activeId !== 'capitec' && (
-                <div className="text-center py-20">
-                  <div className="text-6xl mb-4 opacity-50">{paymentMethods.find(m => m.id === activeId)?.flag}</div>
-                  <h3 className="text-xl font-bold text-gray-300 mb-2">
-                    {paymentMethods.find(m => m.id === activeId)?.name}
-                  </h3>
-                  <p className="text-gray-500">Integration details coming soon...</p>
                 </div>
-              )}
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold uppercase tracking-wider">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                  Verified
+                </div>
+              </div>
+
+              {/* Account Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1 font-semibold">Account Holder</div>
+                  <div className="text-lg font-bold text-white">SUPER DIGITAL</div>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1 font-semibold">Account Number</div>
+                  <div className="text-lg font-bold text-white font-mono">1975933441</div>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1 font-semibold">Swift Code</div>
+                  <div className="text-lg font-bold text-white font-mono">CABLZAJJ</div>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800">
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mb-1 font-semibold">Branch Code</div>
+                  <div className="text-lg font-bold text-white font-mono">470010</div>
+                </div>
+              </div>
+
+              {/* Warning Alert */}
+              <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 flex gap-3 items-start">
+                <div className="flex-shrink-0 mt-0.5 text-orange-400">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>
+                </div>
+                <div>
+                  <p className="text-sm text-orange-200 font-semibold mb-1">After payment:</p>
+                  <p className="text-xs text-gray-300 leading-relaxed">
+                    Email your proof of payment to <span className="text-cyan-400 font-bold">payments@superdigital.store</span> with your order number. Products are delivered within 2 hours of payment confirmation. Reference your order number in the payment description.
+                  </p>
+                </div>
+              </div>
 
             </div>
+
+            {/* All Accepted Payment Methods */}
+            <div className="bg-slate-900/30 rounded-2xl p-6 border border-slate-800">
+              <div className="text-sm text-gray-500 font-semibold uppercase tracking-wider mb-4">All Accepted Payment Methods</div>
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Razorpay 🇮🇳</div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Alipay 🇨🇳</div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Payoneer 🇺🇸</div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Google Pay </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Peach Payments 🇿🇦</div>
+              </div>
+            </div>
+
           </div>
 
         </div>
