@@ -313,6 +313,80 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 💳 PAYMENT METHODS SECTION - PERMANENTLY ATTACHED */}
+      <section className="py-20 bg-slate-900/30 border-y border-white/10">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <div className="text-sm text-cyan-400 mb-2">SECURE PAYMENTS</div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <span className="text-white">How Do I</span>
+              <span className="text-yellow-400"> Pay?</span>
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Multiple payment options tailored for your region. Fast, secure, and instant delivery.
+            </p>
+          </div>
+
+          {/* Payment Methods Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+            {/* Razorpay */}
+            <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
+              <div className="text-3xl mb-2">🇮🇳</div>
+              <div className="font-semibold text-white text-sm mb-1">Razorpay</div>
+              <div className="text-[10px] text-blue-400 font-bold">INDIA PRIMARY</div>
+            </div>
+
+            {/* Alipay */}
+            <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
+              <div className="text-3xl mb-2">🇨🇳</div>
+              <div className="font-semibold text-white text-sm mb-1">Alipay</div>
+              <div className="text-[10px] text-blue-400 font-bold">CHINA PRIMARY</div>
+            </div>
+
+            {/* Payoneer */}
+            <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
+              <div className="text-3xl mb-2">🇺🇸</div>
+              <div className="font-semibold text-white text-sm mb-1">Payoneer</div>
+              <div className="text-[10px] text-red-400 font-bold">USA PRIMARY</div>
+            </div>
+
+            {/* Google Pay */}
+            <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
+              <div className="text-3xl mb-2">🌍</div>
+              <div className="font-semibold text-white text-sm mb-1">Google Pay</div>
+              <div className="text-[10px] text-blue-400 font-bold">GLOBAL</div>
+            </div>
+
+            {/* Peach Payments */}
+            <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
+              <div className="text-3xl mb-2">🇦</div>
+              <div className="font-semibold text-white text-sm mb-1">Peach Payments</div>
+              <div className="text-[10px] text-orange-400 font-bold">SA PRIMARY</div>
+            </div>
+
+            {/* Capitec */}
+            <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition text-center group">
+              <div className="text-3xl mb-2">🏦</div>
+              <div className="font-semibold text-white text-sm mb-1">Capitec</div>
+              <div className="text-[10px] text-slate-400 font-bold">BANK TRANSFER</div>
+            </div>
+          </div>
+
+          {/* View All Button */}
+          <div className="text-center">
+            <a 
+              href="/payment-methods" 
+              className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-400 rounded-full font-semibold transition"
+            >
+              View All Payment Methods
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer className="py-12 bg-slate-900 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-6 text-center text-gray-400">
