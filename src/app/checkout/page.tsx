@@ -86,6 +86,49 @@ function CheckoutContent() {
     window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
   };
 
+  // ✅ FIXED: Peach Payments - Submit form programmatically
+  const handlePeachPayment = () => {
+    // Create a hidden form
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://test.peachpayments.com/checkout/v1/payment';
+    form.target = '_blank';
+    
+    // Add all required Peach Payments fields
+    const fields = {
+      entityId: process.env.NEXT_PUBLIC_PEACH_ENTITY_ID || '8a8a8a8a8a8a8a8a018a8a8a8a000001',
+      amount: product.price.toFixed(2),
+      currency: 'ZAR',
+      paymentType: 'DB',
+      merchantTransactionId: `SD-${product.id}-${Date.now()}`,
+      'customer.email': 'customer@example.com',
+      'customer.givenName': 'Test',
+      'customer.surname': 'Customer',
+      'billing.street1': '123 Test Street',
+      'billing.city': 'Johannesburg',
+      'billing.postcode': '2000',
+      'billing.country': 'ZA',
+    };
+
+    // Create and append inputs
+    Object.entries(fields).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+
+    // Append form to body and submit
+    document.body.appendChild(form);
+    form.submit();
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(form);
+    }, 1000);
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-white py-20 px-4 md:px-8">
       <div className="max-w-4xl mx-auto">
@@ -168,7 +211,7 @@ function CheckoutContent() {
               </button>
             </div>
 
-            {/* ✅ FIXED: Peach Payments Form */}
+            {/* ✅ FIXED: Peach Payments Button */}
             <div className="bg-slate-900 rounded-2xl p-6 border border-cyan-500/30 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
               <div className="flex items-center gap-3 mb-4 relative z-10">
@@ -178,39 +221,16 @@ function CheckoutContent() {
               </div>
               <p className="text-gray-400 text-sm mb-6 relative z-10">Secure checkout powered by Peach Payments. Supports Visa, Mastercard, and Capitec Pay.</p>
 
-              {/* 🔧 Fixed: Added target="_blank" to prevent Next.js interception + correct sandbox URL */}
-              <form 
-                action="https://test.peachpayments.com/checkout/v1/payment" 
-                method="POST" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="relative z-10"
+              <button 
+                onClick={handlePeachPayment}
+                className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 cursor-pointer"
               >
-                {/* Replace with your REAL Entity ID from Peach Dashboard */}
-                <input type="hidden" name="entityId" value={process.env.NEXT_PUBLIC_PEACH_ENTITY_ID || "8a8a8a8a8a8a8a8a018a8a8a8a000001"} />
-                <input type="hidden" name="amount" value={product.price.toFixed(2)} />
-                <input type="hidden" name="currency" value="ZAR" />
-                <input type="hidden" name="paymentType" value="DB" />
-                <input type="hidden" name="merchantTransactionId" value={`SD-${product.id}-${Date.now()}`} />
-                <input type="hidden" name="customer.email" value="customer@example.com" />
-                <input type="hidden" name="customer.givenName" value="Test" />
-                <input type="hidden" name="customer.surname" value="Customer" />
-                <input type="hidden" name="billing.street1" value="123 Test Street" />
-                <input type="hidden" name="billing.city" value="Johannesburg" />
-                <input type="hidden" name="billing.postcode" value="2000" />
-                <input type="hidden" name="billing.country" value="ZA" />
-
-                <button 
-                  type="submit" 
-                  className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 cursor-pointer"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  Pay ${product.price.toFixed(2)} Securely
-                </button>
-                <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments secure gateway in a new tab.</p>
-              </form>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Pay ${product.price.toFixed(2)} Securely
+              </button>
+              <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments secure gateway in a new tab.</p>
             </div>
 
           </div>
