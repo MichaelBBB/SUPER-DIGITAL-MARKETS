@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
   const [activePayment, setActivePayment] = useState('capitec');
   
-  // UPDATED: Highest sales numbers from your screenshot
   const [salesData, setSalesData] = useState([
     { country: "USA", sales: 35791, color: "text-blue-400" },
     { country: "INDIA", sales: 43191, color: "text-orange-400" },
@@ -85,12 +85,12 @@ export default function Home() {
     : products.filter(p => p.category === activeCategory);
 
   const paymentMethods = [
-    { id: 'razorpay', name: 'Razorpay', region: 'India', tag: 'INDIA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇮🇳' },
+    { id: 'razorpay', name: 'Razorpay', region: 'India', tag: 'INDIA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇳' },
     { id: 'alipay', name: 'Alipay', region: 'China', tag: 'CHINA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇨🇳' },
-    { id: 'payoneer', name: 'Payoneer', region: 'USA', tag: 'USA PRIMARY', tagColor: 'bg-red-900/50 text-red-400 border-red-800', flag: '🇺🇸' },
-    { id: 'googlepay', name: 'Google Pay', region: 'Global', tag: 'GLOBAL', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🌍' },
+    { id: 'payoneer', name: 'Payoneer', region: 'USA', tag: 'USA PRIMARY', tagColor: 'bg-red-900/50 text-red-400 border-red-800', flag: '🇺' },
+    { id: 'googlepay', name: 'Google Pay', region: 'Global', tag: 'GLOBAL', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '' },
     { id: 'peach', name: 'Peach Payments', region: 'South Africa', tag: 'SA PRIMARY', tagColor: 'bg-orange-900/50 text-orange-400 border-orange-800', flag: '🇿🇦' },
-    { id: 'capitec', name: 'Capitec Bank Transfer', region: 'South Africa', tag: 'MANUAL', tagColor: 'bg-slate-800 text-slate-400 border-slate-700', flag: '🇿' },
+    { id: 'capitec', name: 'Capitec Bank Transfer', region: 'South Africa', tag: 'MANUAL', tagColor: 'bg-slate-800 text-slate-400 border-slate-700', flag: '🏦' },
   ];
 
   return (
@@ -120,12 +120,16 @@ export default function Home() {
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-xs text-green-400">LIVE</span>
               </div>
-              <button className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 rounded-full text-sm font-semibold transition flex items-center gap-2">
+              {/* ✅ FIXED: Shop Now is now a Link */}
+              <Link 
+                href="#products" 
+                className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 rounded-full text-sm font-semibold transition flex items-center gap-2 cursor-pointer"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 Shop Now
-              </button>
+              </Link>
             </div>
 
             <button className="md:hidden text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -176,9 +180,9 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="px-8 py-4 bg-cyan-500 hover:bg-cyan-400 rounded-full font-semibold text-lg transition transform hover:scale-105">
+            <Link href="#products" className="px-8 py-4 bg-cyan-500 hover:bg-cyan-400 rounded-full font-semibold text-lg transition transform hover:scale-105 text-center">
               Browse Products
-            </button>
+            </Link>
             <button className="px-8 py-4 bg-white/10 hover:bg-white/20 rounded-full font-semibold text-lg transition backdrop-blur-sm border border-white/20">
               How It Works
             </button>
@@ -204,7 +208,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* LIVE SALES TRACKER - UPDATED WITH HIGHEST NUMBERS */}
+      {/* LIVE SALES TRACKER */}
       <section className="py-20 bg-slate-950">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-10">Live Sales Tracker</h2>
@@ -296,20 +300,26 @@ export default function Home() {
                   <p className="text-gray-400 text-sm mb-4 line-clamp-2">{product.description}</p>
                   
                   <div className="flex items-center gap-2 mb-4">
-                    <span className="text-xs">🇺🇸</span>
-                    <span className="text-xs">🇮</span>
-                    <span className="text-xs">🇨🇳</span>
+                    <span className="text-xs">🇸</span>
+                    <span className="text-xs">🇮🇳</span>
+                    <span className="text-xs">🇳</span>
                     <span className="text-xs text-gray-500 ml-2">Available in these markets</span>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="text-2xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
-                    <button className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 rounded-full font-semibold transition transform hover:scale-105 flex items-center gap-2">
+                    
+                    {/* ✅ FIXED: Buy Now is now a Link */}
+                    <Link 
+                      href={`/checkout?product=${product.id}`}
+                      className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 rounded-full font-semibold transition transform hover:scale-105 flex items-center gap-2 cursor-pointer"
+                    >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                       </svg>
                       Buy Now – ${product.price.toFixed(2)}
-                    </button>
+                    </Link>
+
                   </div>
                 </div>
               </div>
@@ -384,7 +394,7 @@ export default function Home() {
                     <div className="flex items-center justify-between mb-6">
                       <div>
                         <h2 className="text-2xl font-bold flex items-center gap-2">
-                          🇿🇦 Capitec Bank Transfer
+                          🇦 Capitec Bank Transfer
                         </h2>
                         <p className="text-gray-400 text-sm">South Africa Market</p>
                       </div>
@@ -548,7 +558,7 @@ export default function Home() {
                 <div className="flex items-start justify-between mb-8">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-2xl shadow-lg shadow-blue-600/20">
-                      🇿🇦
+                      🇿
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-white">Capitec Bank</h2>
@@ -602,7 +612,7 @@ export default function Home() {
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Alipay 🇨🇳</div>
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Payoneer 🇺🇸</div>
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Google Pay 🌍</div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Peach Payments 🇿🇦</div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Peach Payments 🇦</div>
                 </div>
               </div>
 
