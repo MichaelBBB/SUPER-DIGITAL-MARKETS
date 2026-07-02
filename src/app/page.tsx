@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link'; // ✅ MUST BE HERE
+import Link from 'next/link';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -80,13 +80,11 @@ export default function Home() {
     { id: 30, name: "ElevenLabs Starter", price: 5.00, category: "AI Tools", tag: "NEW", tagColor: "bg-cyan-500", description: "AI voice cloning.", image: "/images/elevenlabs.jpg" }
   ];
 
-  const filteredProducts = activeCategory === 'All' 
-    ? products 
-    : products.filter(p => p.category === activeCategory);
+  const filteredProducts = activeCategory === 'All' ? products : products.filter(p => p.category === activeCategory);
 
   const paymentMethods = [
     { id: 'razorpay', name: 'Razorpay', region: 'India', tag: 'INDIA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇳' },
-    { id: 'alipay', name: 'Alipay', region: 'China', tag: 'CHINA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇨🇳' },
+    { id: 'alipay', name: 'Alipay', region: 'China', tag: 'CHINA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇨' },
     { id: 'payoneer', name: 'Payoneer', region: 'USA', tag: 'USA PRIMARY', tagColor: 'bg-red-900/50 text-red-400 border-red-800', flag: '🇺' },
     { id: 'googlepay', name: 'Google Pay', region: 'Global', tag: 'GLOBAL', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🌍' },
     { id: 'peach', name: 'Peach Payments', region: 'South Africa', tag: 'SA PRIMARY', tagColor: 'bg-orange-900/50 text-orange-400 border-orange-800', flag: '🇦' },
@@ -95,8 +93,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      
-      {/* NAVIGATION */}
       <nav className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
@@ -133,7 +129,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&auto=format&fit=crop')" }}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-950/60 to-slate-950"></div>
@@ -158,16 +153,43 @@ export default function Home() {
         </div>
       </section>
 
-      {/* STATS & SALES TRACKER (Shortened for brevity, keep your existing code here) */}
-      <section className="py-12 bg-slate-900/50 border-y border-white/10"><div className="max-w-7xl mx-auto px-6"><div className="grid grid-cols-2 md:grid-cols-4 gap-8"><div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">30+</div><div className="text-sm text-gray-400">PRODUCTS</div></div><div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">4</div><div className="text-sm text-gray-400">COUNTRIES</div></div><div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">8+</div><div className="text-sm text-gray-400">PAYMENTS</div></div><div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">100%</div><div className="text-sm text-gray-400">INSTANT</div></div></div></div></section>
+      <section className="py-12 bg-slate-900/50 border-y border-white/10">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">30+</div><div className="text-sm text-gray-400">PRODUCTS</div></div>
+            <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">4</div><div className="text-sm text-gray-400">COUNTRIES</div></div>
+            <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">8+</div><div className="text-sm text-gray-400">PAYMENTS</div></div>
+            <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">100%</div><div className="text-sm text-gray-400">INSTANT</div></div>
+          </div>
+        </div>
+      </section>
       
-      <section className="py-20 bg-slate-950"><div className="max-w-7xl mx-auto px-6"><h2 className="text-3xl font-bold mb-10">Live Sales Tracker</h2><div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">{salesData.map((data) => (<div key={data.country} className="p-6 bg-slate-900/50 rounded-2xl border border-white/10"><div className={`text-sm font-semibold mb-2 ${data.color}`}>{data.country}</div><div className="text-3xl font-bold text-white">{data.sales.toLocaleString().replace(',', ' ')}</div></div>))}</div><div className="p-8 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-2xl border border-cyan-500/30"><div className="text-sm text-gray-400 mb-2">GLOBAL TOTAL</div><div className="text-5xl font-bold text-blue-400">{totalSales.toLocaleString().replace(',', ' ')}</div></div></div></section>
+      <section className="py-20 bg-slate-950">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl font-bold mb-10">Live Sales Tracker</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {salesData.map((data) => (
+              <div key={data.country} className="p-6 bg-slate-900/50 rounded-2xl border border-white/10">
+                <div className={`text-sm font-semibold mb-2 ${data.color}`}>{data.country}</div>
+                <div className="text-3xl font-bold text-white">{data.sales.toLocaleString().replace(',', ' ')}</div>
+              </div>
+            ))}
+          </div>
+          <div className="p-8 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-2xl border border-cyan-500/30">
+            <div className="text-sm text-gray-400 mb-2">GLOBAL TOTAL</div>
+            <div className="text-5xl font-bold text-blue-400">{totalSales.toLocaleString().replace(',', ' ')}</div>
+          </div>
+        </div>
+      </section>
 
-      {/* PRODUCTS SECTION */}
       <section id="products" className="py-20 bg-slate-950">
         <div className="max-w-7xl mx-auto px-6">
           <div className="mb-10"><h2 className="text-4xl font-bold mb-4"><span className="text-white">Top Digital</span> <span className="text-yellow-400">Products</span></h2></div>
-          <div className="flex flex-wrap gap-3 mb-10">{['All', 'AI Tools', 'Creative', 'Entertainment', 'Business', 'Productivity', 'Security'].map((cat) => (<button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full text-sm transition ${activeCategory === cat ? 'bg-cyan-500 text-white' : 'bg-white/5 text-gray-300'}`}>{cat}</button>))}</div>
+          <div className="flex flex-wrap gap-3 mb-10">
+            {['All', 'AI Tools', 'Creative', 'Entertainment', 'Business', 'Productivity', 'Security'].map((cat) => (
+              <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full text-sm transition ${activeCategory === cat ? 'bg-cyan-500 text-white' : 'bg-white/5 text-gray-300'}`}>{cat}</button>
+            ))}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
               <div key={product.id} className="group bg-slate-900/50 rounded-2xl overflow-hidden border border-white/10 hover:border-cyan-500/50 transition">
@@ -181,7 +203,6 @@ export default function Home() {
                   <p className="text-gray-400 text-sm mb-4">{product.description}</p>
                   <div className="flex justify-between items-center">
                     <span className="text-2xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
-                    {/* ✅ FIXED: This MUST be a Link */}
                     <Link href={`/checkout?product=${product.id}`} className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 rounded-full font-semibold transition flex items-center gap-2 cursor-pointer">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                       Buy Now
@@ -193,9 +214,22 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
-      {/* PAYMENT SECTIONS (Keep your existing Payment Methods & Guide sections here) */}
-      <footer className="py-12 bg-slate-900 border-t border-white/10"><div className="text-center text-gray-400">© 2024 Super Digital Markets</div></footer>
+
+      <section id="payment-methods" className="py-20 bg-slate-950 border-t border-white/10">
+        <div className="max-w-5xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold mb-6">Secure Payment Methods</h2>
+          <p className="text-gray-400 mb-8">Choose the best option for your region. All transactions are encrypted and secure.</p>
+          <div className="flex flex-wrap justify-center gap-4">
+            {paymentMethods.map((m) => (
+              <button key={m.id} onClick={() => setActivePayment(m.id)} className={`px-6 py-3 rounded-xl border transition ${activePayment === m.id ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400' : 'bg-slate-900 border-slate-800 text-gray-300'}`}>
+                {m.flag} {m.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <footer className="py-12 bg-slate-900 border-t border-white/10"><div className="text-center text-gray-400">© 2024 Super Digital Markets. All rights reserved.</div></footer>
     </div>
   );
 }
