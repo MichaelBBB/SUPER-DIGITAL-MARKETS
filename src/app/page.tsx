@@ -88,8 +88,8 @@ export default function Home() {
     { id: 'razorpay', name: 'Razorpay', region: 'India', tag: 'INDIA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇳' },
     { id: 'alipay', name: 'Alipay', region: 'China', tag: 'CHINA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇨🇳' },
     { id: 'payoneer', name: 'Payoneer', region: 'USA', tag: 'USA PRIMARY', tagColor: 'bg-red-900/50 text-red-400 border-red-800', flag: '🇺' },
-    { id: 'googlepay', name: 'Google Pay', region: 'Global', tag: 'GLOBAL', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '' },
-    { id: 'peach', name: 'Peach Payments', region: 'South Africa', tag: 'SA PRIMARY', tagColor: 'bg-orange-900/50 text-orange-400 border-orange-800', flag: '🇿🇦' },
+    { id: 'googlepay', name: 'Google Pay', region: 'Global', tag: 'GLOBAL', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🌍' },
+    { id: 'peach', name: 'Peach Payments', region: 'South Africa', tag: 'SA PRIMARY', tagColor: 'bg-orange-900/50 text-orange-400 border-orange-800', flag: '🇦' },
     { id: 'capitec', name: 'Capitec Bank Transfer', region: 'South Africa', tag: 'MANUAL', tagColor: 'bg-slate-800 text-slate-400 border-slate-700', flag: '🏦' },
   ];
 
@@ -300,9 +300,9 @@ export default function Home() {
                   <p className="text-gray-400 text-sm mb-4 line-clamp-2">{product.description}</p>
                   
                   <div className="flex items-center gap-2 mb-4">
-                    <span className="text-xs">🇸</span>
+                    <span className="text-xs">🇺</span>
                     <span className="text-xs">🇮🇳</span>
-                    <span className="text-xs">🇳</span>
+                    <span className="text-xs">🇨🇳</span>
                     <span className="text-xs text-gray-500 ml-2">Available in these markets</span>
                   </div>
                   
@@ -394,7 +394,7 @@ export default function Home() {
                     <div className="flex items-center justify-between mb-6">
                       <div>
                         <h2 className="text-2xl font-bold flex items-center gap-2">
-                          🇦 Capitec Bank Transfer
+                          🇿 Capitec Bank Transfer
                         </h2>
                         <p className="text-gray-400 text-sm">South Africa Market</p>
                       </div>
@@ -558,7 +558,7 @@ export default function Home() {
                 <div className="flex items-start justify-between mb-8">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-2xl shadow-lg shadow-blue-600/20">
-                      🇿
+                      🇿🇦
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-white">Capitec Bank</h2>
@@ -608,8 +608,8 @@ export default function Home() {
               <div className="bg-slate-900/30 rounded-2xl p-6 border border-slate-800">
                 <div className="text-sm text-gray-500 font-semibold uppercase tracking-wider mb-4">All Accepted Payment Methods</div>
                 <div className="flex flex-wrap gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Razorpay 🇮🇳</div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Alipay 🇨🇳</div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Razorpay 🇳</div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Alipay 🇨</div>
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Payoneer 🇺🇸</div>
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Google Pay 🌍</div>
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Peach Payments 🇦</div>
