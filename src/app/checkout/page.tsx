@@ -11,7 +11,6 @@ interface Product {
   description: string;
 }
 
-// Exact match to homepage product IDs
 const products: Product[] = [
   { id: 1, name: "ChatGPT Plus", price: 20.00, description: "OpenAI's GPT-4 powered assistant" },
   { id: 2, name: "Adobe Creative Cloud", price: 54.99, description: "Full suite of Adobe apps" },
@@ -80,10 +79,10 @@ function CheckoutContent() {
     );
   }
 
-  // 1. Functional Capitec Button: Opens Email
+  // ✅ Capitec: Opens email client
   const handleCapitecClick = () => {
     const subject = encodeURIComponent(`Payment Confirmation - SD-${product.id}`);
-    const body = encodeURIComponent(`Hello,\n\nI have completed a bank transfer for product: ${product.name} (ID: ${product.id}).\n\nAmount: $${product.price.toFixed(2)}\n\nPlease find attached proof of payment.\n\nReference: SD-${product.id}`);
+    const body = encodeURIComponent(`Hello,\n\nI have completed a bank transfer for product: ${product.name} (ID: ${product.id}).\n\nAmount: $${product.price.toFixed(2)}\n\nReference: SD-${product.id}`);
     window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
   };
 
@@ -161,7 +160,6 @@ function CheckoutContent() {
                 </p>
               </div>
 
-              {/* ✅ FIXED: Button now opens email client */}
               <button 
                 onClick={handleCapitecClick}
                 className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition cursor-pointer"
@@ -170,29 +168,37 @@ function CheckoutContent() {
               </button>
             </div>
 
-            {/* Peach Payments / Card */}
+            {/* ✅ FIXED: Peach Payments Form */}
             <div className="bg-slate-900 rounded-2xl p-6 border border-cyan-500/30 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
               <div className="flex items-center gap-3 mb-4 relative z-10">
-                <span className="text-2xl"></span>
+                <span className="text-2xl">💳</span>
                 <h3 className="text-xl font-bold">Credit / Debit Card</h3>
                 <span className="ml-auto px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded-full font-bold border border-cyan-500/30">PEACH PAYMENTS</span>
               </div>
               <p className="text-gray-400 text-sm mb-6 relative z-10">Secure checkout powered by Peach Payments. Supports Visa, Mastercard, and Capitec Pay.</p>
 
-              {/* ✅ FIXED: Integrated Peach Payments Form */}
-              {/* Replace process.env.NEXT_PUBLIC_PEACH_ENTITY_ID with your actual Entity ID from Vercel */}
+              {/* 🔧 Fixed: Added target="_blank" to prevent Next.js interception + correct sandbox URL */}
               <form 
                 action="https://test.peachpayments.com/checkout/v1/payment" 
                 method="POST" 
+                target="_blank" 
+                rel="noopener noreferrer"
                 className="relative z-10"
               >
+                {/* Replace with your REAL Entity ID from Peach Dashboard */}
                 <input type="hidden" name="entityId" value={process.env.NEXT_PUBLIC_PEACH_ENTITY_ID || "8a8a8a8a8a8a8a8a018a8a8a8a000001"} />
                 <input type="hidden" name="amount" value={product.price.toFixed(2)} />
                 <input type="hidden" name="currency" value="ZAR" />
-                <input type="hidden" name="paymentBrand" value="VISA" />
+                <input type="hidden" name="paymentType" value="DB" />
                 <input type="hidden" name="merchantTransactionId" value={`SD-${product.id}-${Date.now()}`} />
                 <input type="hidden" name="customer.email" value="customer@example.com" />
+                <input type="hidden" name="customer.givenName" value="Test" />
+                <input type="hidden" name="customer.surname" value="Customer" />
+                <input type="hidden" name="billing.street1" value="123 Test Street" />
+                <input type="hidden" name="billing.city" value="Johannesburg" />
+                <input type="hidden" name="billing.postcode" value="2000" />
+                <input type="hidden" name="billing.country" value="ZA" />
 
                 <button 
                   type="submit" 
@@ -203,7 +209,7 @@ function CheckoutContent() {
                   </svg>
                   Pay ${product.price.toFixed(2)} Securely
                 </button>
-                <p className="text-center text-xs text-gray-500 mt-3">You will be redirected to Peach Payments secure gateway.</p>
+                <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments secure gateway in a new tab.</p>
               </form>
             </div>
 
