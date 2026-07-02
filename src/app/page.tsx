@@ -7,14 +7,15 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [activePayment, setActivePayment] = useState('capitec');
   
+  // UPDATED: Highest sales numbers from your screenshot
   const [salesData, setSalesData] = useState([
-    { country: "USA", sales: 23865, color: "text-blue-400" },
-    { country: "INDIA", sales: 31284, color: "text-orange-400" },
-    { country: "CHINA", sales: 27589, color: "text-red-400" },
-    { country: "SOUTH AFRICA", sales: 12317, color: "text-green-400" }
+    { country: "USA", sales: 35791, color: "text-blue-400" },
+    { country: "INDIA", sales: 43191, color: "text-orange-400" },
+    { country: "CHINA", sales: 39655, color: "text-red-400" },
+    { country: "SOUTH AFRICA", sales: 24248, color: "text-green-400" }
   ]);
 
-  const STORAGE_KEY = 'superDigitalSales_v2';
+  const STORAGE_KEY = 'superDigitalSales_v3';
 
   useEffect(() => {
     const savedSales = localStorage.getItem(STORAGE_KEY);
@@ -89,7 +90,7 @@ export default function Home() {
     { id: 'payoneer', name: 'Payoneer', region: 'USA', tag: 'USA PRIMARY', tagColor: 'bg-red-900/50 text-red-400 border-red-800', flag: '🇺🇸' },
     { id: 'googlepay', name: 'Google Pay', region: 'Global', tag: 'GLOBAL', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🌍' },
     { id: 'peach', name: 'Peach Payments', region: 'South Africa', tag: 'SA PRIMARY', tagColor: 'bg-orange-900/50 text-orange-400 border-orange-800', flag: '🇿🇦' },
-    { id: 'capitec', name: 'Capitec Bank Transfer', region: 'South Africa', tag: 'MANUAL', tagColor: 'bg-slate-800 text-slate-400 border-slate-700', flag: '🇿🇦' },
+    { id: 'capitec', name: 'Capitec Bank Transfer', region: 'South Africa', tag: 'MANUAL', tagColor: 'bg-slate-800 text-slate-400 border-slate-700', flag: '🇿' },
   ];
 
   return (
@@ -196,14 +197,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">30+</div><div className="text-sm text-gray-400">PRODUCTS AVAILABLE</div></div>
-            <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">3</div><div className="text-sm text-gray-400">COUNTRIES SERVED</div></div>
+            <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">4</div><div className="text-sm text-gray-400">COUNTRIES SERVED</div></div>
             <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">8+</div><div className="text-sm text-gray-400">PAYMENT METHODS</div></div>
             <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">100%</div><div className="text-sm text-gray-400">INSTANT DELIVERY</div></div>
           </div>
         </div>
       </section>
 
-      {/* LIVE SALES TRACKER */}
+      {/* LIVE SALES TRACKER - UPDATED WITH HIGHEST NUMBERS */}
       <section className="py-20 bg-slate-950">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-10">Live Sales Tracker</h2>
@@ -317,7 +318,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PAYMENT METHODS SECTION (Your Screenshot) */}
+      {/* PAYMENT METHODS SECTION */}
       <section id="payment-methods" className="py-20 bg-slate-950 border-t border-white/10">
         <div className="max-w-5xl mx-auto px-6">
           
@@ -459,7 +460,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PAYMENT GUIDE SECTION (4 Steps) */}
+      {/* PAYMENT GUIDE SECTION */}
       <section className="py-20 bg-slate-950 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-6">
           
@@ -598,7 +599,7 @@ export default function Home() {
                 <div className="text-sm text-gray-500 font-semibold uppercase tracking-wider mb-4">All Accepted Payment Methods</div>
                 <div className="flex flex-wrap gap-3">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Razorpay 🇮🇳</div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Alipay 🇨</div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Alipay 🇨🇳</div>
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Payoneer 🇺🇸</div>
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Google Pay 🌍</div>
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 rounded-full text-xs text-gray-300 border border-slate-700">Peach Payments 🇿🇦</div>
