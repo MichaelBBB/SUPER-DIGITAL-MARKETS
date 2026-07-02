@@ -80,6 +80,13 @@ function CheckoutContent() {
     );
   }
 
+  // 1. Functional Capitec Button: Opens Email
+  const handleCapitecClick = () => {
+    const subject = encodeURIComponent(`Payment Confirmation - SD-${product.id}`);
+    const body = encodeURIComponent(`Hello,\n\nI have completed a bank transfer for product: ${product.name} (ID: ${product.id}).\n\nAmount: $${product.price.toFixed(2)}\n\nPlease find attached proof of payment.\n\nReference: SD-${product.id}`);
+    window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-white py-20 px-4 md:px-8">
       <div className="max-w-4xl mx-auto">
@@ -154,7 +161,11 @@ function CheckoutContent() {
                 </p>
               </div>
 
-              <button className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition">
+              {/* ✅ FIXED: Button now opens email client */}
+              <button 
+                onClick={handleCapitecClick}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition cursor-pointer"
+              >
                 I've Completed the Transfer
               </button>
             </div>
@@ -169,14 +180,31 @@ function CheckoutContent() {
               </div>
               <p className="text-gray-400 text-sm mb-6 relative z-10">Secure checkout powered by Peach Payments. Supports Visa, Mastercard, and Capitec Pay.</p>
 
-              {/* 🍑 PEACH PAYMENTS INTEGRATION POINT */}
-              <div id="peach-payments-container" className="relative z-10">
-                <button className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              {/* ✅ FIXED: Integrated Peach Payments Form */}
+              {/* Replace process.env.NEXT_PUBLIC_PEACH_ENTITY_ID with your actual Entity ID from Vercel */}
+              <form 
+                action="https://test.peachpayments.com/checkout/v1/payment" 
+                method="POST" 
+                className="relative z-10"
+              >
+                <input type="hidden" name="entityId" value={process.env.NEXT_PUBLIC_PEACH_ENTITY_ID || "8a8a8a8a8a8a8a8a018a8a8a8a000001"} />
+                <input type="hidden" name="amount" value={product.price.toFixed(2)} />
+                <input type="hidden" name="currency" value="ZAR" />
+                <input type="hidden" name="paymentBrand" value="VISA" />
+                <input type="hidden" name="merchantTransactionId" value={`SD-${product.id}-${Date.now()}`} />
+                <input type="hidden" name="customer.email" value="customer@example.com" />
+
+                <button 
+                  type="submit" 
+                  className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
                   Pay ${product.price.toFixed(2)} Securely
                 </button>
                 <p className="text-center text-xs text-gray-500 mt-3">You will be redirected to Peach Payments secure gateway.</p>
-              </div>
+              </form>
             </div>
 
           </div>
