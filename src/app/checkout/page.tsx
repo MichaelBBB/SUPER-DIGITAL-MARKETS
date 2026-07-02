@@ -86,17 +86,18 @@ function CheckoutContent() {
     window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
   };
 
-  // ✅ FIXED: Peach Payments - Submit form programmatically
+  // ✅ Peach Payments: Submit with REAL Entity ID
   const handlePeachPayment = () => {
-    // Create a hidden form
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = 'https://test.peachpayments.com/checkout/v1/payment';
     form.target = '_blank';
     
-    // Add all required Peach Payments fields
+    // YOUR REAL SANDBOX ENTITY ID
+    const entityId = '8ac7a4c89d6f2185019d70e1ee0501f3';
+    
     const fields = {
-      entityId: process.env.NEXT_PUBLIC_PEACH_ENTITY_ID || '8a8a8a8a8a8a8a8a018a8a8a8a000001',
+      entityId: entityId,
       amount: product.price.toFixed(2),
       currency: 'ZAR',
       paymentType: 'DB',
@@ -110,7 +111,6 @@ function CheckoutContent() {
       'billing.country': 'ZA',
     };
 
-    // Create and append inputs
     Object.entries(fields).forEach(([key, value]) => {
       const input = document.createElement('input');
       input.type = 'hidden';
@@ -119,11 +119,9 @@ function CheckoutContent() {
       form.appendChild(input);
     });
 
-    // Append form to body and submit
     document.body.appendChild(form);
     form.submit();
     
-    // Clean up
     setTimeout(() => {
       document.body.removeChild(form);
     }, 1000);
@@ -133,7 +131,6 @@ function CheckoutContent() {
     <div className="min-h-screen bg-slate-950 text-white py-20 px-4 md:px-8">
       <div className="max-w-4xl mx-auto">
         
-        {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <Link href="/" className="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition">
             ← Back to Marketplace
@@ -211,7 +208,7 @@ function CheckoutContent() {
               </button>
             </div>
 
-            {/* ✅ FIXED: Peach Payments Button */}
+            {/* Peach Payments */}
             <div className="bg-slate-900 rounded-2xl p-6 border border-cyan-500/30 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
               <div className="flex items-center gap-3 mb-4 relative z-10">
