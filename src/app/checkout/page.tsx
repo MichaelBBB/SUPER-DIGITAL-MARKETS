@@ -68,16 +68,22 @@ function CheckoutContent() {
   };
 
   const handlePeachPayment = () => {
+    // ✅ DEBUG: Log to console so we can see if it runs
+    console.log('Starting Peach Payments flow...');
+    console.log('Product:', product.name, 'Price:', product.price);
+
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = 'https://test.peachpayments.com/checkout';
+    
+    // ✅ FIXED URL: This is the correct Hosted Checkout endpoint
+    form.action = 'https://test.peachpayments.com/checkout/v1/payment';
     form.target = '_blank';
     
     const fields = {
       entityId: '8ac7a4c89d6f2185019d70e1ee0501f3',
       amount: product.price.toFixed(2),
       currency: 'ZAR',
-      paymentType: 'DB',
+      paymentType: 'DB', // Debit transaction
       merchantTransactionId: `SD-${product.id}-${Date.now()}`,
       'customer.email': 'customer@example.com',
       'customer.givenName': 'Test',
@@ -86,8 +92,11 @@ function CheckoutContent() {
       'billing.city': 'Johannesburg',
       'billing.postcode': '2000',
       'billing.country': 'ZA',
-      'shopper.resultUrl': window.location.origin + '/checkout/success'
+      // ✅ Return URL: Where Peach sends the user after payment
+      'shopper.resultUrl': window.location.origin + '/checkout/success', 
     };
+
+    console.log('Sending fields:', fields);
 
     Object.entries(fields).forEach(([key, value]) => {
       const input = document.createElement('input');
@@ -99,6 +108,8 @@ function CheckoutContent() {
 
     document.body.appendChild(form);
     form.submit();
+    
+    // Cleanup
     setTimeout(() => { if (document.body.contains(form)) document.body.removeChild(form); }, 1000);
   };
 
