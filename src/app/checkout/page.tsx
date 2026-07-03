@@ -4,14 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  description: string;
-}
-
-const products: Product[] = [
+const products = [
   { id: 1, name: "ChatGPT Plus", price: 20.00, description: "OpenAI's GPT-4 powered assistant" },
   { id: 2, name: "Adobe Creative Cloud", price: 54.99, description: "Full suite of Adobe apps" },
   { id: 3, name: "Netflix Premium", price: 22.99, description: "4K streaming service" },
@@ -46,45 +39,36 @@ const products: Product[] = [
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const id = searchParams.get('product');
     if (id) {
-      const found = products.find(p => p.id === parseInt(id));
+      const found = products.find((p) => p.id === parseInt(id));
       setProduct(found || null);
     }
     setLoading(false);
   }, [searchParams]);
 
-  if (loading) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div></div>;
-  if (!product) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><div className="text-center"><p className="text-red-400 mb-4">Product not found</p><Link href="/" className="px-6 py-3 bg-cyan-500 rounded-full">Back to Products</Link></div></div>;
-
   const handleCapitecClick = () => {
-    const subject = encodeURIComponent(`Payment Confirmation - SD-${product.id}`);
-    const body = encodeURIComponent(`Order: ${product.name} (ID: ${product.id})\nAmount: $${product.price.toFixed(2)}\nReference: SD-${product.id}`);
+    const subject = encodeURIComponent(`Payment - SD-${product?.id}`);
+    const body = encodeURIComponent(`Order: ${product?.name}\nRef: SD-${product?.id}\nAmount: $${product?.price}`);
     window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
   };
 
   const handlePeachPayment = () => {
-    // ✅ DEBUG: Log to console so we can see if it runs
-    console.log('Starting Peach Payments flow...');
-    console.log('Product:', product.name, 'Price:', product.price);
-
     const form = document.createElement('form');
     form.method = 'POST';
-    
-    // ✅ FIXED URL: This is the correct Hosted Checkout endpoint
     form.action = 'https://test.peachpayments.com/checkout/v1/payment';
     form.target = '_blank';
     
     const fields = {
       entityId: '8ac7a4c89d6f2185019d70e1ee0501f3',
-      amount: product.price.toFixed(2),
+      amount: product?.price.toFixed(2),
       currency: 'ZAR',
-      paymentType: 'DB', // Debit transaction
-      merchantTransactionId: `SD-${product.id}-${Date.now()}`,
+      paymentType: 'DB',
+      merchantTransactionId: `SD-${product?.id}-${Date.now()}`,
       'customer.email': 'customer@example.com',
       'customer.givenName': 'Test',
       'customer.surname': 'Customer',
@@ -92,11 +76,8 @@ function CheckoutContent() {
       'billing.city': 'Johannesburg',
       'billing.postcode': '2000',
       'billing.country': 'ZA',
-      // ✅ Return URL: Where Peach sends the user after payment
-      'shopper.resultUrl': window.location.origin + '/checkout/success', 
+      'shopper.resultUrl': typeof window !== 'undefined' ? window.location.origin + '/checkout/success' : ''
     };
-
-    console.log('Sending fields:', fields);
 
     Object.entries(fields).forEach(([key, value]) => {
       const input = document.createElement('input');
@@ -108,10 +89,27 @@ function CheckoutContent() {
 
     document.body.appendChild(form);
     form.submit();
-    
-    // Cleanup
-    setTimeout(() => { if (document.body.contains(form)) document.body.removeChild(form); }, 1000);
+    setTimeout(() => { if(document.body.contains(form)) document.body.removeChild(form); }, 1000);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Product not found</p>
+          <Link href="/" className="px-6 py-3 bg-cyan-500 rounded-full font-semibold">Back to Products</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-white py-20 px-4">
@@ -132,32 +130,40 @@ function CheckoutContent() {
                 <span className="text-2xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
               </div>
             </div>
-            <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 text-sm text-gray-400 space-y-2">
-              <div className="flex items-center gap-2"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg> SSL Encrypted Transaction</div>
-              <div className="flex items-center gap-2"><svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg> PCI-DSS Compliant</div>
-            </div>
           </div>
 
           <div className="lg:col-span-3 space-y-6">
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
               <h3 className="text-xl font-bold mb-4">🏦 Capitec Bank Transfer</h3>
               <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                <div className="bg-slate-950 p-3 rounded"><div className="text-gray-500 text-xs">Account Holder</div><div className="font-bold">SUPER DIGITAL</div></div>
-                <div className="bg-slate-950 p-3 rounded"><div className="text-gray-500 text-xs">Account Number</div><div className="font-bold font-mono">1975933441</div></div>
-                <div className="bg-slate-950 p-3 rounded"><div className="text-gray-500 text-xs">Branch Code</div><div className="font-bold font-mono">470010</div></div>
-                <div className="bg-slate-950 p-3 rounded"><div className="text-gray-500 text-xs">Reference</div><div className="font-bold font-mono">SD-{product.id}</div></div>
+                <div className="bg-slate-950 p-3 rounded">
+                  <div className="text-gray-500 text-xs">Account Holder</div>
+                  <div className="font-bold">SUPER DIGITAL</div>
+                </div>
+                <div className="bg-slate-950 p-3 rounded">
+                  <div className="text-gray-500 text-xs">Account Number</div>
+                  <div className="font-bold font-mono">1975933441</div>
+                </div>
+                <div className="bg-slate-950 p-3 rounded">
+                  <div className="text-gray-500 text-xs">Branch Code</div>
+                  <div className="font-bold font-mono">470010</div>
+                </div>
+                <div className="bg-slate-950 p-3 rounded">
+                  <div className="text-gray-500 text-xs">Reference</div>
+                  <div className="font-bold font-mono">SD-{product.id}</div>
+                </div>
               </div>
-              <button onClick={handleCapitecClick} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition cursor-pointer">I've Completed the Transfer</button>
+              <button onClick={handleCapitecClick} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition">
+                I've Completed the Transfer
+              </button>
             </div>
 
             <div className="bg-slate-900 p-6 rounded-2xl border border-cyan-500/30">
-              <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded ml-2 border border-cyan-500/30">PEACH PAYMENTS</span></h3>
-              <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments. Supports Visa, Mastercard, and Capitec Pay.</p>
-              <button onClick={handlePeachPayment} className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 cursor-pointer">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card</h3>
+              <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments.</p>
+              <button onClick={handlePeachPayment} className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition">
                 Pay ${product.price.toFixed(2)} Securely
               </button>
-              <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments secure gateway in a new tab.</p>
             </div>
           </div>
         </div>
@@ -168,7 +174,11 @@ function CheckoutContent() {
 
 export default function Checkout() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
       <CheckoutContent />
     </Suspense>
   );
