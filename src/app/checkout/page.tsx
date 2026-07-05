@@ -65,10 +65,10 @@ function CheckoutContent() {
       return;
     }
 
-    // Create payment form and submit
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = 'https://test.peachpayments.com/checkout/v1/payment';
+    // ✅ CHANGED TO V3 (as you remembered!)
+    form.action = 'https://test.peachpayments.com/checkout/v3/payment';
     form.target = '_blank';
     
     const fields = {
@@ -179,7 +179,6 @@ function CheckoutContent() {
               >
                 Pay ${product.price.toFixed(2)} Securely
               </button>
-              <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments in a new tab.</p>
             </div>
           </div>
         </div>
