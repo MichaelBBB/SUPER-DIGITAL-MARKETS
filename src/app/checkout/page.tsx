@@ -41,7 +41,6 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     const id = searchParams.get('product');
@@ -59,13 +58,13 @@ function CheckoutContent() {
   };
 
   const handlePeachPayment = async () => {
+    console.log('🍑 Peach button clicked!');
+    
     if (!product) {
       alert('Error: No product selected.');
       return;
     }
 
-    setProcessing(true);
-    
     try {
       const response = await fetch('/api/peach-payment', {
         method: 'POST',
@@ -77,132 +76,59 @@ function CheckoutContent() {
       });
 
       const data = await response.json();
+      console.log('API Response:', data);
 
       if (data.success && data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
-        alert('Payment error: ' + (data.error || 'Failed to create payment session'));
+        alert('Payment error: ' + (data.error || 'Failed'));
       }
     } catch (error) {
-      console.error('Peach payment error:', error);
-      alert('Failed to process payment. Please try again.');
-    } finally {
-      setProcessing(false);
+      console.error('Error:', error);
+      alert('Failed to process payment.');
     }
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div></div>;
   }
 
   if (!product) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">Product not found</p>
-          <Link href="/" className="px-6 py-3 bg-cyan-500 rounded-full font-semibold hover:bg-cyan-400 transition">
-            ← Back to Products
-          </Link>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><p className="text-red-400">Product not found</p></div>;
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white py-20 px-4 md:px-8">
+    <div className="min-h-screen bg-slate-950 text-white py-20 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-10">
-          <Link href="/" className="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition">
-            ← Back to Marketplace
-          </Link>
-          <h1 className="text-3xl font-bold">Secure Checkout</h1>
-          <div className="w-20"></div>
+        <h1 className="text-3xl font-bold mb-10 text-center">Secure Checkout</h1>
+        
+        <div className="bg-slate-900 p-6 rounded-2xl mb-6">
+          <h2 className="text-2xl font-bold mb-2">{product.name}</h2>
+          <p className="text-gray-400 mb-4">{product.description}</p>
+          <div className="text-3xl font-bold text-cyan-400">${product.price.toFixed(2)}</div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
-              <h2 className="text-2xl font-bold mb-2">{product.name}</h2>
-              <p className="text-gray-400 text-sm mb-6">{product.description}</p>
-              <div className="flex justify-between items-center pt-4 border-t border-slate-800">
-                <span className="text-gray-400">Total</span>
-                <span className="text-3xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
-              </div>
+        <div className="space-y-6">
+          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+            <h3 className="text-xl font-bold mb-4">🏦 Capitec Bank Transfer</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+              <div className="bg-slate-950 p-3 rounded"><div className="text-gray-500 text-xs">Account Holder</div><div className="font-bold">SUPER DIGITAL</div></div>
+              <div className="bg-slate-950 p-3 rounded"><div className="text-gray-500 text-xs">Account Number</div><div className="font-bold font-mono">1975933441</div></div>
+              <div className="bg-slate-950 p-3 rounded"><div className="text-gray-500 text-xs">Branch Code</div><div className="font-bold font-mono">470010</div></div>
+              <div className="bg-slate-950 p-3 rounded"><div className="text-gray-500 text-xs">Reference</div><div className="font-bold font-mono">SD-{product.id}</div></div>
             </div>
+            <button onClick={handleCapitecClick} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold">I've Completed the Transfer</button>
           </div>
 
-          <div className="lg:col-span-3 space-y-6">
-            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-2xl">🏦</span>
-                <h3 className="text-xl font-bold">Capitec Bank Transfer</h3>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">Direct EFT. Instant delivery upon confirmation.</p>
-
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                  <div className="text-xs text-gray-500 mb-1">Account Holder</div>
-                  <div className="font-semibold text-sm">SUPER DIGITAL</div>
-                </div>
-                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                  <div className="text-xs text-gray-500 mb-1">Account Number</div>
-                  <div className="font-semibold text-sm font-mono">1975933441</div>
-                </div>
-                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                  <div className="text-xs text-gray-500 mb-1">Branch Code</div>
-                  <div className="font-semibold text-sm font-mono">470010</div>
-                </div>
-                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                  <div className="text-xs text-gray-500 mb-1">Reference</div>
-                  <div className="font-semibold text-sm font-mono">SD-{product.id}</div>
-                </div>
-              </div>
-
-              <button 
-                onClick={handleCapitecClick} 
-                className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition cursor-pointer"
-              >
-                I've Completed the Transfer
-              </button>
-            </div>
-
-            <div className="bg-slate-900 rounded-2xl p-6 border border-cyan-500/30">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-2xl">💳</span>
-                <h3 className="text-xl font-bold">Credit / Debit Card</h3>
-                <span className="ml-auto px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded-full border border-cyan-500/30">PEACH PAYMENTS</span>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments. Supports Visa, Mastercard, and Capitec Pay.</p>
-              
-              <button 
-                onClick={handlePeachPayment} 
-                disabled={processing}
-                className={`w-full py-4 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 ${
-                  processing 
-                    ? 'bg-gray-600 cursor-not-allowed' 
-                    : 'bg-cyan-500 hover:bg-cyan-400 cursor-pointer'
-                }`}
-              >
-                {processing ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    Pay ${product.price.toFixed(2)} Securely
-                  </>
-                )}
-              </button>
-              <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments secure gateway in a new tab.</p>
-            </div>
+          <div className="bg-slate-900 p-6 rounded-2xl border border-cyan-500/30">
+            <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card</h3>
+            <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments.</p>
+            <button 
+              onClick={handlePeachPayment}
+              className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg cursor-pointer"
+            >
+              Pay ${product.price.toFixed(2)} Securely
+            </button>
           </div>
         </div>
       </div>
@@ -211,13 +137,5 @@ function CheckoutContent() {
 }
 
 export default function Checkout() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    }>
-      <CheckoutContent />
-    </Suspense>
-  );
+  return <CheckoutContent />;
 }
