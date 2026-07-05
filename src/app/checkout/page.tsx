@@ -43,19 +43,15 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🔍 CheckoutContent mounted');
     const id = searchParams.get('product');
-    console.log('📦 Product ID from URL:', id);
     if (id) {
       const found = products.find((p) => p.id === parseInt(id));
-      console.log('🎯 Found product:', found);
       setProduct(found || null);
     }
     setLoading(false);
   }, [searchParams]);
 
   const handleCapitecClick = () => {
-    console.log('🏦 Capitec button clicked');
     const subject = encodeURIComponent(`Payment - SD-${product?.id}`);
     const body = encodeURIComponent(`Order: ${product?.name}\nRef: SD-${product?.id}\nAmount: $${product?.price}`);
     window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
@@ -63,21 +59,17 @@ function CheckoutContent() {
 
   const handlePeachPayment = () => {
     console.log('💳 Peach Payments button clicked!');
-    console.log('Current product state:', product);
     
     if (!product) {
       console.error('❌ ERROR: No product found!');
-      alert('Error: No product selected. Please go back and try again.');
+      alert('Error: No product selected.');
       return;
     }
 
-    console.log('✅ Creating payment form...');
-    console.log('Price:', product.price);
-    console.log('Entity ID:', '8ac7a4c89d6f2185019d70e1ee0501f3');
-
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = 'https://test.peachpayments.com/checkout/v1/payment';
+    // ✅ FIXED URL: Use hosted checkout, not API endpoint
+    form.action = 'https://test.peachpayments.com/checkout';
     form.target = '_blank';
     
     const fields = {
@@ -96,31 +88,17 @@ function CheckoutContent() {
       'shopper.resultUrl': typeof window !== 'undefined' ? window.location.origin + '/checkout/success' : ''
     };
 
-    console.log('📤 Fields to send:', fields);
-
     Object.entries(fields).forEach(([key, value]) => {
       const input = document.createElement('input');
       input.type = 'hidden';
       input.name = key;
       input.value = String(value);
       form.appendChild(input);
-      console.log(`  Added field: ${key} = ${value}`);
     });
 
-    console.log('📎 Appending form to body...');
     document.body.appendChild(form);
-    
-    console.log('🚀 Submitting form...');
     form.submit();
-    
-    console.log('✅ Form submitted successfully!');
-    
-    setTimeout(() => { 
-      if(document.body.contains(form)) {
-        console.log('️ Cleaning up form...');
-        document.body.removeChild(form); 
-      }
-    }, 1000);
+    setTimeout(() => { if(document.body.contains(form)) document.body.removeChild(form); }, 1000);
   };
 
   if (loading) {
@@ -192,13 +170,9 @@ function CheckoutContent() {
             <div className="bg-slate-900 p-6 rounded-2xl border border-cyan-500/30">
               <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card</h3>
               <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments.</p>
-              <button 
-                onClick={handlePeachPayment} 
-                className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition cursor-pointer"
-              >
+              <button onClick={handlePeachPayment} className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition">
                 Pay ${product.price.toFixed(2)} Securely
               </button>
-              <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments secure gateway in a new tab.</p>
             </div>
           </div>
         </div>
