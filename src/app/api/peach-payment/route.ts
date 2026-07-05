@@ -1,95 +1,174 @@
-import { NextResponse } from 'next/server';
+'use client';
 
-export async function POST(request: Request) {
-  try {
-    console.log('🍑 Peach API called');
+import { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+
+const products = [
+  { id: 1, name: "ChatGPT Plus", price: 20.00, description: "OpenAI's GPT-4 powered assistant" },
+  { id: 2, name: "Adobe Creative Cloud", price: 54.99, description: "Full suite of Adobe apps" },
+  { id: 3, name: "Netflix Premium", price: 22.99, description: "4K streaming service" },
+  { id: 4, name: "Microsoft 365 Business", price: 12.50, description: "Office apps + 1TB OneDrive" },
+  { id: 5, name: "Spotify Premium", price: 9.99, description: "Ad-free music streaming" },
+  { id: 6, name: "NordVPN", price: 3.99, description: "Military-grade encryption" },
+  { id: 7, name: "Notion Plus", price: 8.00, description: "All-in-one workspace" },
+  { id: 8, name: "Figma Professional", price: 12.00, description: "Collaborative UI/UX design" },
+  { id: 9, name: "Dropbox Plus", price: 9.99, description: "2TB cloud storage" },
+  { id: 10, name: "Canva Pro", price: 12.99, description: "Premium design templates" },
+  { id: 11, name: "Grammarly Premium", price: 12.00, description: "AI writing assistant" },
+  { id: 12, name: "Zoom Pro", price: 14.99, description: "Unlimited meetings" },
+  { id: 13, name: "LastPass Premium", price: 3.00, description: "Secure password manager" },
+  { id: 14, name: "Cursor AI Pro", price: 20.00, description: "AI-first code editor" },
+  { id: 15, name: "Midjourney Standard", price: 24.00, description: "AI image generation" },
+  { id: 16, name: "GitHub Copilot", price: 10.00, description: "AI pair programmer" },
+  { id: 17, name: "Slack Pro", price: 7.25, description: "Team messaging" },
+  { id: 18, name: "Dashlane Premium", price: 4.99, description: "Password manager + VPN" },
+  { id: 19, name: "Adobe Photoshop", price: 22.99, description: "Industry-standard photo editing" },
+  { id: 20, name: "Claude Pro", price: 20.00, description: "Advanced AI assistant" },
+  { id: 21, name: "Adobe Premiere Pro", price: 22.99, description: "Professional video editing" },
+  { id: 22, name: "Asana Premium", price: 10.99, description: "Project management" },
+  { id: 23, name: "ExpressVPN", price: 6.67, description: "Ultra-fast VPN" },
+  { id: 24, name: "YouTube Premium", price: 13.99, description: "Ad-free YouTube" },
+  { id: 25, name: "1Password", price: 2.99, description: "Password manager" },
+  { id: 26, name: "Monday.com Pro", price: 9.00, description: "Visual work OS" },
+  { id: 27, name: "Perplexity Pro", price: 20.00, description: "AI-powered search" },
+  { id: 28, name: "Loom Business", price: 12.50, description: "Async video messaging" },
+  { id: 29, name: "Webflow CMS", price: 14.00, description: "No-code website builder" },
+  { id: 30, name: "ElevenLabs Starter", price: 5.00, description: "AI voice cloning" }
+];
+
+// ✅ Child component that uses useSearchParams
+function CheckoutForm() {
+  const searchParams = useSearchParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const id = searchParams.get('product');
+    if (id) {
+      const found = products.find((p) => p.id === parseInt(id));
+      setProduct(found || null);
+    }
+    setLoading(false);
+  }, [searchParams]);
+
+  const handleCapitecClick = () => {
+    const subject = encodeURIComponent(`Payment Confirmation - SD-${product?.id}`);
+    const body = encodeURIComponent(`Hello,\n\nI have completed a bank transfer for product: ${product?.name} (ID: ${product?.id}).\n\nAmount: $${product?.price.toFixed(2)}\n\nReference: SD-${product?.id}`);
+    window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
+  };
+
+  const handlePeachPayment = async () => {
+    console.log('🍑 Peach button clicked');
     
-    const { amount, orderId } = await request.json();
-    console.log('Amount:', amount, 'OrderID:', orderId);
-
-    // Get credentials from env vars
-    const clientId = process.env.PEACH_CLIENT_ID;
-    const clientSecret = process.env.PEACH_CLIENT_SECRET;
-    const merchantId = process.env.PEACH_MERCHANT_ID;
-    const secretToken = process.env.PEACH_SECRET_TOKEN;
-    const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
-
-    if (!clientId || !clientSecret || !merchantId || !secretToken || !entityId) {
-      console.error('❌ Missing env vars');
-      return NextResponse.json({ success: false, error: 'Configuration missing' }, { status: 500 });
+    if (!product) {
+      alert('No product selected');
+      return;
     }
 
-    // STEP 1: Get OAuth2 Access Token
-    console.log('🔑 Requesting access token...');
-    const tokenResponse = await fetch('https://test.peachpayments.com/oauth/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
-      },
-      body: 'grant_type=client_credentials'
-    });
-
-    const tokenData = await tokenResponse.json();
-    console.log('Token response:', tokenData);
-
-    if (!tokenData.access_token) {
-      console.error('❌ Failed to get access token');
-      return NextResponse.json({ success: false, error: 'Authentication failed' }, { status: 401 });
+    try {
+      const res = await fetch('/api/peach-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}` })
+      });
+      
+      const data = await res.json();
+      console.log('API Response:', data);
+      
+      if (data.success && data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert('Error: ' + (data.error || 'Failed'));
+      }
+    } catch (e) {
+      console.error('Fetch error:', e);
+      alert('Failed to connect');
     }
+  };
 
-    const accessToken = tokenData.access_token;
-    console.log('✅ Got access token');
-
-    // STEP 2: Create Payment Session
-    console.log('💳 Creating payment session...');
-    const paymentResponse = await fetch('https://test.peachpayments.com/api/v1/payments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-        'X-Merchant-ID': merchantId,
-        'X-Secret-Token': secretToken
-      },
-      body: JSON.stringify({
-        entityId: entityId,
-        amount: amount.toFixed(2),
-        currency: 'ZAR',
-        paymentType: 'DB',
-        merchantTransactionId: orderId,
-        customer: {
-          email: 'customer@example.com',
-          givenName: 'Test',
-          surname: 'Customer'
-        },
-        billing: {
-          street1: '123 Test Street',
-          city: 'Johannesburg',
-          postcode: '2000',
-          country: 'ZA'
-        },
-        shopperResultUrl: 'https://super-digital-markets-co9n.vercel.app/checkout/success'
-      })
-    });
-
-    const paymentData = await paymentResponse.json();
-    console.log('Payment response:', paymentData);
-
-    // STEP 3: Return checkout URL
-    if (paymentData.redirectUrl || paymentData.checkoutUrl) {
-      const checkoutUrl = paymentData.redirectUrl || paymentData.checkoutUrl;
-      console.log('✅ Checkout URL:', checkoutUrl);
-      return NextResponse.json({ success: true, checkoutUrl });
-    } else {
-      console.error('❌ No checkout URL in response');
-      return NextResponse.json({ success: false, error: 'No checkout URL returned', debug: paymentData }, { status: 400 });
-    }
-
-  } catch (error) {
-    console.error('💥 Server error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    }, { status: 500 });
+  if (loading || !product) {
+    return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Loading...</div>;
   }
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white py-20 px-4">
+      <div className="max-w-4xl mx-auto">
+        <Link href="/" className="text-cyan-400 mb-6 block">← Back to Products</Link>
+        <h1 className="text-3xl font-bold mb-8">Secure Checkout</h1>
+        
+        <div className="bg-slate-900 p-6 rounded-2xl mb-6">
+          <h2 className="text-2xl font-bold">{product.name}</h2>
+          <p className="text-gray-400">{product.description}</p>
+          <div className="text-3xl font-bold text-cyan-400 mt-4">${product.price.toFixed(2)}</div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Capitec - WORKING ✅ */}
+          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+            <h3 className="text-xl font-bold mb-4">🏦 Capitec Bank Transfer</h3>
+            <p className="text-gray-400 text-sm mb-4">Direct EFT. Instant delivery upon confirmation.</p>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+              <div className="bg-slate-950 p-3 rounded">
+                <div className="text-gray-500 text-xs mb-1">Account Holder</div>
+                <div className="font-bold">SUPER DIGITAL</div>
+              </div>
+              <div className="bg-slate-950 p-3 rounded">
+                <div className="text-gray-500 text-xs mb-1">Account Number</div>
+                <div className="font-bold font-mono">1975933441</div>
+              </div>
+              <div className="bg-slate-950 p-3 rounded">
+                <div className="text-gray-500 text-xs mb-1">Branch Code</div>
+                <div className="font-bold font-mono">470010</div>
+              </div>
+              <div className="bg-slate-950 p-3 rounded">
+                <div className="text-gray-500 text-xs mb-1">Reference</div>
+                <div className="font-bold font-mono">SD-{product.id}</div>
+              </div>
+            </div>
+
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 mb-4">
+              <p className="text-xs text-orange-200">
+                <strong>Important:</strong> Email proof of payment to <span className="underline">payments@superdigital.store</span> with your reference number.
+              </p>
+            </div>
+
+            <button 
+              onClick={handleCapitecClick} 
+              className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition"
+            >
+              I've Completed the Transfer
+            </button>
+          </div>
+
+          {/* Peach Payments - DISABLED for now 🔜 */}
+          <div className="bg-slate-900 p-6 rounded-2xl border border-gray-700 opacity-60">
+            <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card</h3>
+            <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments.</p>
+            <button 
+              disabled
+              className="w-full py-4 bg-gray-700 rounded-xl font-bold text-lg cursor-not-allowed"
+            >
+              Card Payments Coming Soon
+            </button>
+            <p className="text-center text-xs text-gray-500 mt-2">Use Capitec Bank Transfer for instant payment.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ✅ Main export with Suspense wrapper (required for Next.js 15)
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <CheckoutForm />
+    </Suspense>
+  );
 }
