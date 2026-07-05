@@ -8,21 +8,29 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [activePayment, setActivePayment] = useState('capitec');
   
+  // ✅ UPDATED: Your latest sales numbers - TOTAL: 266,700
   const [salesData, setSalesData] = useState([
-    { country: "USA", sales: 35791, color: "text-blue-400" },
-    { country: "INDIA", sales: 43191, color: "text-orange-400" },
-    { country: "CHINA", sales: 39655, color: "text-red-400" },
-    { country: "SOUTH AFRICA", sales: 24248, color: "text-green-400" }
+    { country: "USA", sales: 67175, color: "text-blue-400" },
+    { country: "INDIA", sales: 80450, color: "text-orange-400" },
+    { country: "CHINA", sales: 73825, color: "text-red-400" },
+    { country: "SOUTH AFRICA", sales: 45250, color: "text-green-400" }
   ]);
 
-  const STORAGE_KEY = 'superDigitalSales_v3';
+  // ✅ NEW STORAGE KEY - Won't overwrite with old numbers
+  const STORAGE_KEY = 'superDigitalSales_FINAL';
 
   useEffect(() => {
     const savedSales = localStorage.getItem(STORAGE_KEY);
     if (savedSales) {
       try {
         const parsed = JSON.parse(savedSales);
-        setSalesData(parsed);
+        // Only update if saved numbers are HIGHER than current
+        setSalesData(prevData => 
+          parsed.map((saved: any, index: number) => ({
+            ...saved,
+            sales: Math.max(saved.sales, prevData[index]?.sales || 0)
+          }))
+        );
       } catch (e) {
         console.error('Failed to load sales data:', e);
       }
@@ -41,7 +49,7 @@ export default function Home() {
           sales: item.sales + Math.floor(Math.random() * 3)
         }))
       );
-    }, 3000);
+    }, 5000); // Slower updates to prevent going backwards
     return () => clearInterval(interval);
   }, []);
 
@@ -83,11 +91,11 @@ export default function Home() {
   const filteredProducts = activeCategory === 'All' ? products : products.filter(p => p.category === activeCategory);
 
   const paymentMethods = [
-    { id: 'razorpay', name: 'Razorpay', region: 'India', tag: 'INDIA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇳' },
-    { id: 'alipay', name: 'Alipay', region: 'China', tag: 'CHINA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇨' },
-    { id: 'payoneer', name: 'Payoneer', region: 'USA', tag: 'USA PRIMARY', tagColor: 'bg-red-900/50 text-red-400 border-red-800', flag: '🇺' },
+    { id: 'razorpay', name: 'Razorpay', region: 'India', tag: 'INDIA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇮🇳' },
+    { id: 'alipay', name: 'Alipay', region: 'China', tag: 'CHINA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇨🇳' },
+    { id: 'payoneer', name: 'Payoneer', region: 'USA', tag: 'USA PRIMARY', tagColor: 'bg-red-900/50 text-red-400 border-red-800', flag: '🇺🇸' },
     { id: 'googlepay', name: 'Google Pay', region: 'Global', tag: 'GLOBAL', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🌍' },
-    { id: 'peach', name: 'Peach Payments', region: 'South Africa', tag: 'SA PRIMARY', tagColor: 'bg-orange-900/50 text-orange-400 border-orange-800', flag: '🇦' },
+    { id: 'peach', name: 'Peach Payments', region: 'South Africa', tag: 'SA PRIMARY', tagColor: 'bg-orange-900/50 text-orange-400 border-orange-800', flag: '🇿🇦' },
     { id: 'capitec', name: 'Capitec Bank Transfer', region: 'South Africa', tag: 'MANUAL', tagColor: 'bg-slate-800 text-slate-400 border-slate-700', flag: '🏦' },
   ];
 
