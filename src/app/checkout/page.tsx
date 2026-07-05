@@ -41,6 +41,7 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     const id = searchParams.get('product');
@@ -53,12 +54,41 @@ function CheckoutContent() {
 
   const handleCapitecClick = () => {
     const subject = encodeURIComponent(`Payment Confirmation - SD-${product?.id}`);
-    const body = encodeURIComponent(`Hello,\n\nI have completed a bank transfer for product: ${product?.name} (ID: ${product?.id}).\n\nAmount: $${product?.price.toFixed(2)}\n\nPlease find attached proof of payment.\n\nReference: SD-${product?.id}`);
+    const body = encodeURIComponent(`Hello,\n\nI have completed a bank transfer for product: ${product?.name} (ID: ${product?.id}).\n\nAmount: $${product?.price.toFixed(2)}\n\nReference: SD-${product?.id}`);
     window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
   };
 
-  const handlePeachPayment = () => {
-    alert('💳 Card payments coming soon!\n\nFor instant payment, please use Capitec Bank Transfer below.');
+  const handlePeachPayment = async () => {
+    if (!product) {
+      alert('Error: No product selected.');
+      return;
+    }
+
+    setProcessing(true);
+    
+    try {
+      const response = await fetch('/api/peach-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: product.price,
+          orderId: `SD-${product.id}-${Date.now()}`
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.checkoutUrl) {
+        window.open(data.checkoutUrl, '_blank');
+      } else {
+        alert('Payment error: ' + (data.error || 'Failed to create payment session'));
+      }
+    } catch (error) {
+      console.error('Peach payment error:', error);
+      alert('Failed to process payment. Please try again.');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   if (loading) {
@@ -85,8 +115,6 @@ function CheckoutContent() {
   return (
     <div className="min-h-screen bg-slate-950 text-white py-20 px-4 md:px-8">
       <div className="max-w-4xl mx-auto">
-        
-        {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <Link href="/" className="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition">
             ← Back to Marketplace
@@ -96,8 +124,6 @@ function CheckoutContent() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          
-          {/* LEFT: Product Summary */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
               <h2 className="text-2xl font-bold mb-2">{product.name}</h2>
@@ -107,7 +133,7 @@ function CheckoutContent() {
                 <span className="text-3xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
               </div>
             </div>
-
+            
             <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
               <div className="flex items-center gap-3 text-sm text-gray-400 mb-2">
                 <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -124,16 +150,13 @@ function CheckoutContent() {
             </div>
           </div>
 
-          {/* RIGHT: Payment Methods */}
           <div className="lg:col-span-3 space-y-6">
-            
-            {/* Capitec Bank Transfer - WORKING ✅ */}
             <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-2xl">🏦</span>
                 <h3 className="text-xl font-bold">Capitec Bank Transfer</h3>
               </div>
-              <p className="text-gray-400 text-sm mb-4">Direct EFT from your Capitec account. Instant delivery upon confirmation.</p>
+              <p className="text-gray-400 text-sm mb-4">Direct EFT. Instant delivery upon confirmation.</p>
 
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
@@ -154,12 +177,6 @@ function CheckoutContent() {
                 </div>
               </div>
 
-              <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg mb-4">
-                <p className="text-xs text-orange-200">
-                  <span className="font-bold">Important:</span> Email proof of payment to <span className="underline">payments@superdigital.store</span> with your order reference.
-                </p>
-              </div>
-
               <button 
                 onClick={handleCapitecClick} 
                 className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition cursor-pointer"
@@ -168,25 +185,39 @@ function CheckoutContent() {
               </button>
             </div>
 
-            {/* Peach Payments - COMING SOON 🔜 */}
-            <div className="bg-slate-900 rounded-2xl p-6 border border-gray-700 opacity-60">
+            <div className="bg-slate-900 rounded-2xl p-6 border border-cyan-500/30">
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-2xl">💳</span>
                 <h3 className="text-xl font-bold">Credit / Debit Card</h3>
-                <span className="ml-auto px-2 py-1 bg-gray-700 text-gray-400 text-xs rounded-full">COMING SOON</span>
+                <span className="ml-auto px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded-full border border-cyan-500/30">PEACH PAYMENTS</span>
               </div>
               <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments. Supports Visa, Mastercard, and Capitec Pay.</p>
               
               <button 
                 onClick={handlePeachPayment} 
-                disabled
-                className="w-full py-4 bg-gray-700 rounded-xl font-bold text-lg cursor-not-allowed"
+                disabled={processing}
+                className={`w-full py-4 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 ${
+                  processing 
+                    ? 'bg-gray-600 cursor-not-allowed' 
+                    : 'bg-cyan-500 hover:bg-cyan-400 cursor-pointer'
+                }`}
               >
-                Card Payments Coming Soon
+                {processing ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Pay ${product.price.toFixed(2)} Securely
+                  </>
+                )}
               </button>
-              <p className="text-center text-xs text-gray-500 mt-3">Use Capitec Bank Transfer for instant payment.</p>
+              <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments secure gateway in a new tab.</p>
             </div>
-
           </div>
         </div>
       </div>
