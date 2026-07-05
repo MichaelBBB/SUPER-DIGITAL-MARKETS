@@ -79,7 +79,7 @@ function CheckoutContent() {
       const data = await response.json();
 
       if (data.success && data.checkoutUrl) {
-        window.open(data.checkoutUrl, '_blank');
+        window.location.href = data.checkoutUrl;
       } else {
         alert('Payment error: ' + (data.error || 'Failed to create payment session'));
       }
@@ -131,21 +131,6 @@ function CheckoutContent() {
               <div className="flex justify-between items-center pt-4 border-t border-slate-800">
                 <span className="text-gray-400">Total</span>
                 <span className="text-3xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
-              </div>
-            </div>
-            
-            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
-              <div className="flex items-center gap-3 text-sm text-gray-400 mb-2">
-                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                </svg>
-                <span>SSL Encrypted Transaction</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-gray-400">
-                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                </svg>
-                <span>PCI-DSS Compliant Payments</span>
               </div>
             </div>
           </div>
