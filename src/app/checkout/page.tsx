@@ -52,61 +52,13 @@ function CheckoutContent() {
   }, [searchParams]);
 
   const handleCapitecClick = () => {
-    const subject = encodeURIComponent(`Payment - SD-${product?.id}`);
-    const body = encodeURIComponent(`Order: ${product?.name}\nRef: SD-${product?.id}\nAmount: $${product?.price}`);
+    const subject = encodeURIComponent(`Payment Confirmation - SD-${product?.id}`);
+    const body = encodeURIComponent(`Hello,\n\nI have completed a bank transfer for product: ${product?.name} (ID: ${product?.id}).\n\nAmount: $${product?.price.toFixed(2)}\n\nPlease find attached proof of payment.\n\nReference: SD-${product?.id}`);
     window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
   };
 
   const handlePeachPayment = () => {
-    console.log('🍑 Redirecting to Peach Payments...');
-    
-    if (!product) {
-      alert('Error: No product selected.');
-      return;
-    }
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    
-    // ✅ Try the simplest Peach hosted checkout URL
-    form.action = 'https://test.peachpayments.com/checkout';
-    form.target = '_blank';
-    
-    const fields = {
-      entityId: '8ac7a4c89d6f2185019d70e1ee0501f3',
-      amount: product.price.toFixed(2),
-      currency: 'ZAR',
-      paymentType: 'DB',
-      merchantTransactionId: `SD-${product.id}-${Date.now()}`,
-      'customer.email': 'customer@example.com',
-      'customer.givenName': 'Test',
-      'customer.surname': 'Customer',
-      'billing.street1': '123 Test Street',
-      'billing.city': 'Johannesburg',
-      'billing.postcode': '2000',
-      'billing.country': 'ZA',
-      // ✅ ADD THIS: Where Peach redirects after payment
-      'shopper.resultUrl': 'https://super-digital-markets-co9n.vercel.app/checkout/success'
-    };
-
-    console.log('Sending fields to Peach:', fields);
-
-    Object.entries(fields).forEach(([key, value]) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = String(value);
-      form.appendChild(input);
-    });
-
-    document.body.appendChild(form);
-    form.submit();
-    
-    setTimeout(() => { 
-      if(document.body.contains(form)) {
-        document.body.removeChild(form); 
-      }
-    }, 1000);
+    alert('💳 Card payments coming soon!\n\nFor instant payment, please use Capitec Bank Transfer below.');
   };
 
   if (loading) {
@@ -122,70 +74,119 @@ function CheckoutContent() {
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">Product not found</p>
-          <Link href="/" className="px-6 py-3 bg-cyan-500 rounded-full font-semibold">Back to Products</Link>
+          <Link href="/" className="px-6 py-3 bg-cyan-500 rounded-full font-semibold hover:bg-cyan-400 transition">
+            ← Back to Products
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white py-20 px-4">
+    <div className="min-h-screen bg-slate-950 text-white py-20 px-4 md:px-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-10">
-          <Link href="/" className="text-cyan-400 hover:text-cyan-300 text-sm">← Back to Marketplace</Link>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-10">
+          <Link href="/" className="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition">
+            ← Back to Marketplace
+          </Link>
           <h1 className="text-3xl font-bold">Secure Checkout</h1>
           <div className="w-20"></div>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          
+          {/* LEFT: Product Summary */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-              <h2 className="text-xl font-bold mb-2">{product.name}</h2>
-              <p className="text-gray-400 text-sm mb-4">{product.description}</p>
+            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+              <h2 className="text-2xl font-bold mb-2">{product.name}</h2>
+              <p className="text-gray-400 text-sm mb-6">{product.description}</p>
               <div className="flex justify-between items-center pt-4 border-t border-slate-800">
                 <span className="text-gray-400">Total</span>
-                <span className="text-2xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
+                <span className="text-3xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800">
+              <div className="flex items-center gap-3 text-sm text-gray-400 mb-2">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                </svg>
+                <span>SSL Encrypted Transaction</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm text-gray-400">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                </svg>
+                <span>PCI-DSS Compliant Payments</span>
               </div>
             </div>
           </div>
 
+          {/* RIGHT: Payment Methods */}
           <div className="lg:col-span-3 space-y-6">
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-              <h3 className="text-xl font-bold mb-4">🏦 Capitec Bank Transfer</h3>
-              <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                <div className="bg-slate-950 p-3 rounded">
-                  <div className="text-gray-500 text-xs">Account Holder</div>
-                  <div className="font-bold">SUPER DIGITAL</div>
+            
+            {/* Capitec Bank Transfer - WORKING ✅ */}
+            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-2xl">🏦</span>
+                <h3 className="text-xl font-bold">Capitec Bank Transfer</h3>
+              </div>
+              <p className="text-gray-400 text-sm mb-4">Direct EFT from your Capitec account. Instant delivery upon confirmation.</p>
+
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                  <div className="text-xs text-gray-500 mb-1">Account Holder</div>
+                  <div className="font-semibold text-sm">SUPER DIGITAL</div>
                 </div>
-                <div className="bg-slate-950 p-3 rounded">
-                  <div className="text-gray-500 text-xs">Account Number</div>
-                  <div className="font-bold font-mono">1975933441</div>
+                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                  <div className="text-xs text-gray-500 mb-1">Account Number</div>
+                  <div className="font-semibold text-sm font-mono">1975933441</div>
                 </div>
-                <div className="bg-slate-950 p-3 rounded">
-                  <div className="text-gray-500 text-xs">Branch Code</div>
-                  <div className="font-bold font-mono">470010</div>
+                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                  <div className="text-xs text-gray-500 mb-1">Branch Code</div>
+                  <div className="font-semibold text-sm font-mono">470010</div>
                 </div>
-                <div className="bg-slate-950 p-3 rounded">
-                  <div className="text-gray-500 text-xs">Reference</div>
-                  <div className="font-bold font-mono">SD-{product.id}</div>
+                <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                  <div className="text-xs text-gray-500 mb-1">Reference</div>
+                  <div className="font-semibold text-sm font-mono">SD-{product.id}</div>
                 </div>
               </div>
-              <button onClick={handleCapitecClick} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition">
+
+              <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg mb-4">
+                <p className="text-xs text-orange-200">
+                  <span className="font-bold">Important:</span> Email proof of payment to <span className="underline">payments@superdigital.store</span> with your order reference.
+                </p>
+              </div>
+
+              <button 
+                onClick={handleCapitecClick} 
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition cursor-pointer"
+              >
                 I've Completed the Transfer
               </button>
             </div>
 
-            <div className="bg-slate-900 p-6 rounded-2xl border border-cyan-500/30">
-              <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card</h3>
-              <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments.</p>
+            {/* Peach Payments - COMING SOON 🔜 */}
+            <div className="bg-slate-900 rounded-2xl p-6 border border-gray-700 opacity-60">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-2xl">💳</span>
+                <h3 className="text-xl font-bold">Credit / Debit Card</h3>
+                <span className="ml-auto px-2 py-1 bg-gray-700 text-gray-400 text-xs rounded-full">COMING SOON</span>
+              </div>
+              <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments. Supports Visa, Mastercard, and Capitec Pay.</p>
+              
               <button 
                 onClick={handlePeachPayment} 
-                className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition cursor-pointer"
+                disabled
+                className="w-full py-4 bg-gray-700 rounded-xl font-bold text-lg cursor-not-allowed"
               >
-                Pay ${product.price.toFixed(2)} Securely
+                Card Payments Coming Soon
               </button>
-              <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments in a new tab.</p>
+              <p className="text-center text-xs text-gray-500 mt-3">Use Capitec Bank Transfer for instant payment.</p>
             </div>
+
           </div>
         </div>
       </div>
