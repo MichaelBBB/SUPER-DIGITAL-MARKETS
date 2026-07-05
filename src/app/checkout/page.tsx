@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import Script from 'next/script';
 
 const products = [
   { id: 1, name: "ChatGPT Plus", price: 20.00, description: "OpenAI's GPT-4 powered assistant" },
@@ -42,7 +41,6 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [peachLoaded, setPeachLoaded] = useState(false);
 
   useEffect(() => {
     const id = searchParams.get('product');
@@ -60,62 +58,50 @@ function CheckoutContent() {
   };
 
   const handlePeachPayment = () => {
-    console.log('🍑 Peach Payments button clicked!');
+    console.log('🍑 Redirecting to Peach Payments...');
     
     if (!product) {
       alert('Error: No product selected.');
       return;
     }
 
-    if (!peachLoaded) {
-      alert('Payment system loading... please wait a moment and try again.');
-      return;
-    }
+    // Create payment form and submit
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://test.peachpayments.com/checkout/v1/payment';
+    form.target = '_blank';
+    
+    const fields = {
+      entityId: '8ac7a4c89d6f2185019d70e1ee0501f3',
+      amount: product.price.toFixed(2),
+      currency: 'ZAR',
+      paymentType: 'DB',
+      merchantTransactionId: `SD-${product.id}-${Date.now()}`,
+      'customer.email': 'customer@example.com',
+      'customer.givenName': 'Test',
+      'customer.surname': 'Customer',
+      'billing.street1': '123 Test Street',
+      'billing.city': 'Johannesburg',
+      'billing.postcode': '2000',
+      'billing.country': 'ZA',
+    };
 
-    // Check if Peach Payments SDK is loaded
-    if (typeof window !== 'undefined' && window.Checkout) {
-      console.log('✅ Peach SDK loaded, initializing checkout...');
-      
-      // Initialize Peach Payments Checkout
-      window.Checkout.configure({
-        entityId: '8ac7a4c89d6f2185019d70e1ee0501f3',
-        amount: product.price.toFixed(2),
-        currency: 'ZAR',
-        merchantTransactionId: `SD-${product.id}-${Date.now()}`,
-        customer: {
-          email: 'customer@example.com',
-          givenName: 'Test',
-          surname: 'Customer'
-        },
-        billing: {
-          street1: '123 Test Street',
-          city: 'Johannesburg',
-          postcode: '2000',
-          country: 'ZA'
-        },
-        resultUrl: window.location.origin + '/checkout/success',
-        onReady: function() {
-          console.log('Checkout ready');
-        },
-        onSuccess: function(result) {
-          console.log('Payment successful:', result);
-          window.location.href = '/checkout/success?orderId=' + result.id;
-        },
-        onFailure: function(error) {
-          console.error('Payment failed:', error);
-          alert('Payment failed. Please try again.');
-        },
-        onCancel: function() {
-          console.log('Payment cancelled');
-        }
-      });
+    Object.entries(fields).forEach(([key, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = String(value);
+      form.appendChild(input);
+    });
 
-      // Open the checkout modal
-      window.Checkout.open();
-    } else {
-      console.error('❌ Peach SDK not loaded!');
-      alert('Payment system not available. Please try again in a moment.');
-    }
+    document.body.appendChild(form);
+    form.submit();
+    
+    setTimeout(() => { 
+      if(document.body.contains(form)) {
+        document.body.removeChild(form); 
+      }
+    }, 1000);
   };
 
   if (loading) {
@@ -138,86 +124,67 @@ function CheckoutContent() {
   }
 
   return (
-    <>
-      {/* Load Peach Payments SDK */}
-      <Script 
-        src="https://test.peachpayments.com/checkout/checkout.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          console.log('✅ Peach Payments SDK loaded!');
-          setPeachLoaded(true);
-        }}
-        onError={() => {
-          console.error('❌ Failed to load Peach Payments SDK');
-        }}
-      />
-
-      <div className="min-h-screen bg-slate-950 text-white py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-10">
-            <Link href="/" className="text-cyan-400 hover:text-cyan-300 text-sm">← Back to Marketplace</Link>
-            <h1 className="text-3xl font-bold">Secure Checkout</h1>
-            <div className="w-20"></div>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                <h2 className="text-xl font-bold mb-2">{product.name}</h2>
-                <p className="text-gray-400 text-sm mb-4">{product.description}</p>
-                <div className="flex justify-between items-center pt-4 border-t border-slate-800">
-                  <span className="text-gray-400">Total</span>
-                  <span className="text-2xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
-                </div>
+    <div className="min-h-screen bg-slate-950 text-white py-20 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-10">
+          <Link href="/" className="text-cyan-400 hover:text-cyan-300 text-sm">← Back to Marketplace</Link>
+          <h1 className="text-3xl font-bold">Secure Checkout</h1>
+          <div className="w-20"></div>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+              <h2 className="text-xl font-bold mb-2">{product.name}</h2>
+              <p className="text-gray-400 text-sm mb-4">{product.description}</p>
+              <div className="flex justify-between items-center pt-4 border-t border-slate-800">
+                <span className="text-gray-400">Total</span>
+                <span className="text-2xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
               </div>
             </div>
+          </div>
 
-            <div className="lg:col-span-3 space-y-6">
-              <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-                <h3 className="text-xl font-bold mb-4">🏦 Capitec Bank Transfer</h3>
-                <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                  <div className="bg-slate-950 p-3 rounded">
-                    <div className="text-gray-500 text-xs">Account Holder</div>
-                    <div className="font-bold">SUPER DIGITAL</div>
-                  </div>
-                  <div className="bg-slate-950 p-3 rounded">
-                    <div className="text-gray-500 text-xs">Account Number</div>
-                    <div className="font-bold font-mono">1975933441</div>
-                  </div>
-                  <div className="bg-slate-950 p-3 rounded">
-                    <div className="text-gray-500 text-xs">Branch Code</div>
-                    <div className="font-bold font-mono">470010</div>
-                  </div>
-                  <div className="bg-slate-950 p-3 rounded">
-                    <div className="text-gray-500 text-xs">Reference</div>
-                    <div className="font-bold font-mono">SD-{product.id}</div>
-                  </div>
+          <div className="lg:col-span-3 space-y-6">
+            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+              <h3 className="text-xl font-bold mb-4">🏦 Capitec Bank Transfer</h3>
+              <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                <div className="bg-slate-950 p-3 rounded">
+                  <div className="text-gray-500 text-xs">Account Holder</div>
+                  <div className="font-bold">SUPER DIGITAL</div>
                 </div>
-                <button onClick={handleCapitecClick} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition">
-                  I've Completed the Transfer
-                </button>
+                <div className="bg-slate-950 p-3 rounded">
+                  <div className="text-gray-500 text-xs">Account Number</div>
+                  <div className="font-bold font-mono">1975933441</div>
+                </div>
+                <div className="bg-slate-950 p-3 rounded">
+                  <div className="text-gray-500 text-xs">Branch Code</div>
+                  <div className="font-bold font-mono">470010</div>
+                </div>
+                <div className="bg-slate-950 p-3 rounded">
+                  <div className="text-gray-500 text-xs">Reference</div>
+                  <div className="font-bold font-mono">SD-{product.id}</div>
+                </div>
               </div>
+              <button onClick={handleCapitecClick} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition">
+                I've Completed the Transfer
+              </button>
+            </div>
 
-              <div className="bg-slate-900 p-6 rounded-2xl border border-cyan-500/30">
-                <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card</h3>
-                <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments.</p>
-                <button 
-                  onClick={handlePeachPayment} 
-                  disabled={!peachLoaded}
-                  className={`w-full py-4 rounded-xl font-bold text-lg transition ${
-                    peachLoaded 
-                      ? 'bg-cyan-500 hover:bg-cyan-400 cursor-pointer' 
-                      : 'bg-gray-600 cursor-not-allowed'
-                  }`}
-                >
-                  {peachLoaded ? `Pay $${product.price.toFixed(2)} Securely` : 'Loading Payment System...'}
-                </button>
-              </div>
+            <div className="bg-slate-900 p-6 rounded-2xl border border-cyan-500/30">
+              <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card</h3>
+              <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments.</p>
+              <button 
+                onClick={handlePeachPayment} 
+                className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition cursor-pointer"
+              >
+                Pay ${product.price.toFixed(2)} Securely
+              </button>
+              <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments in a new tab.</p>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
