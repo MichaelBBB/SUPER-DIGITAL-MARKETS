@@ -3,9 +3,9 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const { amount, orderId } = await request.json();
-
+    
     const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
-
+    
     if (!entityId) {
       return NextResponse.json({ 
         success: false, 
@@ -13,34 +13,30 @@ export async function POST(request: Request) {
       }, { status: 500 });
     }
 
-    // Build hosted checkout URL with parameters
-    const checkoutUrl = new URL('https://test.peachpayments.com/checkout');
-    
-    checkoutUrl.searchParams.append('entityId', entityId);
-    checkoutUrl.searchParams.append('amount', amount.toFixed(2));
-    checkoutUrl.searchParams.append('currency', 'ZAR');
-    checkoutUrl.searchParams.append('paymentType', 'DB');
-    checkoutUrl.searchParams.append('merchantTransactionId', orderId);
-    checkoutUrl.searchParams.append('customer.email', 'customer@example.com');
-    checkoutUrl.searchParams.append('customer.givenName', 'Test');
-    checkoutUrl.searchParams.append('customer.surname', 'Customer');
-    checkoutUrl.searchParams.append('billing.street1', '123 Test Street');
-    checkoutUrl.searchParams.append('billing.city', 'Johannesburg');
-    checkoutUrl.searchParams.append('billing.postcode', '2000');
-    checkoutUrl.searchParams.append('billing.country', 'ZA');
-    checkoutUrl.searchParams.append('shopper.resultUrl', 'https://super-digital-markets-co9n.vercel.app/checkout/success');
-
-    console.log('Generated checkout URL:', checkoutUrl.toString());
+    // Build the hosted checkout URL
+    const checkoutURL = `https://test.peachpayments.com/checkout?` +
+      `entityId=${entityId}&` +
+      `amount=${amount.toFixed(2)}&` +
+      `currency=ZAR&` +
+      `paymentType=DB&` +
+      `merchantTransactionId=${orderId}&` +
+      `customer.email=customer@example.com&` +
+      `customer.givenName=Test&` +
+      `customer.surname=Customer&` +
+      `billing.street1=123 Test Street&` +
+      `billing.city=Johannesburg&` +
+      `billing.postcode=2000&` +
+      `billing.country=ZA&` +
+      `shopperResultUrl=https://super-digital-markets-co9n.vercel.app/checkout/success`;
 
     return NextResponse.json({ 
       success: true, 
-      checkoutUrl: checkoutUrl.toString() 
+      checkoutUrl: checkoutURL 
     });
   } catch (error) {
-    console.error('Error creating checkout URL:', error);
     return NextResponse.json({ 
       success: false, 
-      error: error instanceof Error ? error.message : 'Failed to create checkout URL' 
+      error: 'Failed to create checkout URL' 
     }, { status: 500 });
   }
 }
