@@ -67,8 +67,9 @@ function CheckoutContent() {
 
     const form = document.createElement('form');
     form.method = 'POST';
-    // ✅ CHANGED TO V3 (as you remembered!)
-    form.action = 'https://test.peachpayments.com/checkout/v3/payment';
+    
+    // ✅ Try the simplest Peach hosted checkout URL
+    form.action = 'https://test.peachpayments.com/checkout';
     form.target = '_blank';
     
     const fields = {
@@ -84,7 +85,11 @@ function CheckoutContent() {
       'billing.city': 'Johannesburg',
       'billing.postcode': '2000',
       'billing.country': 'ZA',
+      // ✅ ADD THIS: Where Peach redirects after payment
+      'shopper.resultUrl': 'https://super-digital-markets-co9n.vercel.app/checkout/success'
     };
+
+    console.log('Sending fields to Peach:', fields);
 
     Object.entries(fields).forEach(([key, value]) => {
       const input = document.createElement('input');
@@ -179,6 +184,7 @@ function CheckoutContent() {
               >
                 Pay ${product.price.toFixed(2)} Securely
               </button>
+              <p className="text-center text-xs text-gray-500 mt-3">Opens Peach Payments in a new tab.</p>
             </div>
           </div>
         </div>
