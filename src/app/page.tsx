@@ -6,31 +6,24 @@ import Link from 'next/link';
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [activePayment, setActivePayment] = useState('capitec');
+  const [activePayment, setActivePayment] = useState('peach'); // Default to Peach or Capitec
   
-  // ✅ UPDATED: Your latest sales numbers - TOTAL: 266,700
+  // ✅ UPDATED SALES TRACKER NUMBERS (From your screenshot)
   const [salesData, setSalesData] = useState([
-    { country: "USA", sales: 67175, color: "text-blue-400" },
-    { country: "INDIA", sales: 80450, color: "text-orange-400" },
-    { country: "CHINA", sales: 73825, color: "text-red-400" },
-    { country: "SOUTH AFRICA", sales: 45250, color: "text-green-400" }
+    { country: "USA", sales: 92966, color: "text-blue-400" },
+    { country: "INDIA", sales: 100288, color: "text-orange-400" },
+    { country: "CHINA", sales: 97083, color: "text-red-400" },
+    { country: "SOUTH AFRICA", sales: 81571, color: "text-green-400" }
   ]);
 
-  // ✅ NEW STORAGE KEY - Won't overwrite with old numbers
-  const STORAGE_KEY = 'superDigitalSales_FINAL';
+  const STORAGE_KEY = 'sales_tracker_v4'; // New key to prevent overwriting
 
   useEffect(() => {
     const savedSales = localStorage.getItem(STORAGE_KEY);
     if (savedSales) {
       try {
         const parsed = JSON.parse(savedSales);
-        // Only update if saved numbers are HIGHER than current
-        setSalesData(prevData => 
-          parsed.map((saved: any, index: number) => ({
-            ...saved,
-            sales: Math.max(saved.sales, prevData[index]?.sales || 0)
-          }))
-        );
+        setSalesData(parsed);
       } catch (e) {
         console.error('Failed to load sales data:', e);
       }
@@ -46,10 +39,10 @@ export default function Home() {
       setSalesData(prevData => 
         prevData.map(item => ({
           ...item,
-          sales: item.sales + Math.floor(Math.random() * 3)
+          sales: item.sales + Math.floor(Math.random() * 5) // Increments faster
         }))
       );
-    }, 5000); // Slower updates to prevent going backwards
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -90,17 +83,58 @@ export default function Home() {
 
   const filteredProducts = activeCategory === 'All' ? products : products.filter(p => p.category === activeCategory);
 
-  const paymentMethods = [
-    { id: 'razorpay', name: 'Razorpay', region: 'India', tag: 'INDIA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇮🇳' },
-    { id: 'alipay', name: 'Alipay', region: 'China', tag: 'CHINA PRIMARY', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🇨🇳' },
-    { id: 'payoneer', name: 'Payoneer', region: 'USA', tag: 'USA PRIMARY', tagColor: 'bg-red-900/50 text-red-400 border-red-800', flag: '🇺🇸' },
-    { id: 'googlepay', name: 'Google Pay', region: 'Global', tag: 'GLOBAL', tagColor: 'bg-blue-900/50 text-blue-400 border-blue-800', flag: '🌍' },
-    { id: 'peach', name: 'Peach Payments', region: 'South Africa', tag: 'SA PRIMARY', tagColor: 'bg-orange-900/50 text-orange-400 border-orange-800', flag: '🇿🇦' },
-    { id: 'capitec', name: 'Capitec Bank Transfer', region: 'South Africa', tag: 'MANUAL', tagColor: 'bg-slate-800 text-slate-400 border-slate-700', flag: '🏦' },
+  // ✅ PAYMENT PROVIDERS DATA
+  const paymentProviders = [
+    { 
+      id: 'razorpay', name: 'Razorpay', region: 'India', tag: 'INDIA PRIMARY', tagColor: 'text-blue-400', flag: '🇮🇳',
+      description: "India's leading payment gateway. UPI, Cards, Net Banking, Wallets.",
+      currencies: ['INR', 'USD'],
+      methods: ['UPI', 'Credit Card', 'Debit Card', 'Net Banking', 'Wallets'],
+      buttonColor: 'bg-blue-600 hover:bg-blue-500'
+    },
+    { 
+      id: 'alipay', name: 'Alipay', region: 'China', tag: 'CHINA PRIMARY', tagColor: 'text-blue-400', flag: '🇨🇳',
+      description: "China's dominant digital wallet. Secure escrow payments.",
+      currencies: ['CNY', 'USD'],
+      methods: ['Alipay Wallet', 'Bank Card', 'Balance'],
+      buttonColor: 'bg-blue-500 hover:bg-blue-400'
+    },
+    { 
+      id: 'payoneer', name: 'Payoneer', region: 'USA', tag: 'USA PRIMARY', tagColor: 'text-orange-400', flag: '🇺🇸',
+      description: "Global cross-border payments. B2B and freelancer focused.",
+      currencies: ['USD', 'EUR', 'GBP'],
+      methods: ['Payoneer Card', 'Bank Transfer', 'e-Wallet'],
+      buttonColor: 'bg-orange-600 hover:bg-orange-500'
+    },
+    { 
+      id: 'googlepay', name: 'Google Pay', region: 'Global', tag: 'GLOBAL', tagColor: 'text-blue-400', flag: '',
+      description: "Fast, secure payments using your Google account.",
+      currencies: ['USD', 'EUR', 'GBP', 'INR', 'ZAR'],
+      methods: ['Credit Card', 'Debit Card', 'Bank Account'],
+      buttonColor: 'bg-white text-black hover:bg-gray-100'
+    },
+    { 
+      id: 'peach', name: 'Peach Payments', region: 'South Africa', tag: 'SA PRIMARY', tagColor: 'text-orange-400', flag: '🇦',
+      description: "South Africa's trusted gateway. Visa, Mastercard, Capitec Pay.",
+      currencies: ['ZAR', 'USD'],
+      methods: ['Visa', 'Mastercard', 'Capitec Pay', 'EFT'],
+      buttonColor: 'bg-cyan-500 hover:bg-cyan-400'
+    },
+    { 
+      id: 'capitec', name: 'Capitec Bank', region: 'South Africa', tag: 'MANUAL', tagColor: 'text-gray-400', flag: '🏦',
+      description: "Direct bank transfer. No fees. Manual verification.",
+      currencies: ['ZAR'],
+      methods: ['EFT', 'Instant EFT', 'Capitec App'],
+      buttonColor: 'bg-blue-700 hover:bg-blue-600'
+    }
   ];
+
+  const activeProvider = paymentProviders.find(p => p.id === activePayment) || paymentProviders[0];
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      
+      {/* NAVIGATION */}
       <nav className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
@@ -137,6 +171,7 @@ export default function Home() {
         </div>
       </nav>
 
+      {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&auto=format&fit=crop')" }}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-950/60 to-slate-950"></div>
@@ -161,43 +196,30 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-12 bg-slate-900/50 border-y border-white/10">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">30+</div><div className="text-sm text-gray-400">PRODUCTS</div></div>
-            <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">4</div><div className="text-sm text-gray-400">COUNTRIES</div></div>
-            <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">8+</div><div className="text-sm text-gray-400">PAYMENTS</div></div>
-            <div className="text-center"><div className="text-3xl font-bold text-cyan-400 mb-1">100%</div><div className="text-sm text-gray-400">INSTANT</div></div>
-          </div>
-        </div>
-      </section>
-      
-      <section className="py-20 bg-slate-950">
+      {/* LIVE SALES TRACKER */}
+      <section className="py-20 bg-slate-950 border-y border-white/10">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-10">Live Sales Tracker</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
             {salesData.map((data) => (
               <div key={data.country} className="p-6 bg-slate-900/50 rounded-2xl border border-white/10">
                 <div className={`text-sm font-semibold mb-2 ${data.color}`}>{data.country}</div>
-                <div className="text-3xl font-bold text-white">{data.sales.toLocaleString().replace(',', ' ')}</div>
+                <div className="text-3xl font-bold text-white">{data.sales.toLocaleString()}</div>
               </div>
             ))}
           </div>
           <div className="p-8 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-2xl border border-cyan-500/30">
             <div className="text-sm text-gray-400 mb-2">GLOBAL TOTAL</div>
-            <div className="text-5xl font-bold text-blue-400">{totalSales.toLocaleString().replace(',', ' ')}</div>
+            <div className="text-5xl font-bold text-blue-400">{totalSales.toLocaleString()}</div>
           </div>
         </div>
       </section>
 
+      {/* PRODUCTS SECTION */}
       <section id="products" className="py-20 bg-slate-950">
         <div className="max-w-7xl mx-auto px-6">
           <div className="mb-10"><h2 className="text-4xl font-bold mb-4"><span className="text-white">Top Digital</span> <span className="text-yellow-400">Products</span></h2></div>
-          <div className="flex flex-wrap gap-3 mb-10">
-            {['All', 'AI Tools', 'Creative', 'Entertainment', 'Business', 'Productivity', 'Security'].map((cat) => (
-              <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full text-sm transition ${activeCategory === cat ? 'bg-cyan-500 text-white' : 'bg-white/5 text-gray-300'}`}>{cat}</button>
-            ))}
-          </div>
+          <div className="flex flex-wrap gap-3 mb-10">{['All', 'AI Tools', 'Creative', 'Entertainment', 'Business', 'Productivity', 'Security'].map((cat) => (<button key={cat} onClick={() => setActiveCategory(cat)} className={`px-4 py-2 rounded-full text-sm transition ${activeCategory === cat ? 'bg-cyan-500 text-white' : 'bg-white/5 text-gray-300'}`}>{cat}</button>))}</div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
               <div key={product.id} className="group bg-slate-900/50 rounded-2xl overflow-hidden border border-white/10 hover:border-cyan-500/50 transition">
@@ -223,16 +245,104 @@ export default function Home() {
         </div>
       </section>
 
+      {/* SECURE PAYMENT METHODS (NEW DESIGN) */}
       <section id="payment-methods" className="py-20 bg-slate-950 border-t border-white/10">
-        <div className="max-w-5xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold mb-6">Secure Payment Methods</h2>
-          <p className="text-gray-400 mb-8">Choose the best option for your region. All transactions are encrypted and secure.</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            {paymentMethods.map((m) => (
-              <button key={m.id} onClick={() => setActivePayment(m.id)} className={`px-6 py-3 rounded-xl border transition ${activePayment === m.id ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400' : 'bg-slate-900 border-slate-800 text-gray-300'}`}>
-                {m.flag} {m.name}
-              </button>
-            ))}
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Secure Payment Methods</h2>
+            <p className="text-gray-400">Choose the best option for your region. All transactions are encrypted and secure.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Left: Provider List */}
+            <div className="lg:col-span-2 space-y-3">
+              {paymentProviders.map((provider) => (
+                <button 
+                  key={provider.id}
+                  onClick={() => setActivePayment(provider.id)}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl border transition text-left ${
+                    activePayment === provider.id 
+                      ? 'bg-slate-900 border-cyan-500/50 shadow-lg shadow-cyan-500/10' 
+                      : 'bg-slate-900/50 border-white/5 hover:border-white/20'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{provider.flag}</span>
+                    <div>
+                      <div className="font-bold text-white">{provider.name}</div>
+                      <div className="text-xs text-gray-400">{provider.region}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xs px-2 py-1 rounded-full border ${provider.id === 'capitec' ? 'bg-slate-800 border-slate-700 text-gray-400' : 'bg-slate-900 border-slate-800 ' + provider.tagColor}`}>
+                      {provider.tag}
+                    </span>
+                    {activePayment === provider.id && (
+                      <div className="w-5 h-5 bg-cyan-500 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Right: Active Provider Details */}
+            <div className="lg:col-span-3">
+              <div className="bg-slate-900 rounded-2xl p-8 border border-white/10 h-full">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">{activeProvider.flag}</span>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white">{activeProvider.name}</h3>
+                      <p className="text-gray-400">{activeProvider.region} Market</p>
+                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center border border-white/10">
+                    <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                  </div>
+                </div>
+
+                <p className="text-gray-300 mb-6">{activeProvider.description}</p>
+
+                <div className="mb-6">
+                  <div className="text-xs font-bold text-gray-500 uppercase mb-3 tracking-wider">Currencies</div>
+                  <div className="flex gap-2">
+                    {activeProvider.currencies.map(c => (
+                      <span key={c} className="px-3 py-1 bg-slate-800 rounded-full text-sm font-mono text-cyan-400 border border-cyan-500/20">{c}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <div className="text-xs font-bold text-gray-500 uppercase mb-3 tracking-wider">Accepted Methods</div>
+                  <div className="flex flex-wrap gap-2">
+                    {activeProvider.methods.map(m => (
+                      <div key={m} className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg text-sm text-gray-300 border border-white/5">
+                        <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                        {m}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    if (activeProvider.id === 'capitec') {
+                      alert('Select a product first to see bank details!');
+                    } else if (activeProvider.id === 'peach') {
+                      alert('Select a product and go to Checkout to pay with Peach Payments!');
+                    } else {
+                      alert(`${activeProvider.name} integration coming soon!`);
+                    }
+                  }}
+                  className={`w-full py-4 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 ${activeProvider.buttonColor}`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  Pay with {activeProvider.name}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
