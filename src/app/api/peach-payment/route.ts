@@ -4,19 +4,22 @@ export async function POST(request: Request) {
   try {
     const { amount, orderId } = await request.json();
     
-    // Credentials from Vercel Environment Variables
+    // Get credentials from environment variables
     const clientId = process.env.PEACH_CLIENT_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
     const merchantId = process.env.PEACH_MERCHANT_ID;
     const secretToken = process.env.PEACH_SECRET_TOKEN;
     const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
 
-    if (!clientId || !clientSecret) {
-      return NextResponse.json({ success: false, error: 'Configuration missing' }, { status: 500 });
+    if (!clientId || !clientSecret || !entityId) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Configuration missing. Check Vercel environment variables.' 
+      }, { status: 500 });
     }
 
-    // 1. Get Access Token
-    const tokenResponse = await fetch('https://test.peachpayments.com/oauth/token', {
+    // STEP 1: Get OAuth2 access token
+    const tokenResponse = await fetch('https://testapi-v2.peachpayments.com/oauth/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -26,16 +29,24 @@ export async function POST(request: Request) {
     });
 
     const tokenData = await tokenResponse.json();
+    console.log('Token response:', tokenData);
+
     if (!tokenData.access_token) {
-      return NextResponse.json({ success: false, error: 'Auth failed' }, { status: 401 });
+      console.error('Failed to get access token:', tokenData);
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Authentication failed with Peach Payments' 
+      }, { status: 401 });
     }
 
-    // 2. Create Payment Session
-    const paymentResponse = await fetch('https://test.peachpayments.com/api/v1/payments', {
+    const accessToken = tokenData.access_token;
+
+    // STEP 2: Create payment session
+    const paymentResponse = await fetch('https://testapi-v2.peachpayments.com/payments', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${tokenData.access_token}`,
+        'Authorization': `Bearer ${accessToken}`,
         'X-Merchant-ID': merchantId || '',
         'X-Secret-Token': secretToken || ''
       },
@@ -45,21 +56,44 @@ export async function POST(request: Request) {
         currency: 'ZAR',
         paymentType: 'DB',
         merchantTransactionId: orderId,
-        customer: { email: 'customer@example.com', givenName: 'Test', surname: 'Customer' },
-        billing: { street1: '123 Test St', city: 'Johannesburg', postcode: '2000', country: 'ZA' },
+        customer: {
+          email: 'customer@example.com',
+          givenName: 'Test',
+          surname: 'Customer'
+        },
+        billing: {
+          street1: '123 Test Street',
+          city: 'Johannesburg',
+          postcode: '2000',
+          country: 'ZA'
+        },
         shopperResultUrl: 'https://super-digital-markets-co9n.vercel.app/checkout/success'
       })
     });
 
     const paymentData = await paymentResponse.json();
+    console.log('Payment response:', paymentData);
 
+    // STEP 3: Return checkout URL
     if (paymentData.redirectUrl || paymentData.checkoutUrl) {
-      return NextResponse.json({ success: true, checkoutUrl: paymentData.redirectUrl || paymentData.checkoutUrl });
+      return NextResponse.json({ 
+        success: true, 
+        checkoutUrl: paymentData.redirectUrl || paymentData.checkoutUrl 
+      });
     } else {
-      return NextResponse.json({ success: false, error: 'No URL returned', debug: paymentData }, { status: 400 });
+      console.error('No checkout URL in response:', paymentData);
+      return NextResponse.json({ 
+        success: false, 
+        error: 'No checkout URL returned from Peach Payments',
+        debug: paymentData 
+      }, { status: 400 });
     }
 
   } catch (error) {
-    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
+    console.error('Peach Payments error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Server error' 
+    }, { status: 500 });
   }
 }
