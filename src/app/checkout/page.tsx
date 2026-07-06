@@ -1,10 +1,9 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-// Product list (same as your homepage)
 const products = [
   { id: 1, name: "ChatGPT Plus", price: 20.00 },
   { id: 2, name: "Adobe Creative Cloud", price: 54.99 },
@@ -38,11 +37,11 @@ const products = [
   { id: 30, name: "ElevenLabs Starter", price: 5.00 }
 ];
 
-// ✅ Component that uses useSearchParams (must be inside Suspense)
 function CheckoutInner() {
   const searchParams = useSearchParams();
   const productId = searchParams.get('product');
   const product = products.find(p => p.id === Number(productId));
+  const [processing, setProcessing] = useState(false);
 
   if (!product) {
     return (
@@ -54,75 +53,77 @@ function CheckoutInner() {
 
   const handleCapitecClick = () => {
     const subject = encodeURIComponent(`Payment - SD-${product.id}`);
-    const body = encodeURIComponent(
-      `Order: ${product.name}\nReference: SD-${product.id}\nAmount: $${product.price}`
-    );
+    const body = encodeURIComponent(`Order: ${product.name}\nReference: SD-${product.id}\nAmount: $${product.price}`);
     window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
+  };
+
+  const handlePeachPayment = async () => {
+    setProcessing(true);
+    try {
+      const response = await fetch('/api/peach-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}` })
+      });
+      const data = await response.json();
+      if (data.success && data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert('Payment error: ' + (data.error || 'Failed'));
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to connect to payment gateway.');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white py-20 px-4">
       <div className="max-w-2xl mx-auto">
-        <Link href="/" className="text-cyan-400 mb-6 block">← Back</Link>
+        <Link href="/" className="text-cyan-400 mb-6 block">← Back to Products</Link>
+        <h1 className="text-3xl font-bold mb-6">Secure Checkout</h1>
         
-        <h1 className="text-3xl font-bold mb-6">Checkout</h1>
-        
-        {/* Product Card */}
         <div className="bg-slate-900 p-6 rounded-2xl mb-6">
           <h2 className="text-2xl font-bold">{product.name}</h2>
           <p className="text-3xl font-bold text-cyan-400 mt-2">${product.price.toFixed(2)}</p>
         </div>
 
-        {/* Capitec - WORKING ✅ */}
-        <div className="bg-slate-900 p-6 rounded-2xl mb-4">
-          <h3 className="text-xl font-bold mb-3">🏦 Capitec Bank Transfer</h3>
-          <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-            <div className="bg-slate-950 p-3 rounded">
-              <span className="text-gray-500 text-xs block">Account</span>
-              <span className="font-bold">SUPER DIGITAL</span>
+        <div className="space-y-4">
+          {/* Capitec */}
+          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+            <h3 className="text-xl font-bold mb-3">🏦 Capitec Bank Transfer</h3>
+            <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+              <div className="bg-slate-950 p-3 rounded"><span className="text-gray-500 text-xs block">Account</span><span className="font-bold">SUPER DIGITAL</span></div>
+              <div className="bg-slate-950 p-3 rounded"><span className="text-gray-500 text-xs block">Number</span><span className="font-bold font-mono">1975933441</span></div>
+              <div className="bg-slate-950 p-3 rounded"><span className="text-gray-500 text-xs block">Branch</span><span className="font-bold font-mono">470010</span></div>
+              <div className="bg-slate-950 p-3 rounded"><span className="text-gray-500 text-xs block">Reference</span><span className="font-bold font-mono">SD-{product.id}</span></div>
             </div>
-            <div className="bg-slate-950 p-3 rounded">
-              <span className="text-gray-500 text-xs block">Number</span>
-              <span className="font-bold font-mono">1975933441</span>
-            </div>
-            <div className="bg-slate-950 p-3 rounded">
-              <span className="text-gray-500 text-xs block">Branch</span>
-              <span className="font-bold font-mono">470010</span>
-            </div>
-            <div className="bg-slate-950 p-3 rounded">
-              <span className="text-gray-500 text-xs block">Reference</span>
-              <span className="font-bold font-mono">SD-{product.id}</span>
-            </div>
+            <button onClick={handleCapitecClick} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition">I've Completed the Transfer</button>
           </div>
-          <button
-            onClick={handleCapitecClick}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold"
-          >
-            I've Completed the Transfer
-          </button>
-        </div>
 
-        {/* Peach - DISABLED 🔜 */}
-        <div className="bg-slate-900 p-6 rounded-2xl opacity-60">
-          <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card</h3>
-          <p className="text-gray-400 text-sm mb-3">Powered by Peach Payments</p>
-          <button disabled className="w-full py-3 bg-gray-700 rounded-xl font-bold cursor-not-allowed">
-            Coming Soon
-          </button>
+          {/* Peach Payments - NOW WORKING */}
+          <div className="bg-slate-900 p-6 rounded-2xl border border-cyan-500/30">
+            <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card</h3>
+            <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments</p>
+            <button
+              onClick={handlePeachPayment}
+              disabled={processing}
+              className={`w-full py-4 rounded-xl font-bold text-lg transition ${processing ? 'bg-gray-600 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-400 cursor-pointer'}`}
+            >
+              {processing ? 'Processing...' : `Pay $${product.price.toFixed(2)} Securely`}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ✅ Export with Suspense wrapper (required for Next.js 15)
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        Loading...
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Loading...</div>}>
       <CheckoutInner />
     </Suspense>
   );
