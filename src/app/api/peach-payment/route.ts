@@ -4,46 +4,50 @@ export async function POST(request: Request) {
   try {
     const { amount, orderId } = await request.json();
 
-    // Get credentials from Vercel Environment Variables
+    // Get credentials from environment variables
     const clientId = process.env.PEACH_CLIENT_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
+    const merchantId = process.env.PEACH_MERCHANT_ID;
     const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
 
-    if (!clientId || !clientSecret || !entityId) {
+    if (!clientId || !clientSecret || !merchantId || !entityId) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Configuration missing. Check Vercel environment variables.' 
+        error: 'Configuration missing' 
       }, { status: 500 });
     }
 
-    // STEP 1: Get OAuth2 Access Token using NEW API v2 Endpoint
-    const tokenResponse = await fetch('https://testapi-v2.peachpayments.com/oauth/token', {
+    // STEP 1: Get Access Token
+    const tokenResponse = await fetch('https://sandbox-dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+        'Content-Type': 'application/json'
       },
-      body: 'grant_type=client_credentials'
+      body: JSON.stringify({
+        clientId: clientId,
+        clientSecret: clientSecret,
+        merchantId: merchantId
+      })
     });
 
     const tokenData = await tokenResponse.json();
+    console.log('Token response:', tokenData);
 
-    if (!tokenData.access_token) {
-      console.error('Token Error:', tokenData);
+    if (!tokenData.jwt) {
       return NextResponse.json({ 
         success: false, 
-        error: 'Authentication failed. Check Client ID and Secret.' 
+        error: 'Authentication failed' 
       }, { status: 401 });
     }
 
-    const accessToken = tokenData.access_token;
+    const jwt = tokenData.jwt;
 
-    // STEP 2: Create Checkout Session using NEW API v2 Endpoint
-    const checkoutResponse = await fetch('https://testapi-v2.peachpayments.com/v1/checkouts', {
+    // STEP 2: Create Checkout Session
+    const checkoutResponse = await fetch('https://testsecure.peachpayments.com/v2/checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
+        'Authorization': `Bearer ${jwt}`
       },
       body: JSON.stringify({
         entityId: entityId,
@@ -55,9 +59,9 @@ export async function POST(request: Request) {
     });
 
     const checkoutData = await checkoutResponse.json();
-    console.log('Checkout Response:', checkoutData);
+    console.log('Checkout response:', checkoutData);
 
-    // STEP 3: Return the redirect URL
+    // STEP 3: Return redirect URL
     if (checkoutData.redirectUrl) {
       return NextResponse.json({ 
         success: true, 
@@ -72,10 +76,10 @@ export async function POST(request: Request) {
     }
 
   } catch (error) {
-    console.error('Server Error:', error);
+    console.error('Error:', error);
     return NextResponse.json({ 
       success: false, 
-      error: 'Server connection failed' 
+      error: 'Server error' 
     }, { status: 500 });
   }
 }
