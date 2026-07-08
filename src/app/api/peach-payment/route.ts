@@ -4,7 +4,6 @@ export async function POST(request: Request) {
   try {
     const { amount, orderId } = await request.json();
 
-    // Check environment variables
     const clientId = process.env.PEACH_CLIENT_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
     const merchantId = process.env.PEACH_MERCHANT_ID;
@@ -46,7 +45,7 @@ export async function POST(request: Request) {
       }, { status: 401 });
     }
 
-    // Step 2: Create Checkout
+    // Step 2: Create Checkout WITH WEBHOOK URL
     console.log('Creating checkout session...');
     const checkoutResponse = await fetch('https://testsecure.peachpayments.com/v2/checkout', {
       method: 'POST',
@@ -60,7 +59,21 @@ export async function POST(request: Request) {
         currency: 'ZAR',
         paymentType: 'DB',
         merchantTransactionId: orderId,
-        shopperResultUrl: 'https://super-digital-markets-co9n.vercel.app/checkout/success'
+        shopperResultUrl: 'https://super-digital-markets-co9n.vercel.app/checkout/success',
+        // ✅ ADD WEBHOOK URL (required by Peach)
+        webhookUrl: 'https://super-digital-markets-co9n.vercel.app/api/webhooks/peach',
+        notificationUrl: 'https://super-digital-markets-co9n.vercel.app/api/webhooks/peach',
+        customer: {
+          email: 'customer@example.com',
+          givenName: 'Test',
+          surname: 'Customer'
+        },
+        billing: {
+          street1: '123 Test Street',
+          city: 'Johannesburg',
+          postcode: '2000',
+          country: 'ZA'
+        }
       })
     });
 
