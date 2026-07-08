@@ -4,18 +4,10 @@ export async function POST(request: Request) {
   try {
     const { amount, orderId } = await request.json();
 
-    // Get credentials from environment variables
     const clientId = process.env.PEACH_CLIENT_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
     const merchantId = process.env.PEACH_MERCHANT_ID;
     const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
-
-    if (!clientId || !clientSecret || !merchantId || !entityId) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Configuration missing' 
-      }, { status: 500 });
-    }
 
     // STEP 1: Get Access Token
     const tokenResponse = await fetch('https://sandbox-dashboard.peachpayments.com/api/oauth/token', {
@@ -33,21 +25,23 @@ export async function POST(request: Request) {
     const tokenData = await tokenResponse.json();
     console.log('Token response:', tokenData);
 
-    if (!tokenData.jwt) {
+    // ✅ Use access_token OR jwt (check both fields)
+    const token = tokenData.access_token || tokenData.jwt;
+
+    if (!token) {
+      console.error('No token in response:', tokenData);
       return NextResponse.json({ 
         success: false, 
-        error: 'Authentication failed' 
+        error: 'Authentication failed - no token received' 
       }, { status: 401 });
     }
-
-    const jwt = tokenData.jwt;
 
     // STEP 2: Create Checkout Session
     const checkoutResponse = await fetch('https://testsecure.peachpayments.com/v2/checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${jwt}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         entityId: entityId,
@@ -61,7 +55,6 @@ export async function POST(request: Request) {
     const checkoutData = await checkoutResponse.json();
     console.log('Checkout response:', checkoutData);
 
-    // STEP 3: Return redirect URL
     if (checkoutData.redirectUrl) {
       return NextResponse.json({ 
         success: true, 
@@ -70,13 +63,13 @@ export async function POST(request: Request) {
     } else {
       return NextResponse.json({ 
         success: false, 
-        error: 'No redirect URL returned',
+        error: 'No redirect URL',
         debug: checkoutData 
       }, { status: 400 });
     }
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Server error:', error);
     return NextResponse.json({ 
       success: false, 
       error: 'Server error' 
