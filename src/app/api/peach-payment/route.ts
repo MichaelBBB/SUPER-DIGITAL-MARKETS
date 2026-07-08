@@ -12,28 +12,15 @@ export async function POST(request: Request) {
     // STEP 1: Get Access Token
     const tokenResponse = await fetch('https://sandbox-dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        clientId: clientId,
-        clientSecret: clientSecret,
-        merchantId: merchantId
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId, clientSecret, merchantId })
     });
 
     const tokenData = await tokenResponse.json();
-    console.log('Token response:', tokenData);
-
-    // ✅ Use access_token OR jwt (check both fields)
     const token = tokenData.access_token || tokenData.jwt;
 
     if (!token) {
-      console.error('No token in response:', tokenData);
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Authentication failed - no token received' 
-      }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Auth failed' }, { status: 401 });
     }
 
     // STEP 2: Create Checkout Session
@@ -53,26 +40,30 @@ export async function POST(request: Request) {
     });
 
     const checkoutData = await checkoutResponse.json();
-    console.log('Checkout response:', checkoutData);
+    console.log('Full checkout response:', checkoutData);
 
-    if (checkoutData.redirectUrl) {
-      return NextResponse.json({ 
-        success: true, 
-        checkoutUrl: checkoutData.redirectUrl 
-      });
+    // ✅ Check ALL possible redirect URL field names
+    const redirectUrl = 
+      checkoutData.redirectUrl || 
+      checkoutData.checkoutUrl || 
+      checkoutData.url || 
+      checkoutData.redirect_url ||
+      checkoutData._links?.checkout?.href;
+
+    if (redirectUrl) {
+      return NextResponse.json({ success: true, checkoutUrl: redirectUrl });
     } else {
+      // Log the full response so we can see what Peach returned
+      console.error('No redirect URL found. Full response:', checkoutData);
       return NextResponse.json({ 
         success: false, 
-        error: 'No redirect URL',
+        error: 'No redirect URL in response',
         debug: checkoutData 
       }, { status: 400 });
     }
 
   } catch (error) {
     console.error('Server error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Server error' 
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }
 }
