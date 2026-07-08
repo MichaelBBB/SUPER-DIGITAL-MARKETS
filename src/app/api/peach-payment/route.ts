@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const { amount, orderId } = await request.json();
-
     const clientId = process.env.PEACH_CLIENT_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
     const merchantId = process.env.PEACH_MERCHANT_ID;
@@ -23,7 +22,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Auth failed' }, { status: 401 });
     }
 
-    // STEP 2: Create Checkout Session via API
+    // STEP 2: Create Checkout Session
     const checkoutResponse = await fetch('https://testsecure.peachpayments.com/v2/checkout', {
       method: 'POST',
       headers: {
@@ -40,32 +39,33 @@ export async function POST(request: Request) {
     });
 
     const checkoutData = await checkoutResponse.json();
-    
-    // ✅ LOG THE ENTIRE RESPONSE SO WE CAN SEE WHAT PEACH RETURNS
-    console.log('PEACH API FULL RESPONSE:', JSON.stringify(checkoutData, null, 2));
 
-    // ✅ CHECK ALL POSSIBLE FIELD NAMES FOR REDIRECT URL
+    // ✅ CHECK ALL POSSIBLE REDIRECT URL FIELD NAMES
     const redirectUrl = 
       checkoutData.redirectUrl || 
       checkoutData.checkoutUrl || 
       checkoutData.url || 
       checkoutData.redirect_url ||
       checkoutData._links?.checkout?.href ||
-      checkoutData.checkoutId ? `https://testsecure.peachpayments.com/checkout/${checkoutData.checkoutId}` : null;
+      (checkoutData.checkoutId ? `https://testsecure.peachpayments.com/checkout/${checkoutData.checkoutId}` : null);
 
     if (redirectUrl) {
       return NextResponse.json({ success: true, checkoutUrl: redirectUrl });
     } else {
-      // Return the debug info to the frontend so you can see it
+      // ✅ SEND FULL RESPONSE TO BROWSER SO YOU CAN SEE IT
       return NextResponse.json({ 
         success: false, 
         error: 'No redirect URL found',
-        debugResponse: checkoutData 
+        peachResponse: checkoutData,
+        peachStatus: checkoutResponse.status
       }, { status: 400 });
     }
 
   } catch (error) {
-    console.error('Server error:', error);
-    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Server error',
+      message: error instanceof Error ? error.message : 'Unknown'
+    }, { status: 500 });
   }
 }
