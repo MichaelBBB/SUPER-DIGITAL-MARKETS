@@ -4,30 +4,50 @@ export async function POST(request: Request) {
   try {
     const { amount, orderId } = await request.json();
 
+    // Check environment variables
     const clientId = process.env.PEACH_CLIENT_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
     const merchantId = process.env.PEACH_MERCHANT_ID;
     const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
 
-    if (!clientId || !clientSecret || !entityId) {
-      return NextResponse.json({ success: false, error: 'Env Vars Missing' }, { status: 500 });
+    if (!clientId || !clientSecret || !merchantId || !entityId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Environment variables missing',
+        details: {
+          hasClientId: !!clientId,
+          hasClientSecret: !!clientSecret,
+          hasMerchantId: !!merchantId,
+          hasEntityId: !!entityId
+        }
+      }, { status: 500 });
     }
 
-    // 1. Get Token
+    console.log('Using Entity ID:', entityId);
+
+    // Step 1: Get Access Token
+    console.log('Requesting token from Peach...');
     const tokenResponse = await fetch('https://sandbox-dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clientId, clientSecret, merchantId })
     });
 
+    console.log('Token response status:', tokenResponse.status);
     const tokenData = await tokenResponse.json();
-    const token = tokenData.access_token || tokenData.jwt;
+    console.log('Token data:', tokenData);
 
+    const token = tokenData.access_token || tokenData.jwt;
     if (!token) {
-      return NextResponse.json({ success: false, error: 'Auth Failed', debug: tokenData }, { status: 401 });
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to get access token',
+        debug: tokenData
+      }, { status: 401 });
     }
 
-    // 2. Create Checkout
+    // Step 2: Create Checkout
+    console.log('Creating checkout session...');
     const checkoutResponse = await fetch('https://testsecure.peachpayments.com/v2/checkout', {
       method: 'POST',
       headers: {
@@ -44,35 +64,27 @@ export async function POST(request: Request) {
       })
     });
 
-    // ✅ CRITICAL: Read RAW TEXT first to see exactly what Peach returns
-    const rawText = await checkoutResponse.text();
-    
-    let checkoutData;
-    try {
-      checkoutData = JSON.parse(rawText);
-    } catch (e) {
-      checkoutData = { rawText: rawText, parseError: 'Response was not JSON' };
-    }
+    console.log('Checkout response status:', checkoutResponse.status);
+    const checkoutData = await checkoutResponse.json();
+    console.log('Checkout data:', checkoutData);
 
-    console.log('PEACH RAW RESPONSE:', rawText);
-    console.log('PEACH STATUS:', checkoutResponse.status);
-
-    // 3. Check for URL
-    const url = checkoutData.redirectUrl || checkoutData.checkoutUrl || checkoutData.url || checkoutData.redirect_url;
-
-    if (url) {
-      return NextResponse.json({ success: true, checkoutUrl: url });
+    if (checkoutData.redirectUrl) {
+      return NextResponse.json({ success: true, checkoutUrl: checkoutData.redirectUrl });
     } else {
       return NextResponse.json({
         success: false,
-        error: 'No Redirect URL',
+        error: 'No redirect URL',
         peachStatus: checkoutResponse.status,
-        peachRaw: rawText
+        peachResponse: checkoutData
       }, { status: 400 });
     }
 
   } catch (error) {
-    console.error('SERVER CRASH:', error);
-    return NextResponse.json({ success: false, error: 'Server Crash', message: error.message }, { status: 500 });
+    console.error('API Route Error:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Server error',
+      message: error.message
+    }, { status: 500 });
   }
 }
