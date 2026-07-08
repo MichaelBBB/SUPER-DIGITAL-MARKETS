@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -44,11 +44,7 @@ function CheckoutInner() {
   const [processing, setProcessing] = useState(false);
 
   if (!product) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <p className="text-red-400">Product not found</p>
-      </div>
-    );
+    return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><p className="text-red-400">Product not found</p></div>;
   }
 
   const handleCapitecClick = () => {
@@ -60,20 +56,21 @@ function CheckoutInner() {
   const handlePeachPayment = async () => {
     setProcessing(true);
     try {
-      const response = await fetch('/api/peach-payment', {
+      const res = await fetch('/api/peach-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}` })
       });
-      const data = await response.json();
+      const data = await res.json();
       if (data.success && data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
-        alert('Payment error: ' + (data.error || 'Failed'));
+        // ✅ SHOW FULL PEACH RESPONSE IN ALERT
+        const debugInfo = data.peachResponse ? JSON.stringify(data.peachResponse, null, 2) : '';
+        alert(`Payment error: ${data.error}\n\nPeach Response Status: ${data.peachStatus}\n\nPeach Response:\n${debugInfo}`);
       }
     } catch (e) {
-      console.error(e);
-      alert('Failed to connect to payment gateway.');
+      alert('Failed to connect');
     } finally {
       setProcessing(false);
     }
@@ -82,17 +79,14 @@ function CheckoutInner() {
   return (
     <div className="min-h-screen bg-slate-950 text-white py-20 px-4">
       <div className="max-w-2xl mx-auto">
-        <Link href="/" className="text-cyan-400 mb-6 block">← Back to Products</Link>
-        <h1 className="text-3xl font-bold mb-6">Secure Checkout</h1>
-        
+        <Link href="/" className="text-cyan-400 mb-6 block">← Back</Link>
+        <h1 className="text-3xl font-bold mb-6">Checkout</h1>
         <div className="bg-slate-900 p-6 rounded-2xl mb-6">
           <h2 className="text-2xl font-bold">{product.name}</h2>
           <p className="text-3xl font-bold text-cyan-400 mt-2">${product.price.toFixed(2)}</p>
         </div>
-
         <div className="space-y-4">
-          {/* Capitec */}
-          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+          <div className="bg-slate-900 p-6 rounded-2xl">
             <h3 className="text-xl font-bold mb-3">🏦 Capitec Bank Transfer</h3>
             <div className="grid grid-cols-2 gap-3 text-sm mb-4">
               <div className="bg-slate-950 p-3 rounded"><span className="text-gray-500 text-xs block">Account</span><span className="font-bold">SUPER DIGITAL</span></div>
@@ -100,18 +94,12 @@ function CheckoutInner() {
               <div className="bg-slate-950 p-3 rounded"><span className="text-gray-500 text-xs block">Branch</span><span className="font-bold font-mono">470010</span></div>
               <div className="bg-slate-950 p-3 rounded"><span className="text-gray-500 text-xs block">Reference</span><span className="font-bold font-mono">SD-{product.id}</span></div>
             </div>
-            <button onClick={handleCapitecClick} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition">I've Completed the Transfer</button>
+            <button onClick={handleCapitecClick} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold">I've Completed Transfer</button>
           </div>
-
-          {/* Peach Payments - NOW WORKING */}
           <div className="bg-slate-900 p-6 rounded-2xl border border-cyan-500/30">
             <h3 className="text-xl font-bold mb-2">💳 Credit / Debit Card</h3>
-            <p className="text-gray-400 text-sm mb-4">Secure checkout powered by Peach Payments</p>
-            <button
-              onClick={handlePeachPayment}
-              disabled={processing}
-              className={`w-full py-4 rounded-xl font-bold text-lg transition ${processing ? 'bg-gray-600 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-400 cursor-pointer'}`}
-            >
+            <p className="text-gray-400 text-sm mb-4">Powered by Peach Payments</p>
+            <button onClick={handlePeachPayment} disabled={processing} className={`w-full py-4 rounded-xl font-bold text-lg ${processing ? 'bg-gray-600' : 'bg-cyan-500 hover:bg-cyan-400'}`}>
               {processing ? 'Processing...' : `Pay $${product.price.toFixed(2)} Securely`}
             </button>
           </div>
@@ -122,9 +110,5 @@ function CheckoutInner() {
 }
 
 export default function CheckoutPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Loading...</div>}>
-      <CheckoutInner />
-    </Suspense>
-  );
+  return <Suspense fallback={<div>Loading...</div>}><CheckoutInner /></Suspense>;
 }
