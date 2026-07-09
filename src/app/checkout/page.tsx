@@ -52,12 +52,6 @@ function CheckoutInner() {
     );
   }
 
-  const handleCapitecClick = () => {
-    const subject = encodeURIComponent(`Payment - SD-${product.id}`);
-    const body = encodeURIComponent(`Order: ${product.name}\nReference: SD-${product.id}\nAmount: $${product.price}`);
-    window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
-  };
-
   const handlePeachPayment = async () => {
     setProcessing(true);
     try {
@@ -77,6 +71,33 @@ function CheckoutInner() {
       }
     } catch (e) {
       alert('Failed to connect to payment server.');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleCapitecConfirmation = async () => {
+    setProcessing(true);
+    try {
+      const res = await fetch('/api/payment/capitec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          amount: product.price, 
+          orderId: `SD-${product.id}`,
+          productName: product.name 
+        })
+      });
+      
+      const data = await res.json();
+
+      if (data.success) {
+        alert('✅ Payment recorded! Your product will be delivered to your email within 2 hours.');
+      } else {
+        alert(`❌ Error: ${data.error || 'Failed to record payment'}`);
+      }
+    } catch (e) {
+      alert('Failed to connect to server.');
     } finally {
       setProcessing(false);
     }
@@ -130,7 +151,7 @@ function CheckoutInner() {
               <span className="text-2xl">🏦</span>
               <div>
                 <h4 className="font-bold">Capitec Bank Transfer</h4>
-                <p className="text-gray-400 text-xs">Direct EFT - Instant delivery</p>
+                <p className="text-gray-400 text-xs">Direct EFT - Delivery within 2 hours</p>
               </div>
             </div>
             <button
@@ -182,12 +203,11 @@ function CheckoutInner() {
               </div>
 
               <button 
-                onClick={() => {
-                  alert('Thank you! Your product will be delivered instantly once payment is confirmed.');
-                }} 
-                className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition"
+                onClick={handleCapitecConfirmation}
+                disabled={processing}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition disabled:bg-gray-600"
               >
-                ✅ I've Completed the Bank Transfer
+                {processing ? 'Processing...' : '✅ I\'ve Completed the Bank Transfer'}
               </button>
             </div>
           )}
