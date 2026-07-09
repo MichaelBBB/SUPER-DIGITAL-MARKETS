@@ -4,32 +4,41 @@ export async function POST(request: Request) {
   try {
     const { amount, orderId } = await request.json();
 
+    // 1. Get Credentials
     const clientId = process.env.PEACH_CLIENT_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
+    const merchantId = process.env.PEACH_MERCHANT_ID;
     const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
 
-    if (!clientId || !clientSecret || !entityId) {
-      return NextResponse.json({ success: false, error: 'Config missing' }, { status: 500 });
+    if (!clientId || !clientSecret || !merchantId || !entityId) {
+      return NextResponse.json({ success: false, error: 'Missing Environment Variables' }, { status: 500 });
     }
 
-    // STEP 1: Get Access Token using CORRECT Sandbox API endpoint
+    // 2. Get Access Token using JSON Body Auth (As per Peach API v2 Docs)
+    // Endpoint: Sandbox API v2
     const tokenResponse = await fetch('https://testapi-v2.peachpayments.com/oauth/token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
-      },
-      body: 'grant_type=client_credentials'
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        clientId: clientId,
+        clientSecret: clientSecret,
+        merchantId: merchantId
+      })
     });
 
     const tokenData = await tokenResponse.json();
     const token = tokenData.access_token;
 
     if (!token) {
-      return NextResponse.json({ success: false, error: 'Auth failed', debug: tokenData }, { status: 401 });
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Auth failed', 
+        debug: tokenData 
+      }, { status: 401 });
     }
 
-    // STEP 2: Create Hosted Checkout Session using CORRECT endpoint
+    // 3. Create Hosted Checkout Session
+    // Endpoint: Sandbox API v2 -> /v1/hosted-checkout/sessions
     const checkoutResponse = await fetch('https://testapi-v2.peachpayments.com/v1/hosted-checkout/sessions', {
       method: 'POST',
       headers: {
@@ -47,9 +56,8 @@ export async function POST(request: Request) {
     });
 
     const checkoutData = await checkoutResponse.json();
-    console.log('Peach Checkout Response:', checkoutData);
-
-    // STEP 3: Extract redirect URL
+    
+    // 4. Extract Redirect URL
     const redirectUrl = checkoutData.redirectUrl || checkoutData.checkoutUrl || checkoutData.url;
 
     if (redirectUrl) {
@@ -64,7 +72,7 @@ export async function POST(request: Request) {
     }
 
   } catch (error) {
-    console.error('Server error:', error);
+    console.error('Server Error:', error);
     return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }
 }
