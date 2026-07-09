@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 
+// ✅ Force Node.js Runtime
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
     const { amount, orderId } = await request.json();
 
-    // ✅ Your verified Hosted Checkout credentials
+    // ✅ Verified Credentials
     const clientId = '8bbf74df6fc2d54792923a42a1ec28';
     const clientSecret = 'gmaIOZ4kaovr4Xu8juDaJ6L8WLb408xLox+GpIdsKzSKjG433T62hnXE2X3xAYgSLMyM5wUDVwT8ByeUhCHN5w==';
     const entityId = '8ac7a4c89d6f2185019d70e1ee0501f3';
@@ -14,39 +15,37 @@ export async function POST(request: Request) {
     const merchantId = process.env.PEACH_MERCHANT_ID;
 
     if (!merchantId) {
-      throw new Error('Missing PEACH_MERCHANT_ID in Vercel env vars');
+      throw new Error('Missing merchantId');
     }
 
     // Step 1: Get Access Token
-    console.log('🔑 Getting access token...');
+    console.log(' Getting access token...');
     const tokenRes = await fetch('https://sandbox-dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify({
-        clientId,
-        clientSecret,
-        merchantId
-      })
+      body: JSON.stringify({ clientId, clientSecret, merchantId })
     });
 
     const tokenText = await tokenRes.text();
-    console.log(`Token Status: ${tokenRes.status}`);
-
-    if (!tokenRes.ok) {
-      throw new Error(`Token failed (${tokenRes.status}): ${tokenText}`);
-    }
+    if (!tokenRes.ok) throw new Error(`Token failed: ${tokenText}`);
 
     const tokenData = JSON.parse(tokenText);
     const token = tokenData.access_token || tokenData.jwt;
-    if (!token) throw new Error('No token in response');
+    if (!token) throw new Error('No token received');
 
     console.log('✅ Token received. Creating checkout...');
 
+    // ✅ FIX 1: Generate a unique NONCE (Required by Peach)
+    const nonce = crypto.randomUUID();
+
+    // ✅ FIX 2: Create a Merchant Transaction ID with min 8 characters
+    // "SD-3" is too short. We add a timestamp to make it unique and long enough.
+    const merchantTransactionId = `SD-${orderId}-${Date.now()}`;
+
     // Step 2: Create Hosted Checkout Session
-    console.log('📝 Creating hosted checkout session...');
     const checkoutRes = await fetch('https://testsecure.peachpayments.com/v2/checkout', {
       method: 'POST',
       headers: {
@@ -57,11 +56,15 @@ export async function POST(request: Request) {
         'X-Secret-Token': secretToken
       },
       body: JSON.stringify({
-        entityId,
+        entityId: entityId,
         amount: parseFloat(amount).toFixed(2),
         currency: 'ZAR',
         paymentType: 'DB',
-        merchantTransactionId: orderId,
+        
+        // ✅ The Fixes
+        merchantTransactionId: merchantTransactionId, 
+        nonce: nonce,
+        
         shopperResultUrl: 'https://super-digital-markets-co9n.vercel.app/checkout/success',
         notificationUrl: 'https://super-digital-markets-co9n.vercel.app/api/webhooks/peach'
       })
@@ -75,14 +78,13 @@ export async function POST(request: Request) {
     }
 
     const checkoutData = JSON.parse(checkoutText);
-    console.log('Checkout response:', checkoutData);
-
     const redirectUrl = checkoutData.redirectUrl || checkoutData.checkoutUrl;
-    
+
     if (!redirectUrl) {
-      throw new Error(`No redirect URL. Response: ${JSON.stringify(checkoutData)}`);
+      throw new Error(`No redirect URL in response: ${JSON.stringify(checkoutData)}`);
     }
 
+    console.log('✅ SUCCESS! Redirecting to:', redirectUrl);
     return NextResponse.json({ success: true, checkoutUrl: redirectUrl });
 
   } catch (error: any) {
