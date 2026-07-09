@@ -71,18 +71,12 @@ function CheckoutInner() {
       if (data.success && data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
-        // ✅ Detailed error display for debugging
-        const errorMsg = data.response 
-          ? JSON.stringify(data.response, null, 2) 
-          : data.debug 
-            ? JSON.stringify(data.debug, null, 2) 
-            : data.error || 'Unknown error';
-            
-        alert(`Payment Error: ${data.error || 'Failed'}\n\nStatus: ${data.status}\n\nDetails:\n${errorMsg}`);
+        const step = data.step || 'unknown';
+        const msg = data.error || data.message || 'Unknown error';
+        alert(`❌ Payment Failed\n\nStep: ${step}\nError: ${msg}`);
       }
     } catch (e) {
-      console.error(e);
-      alert('Failed to connect to payment server.');
+      alert('Failed to connect to server.');
     } finally {
       setProcessing(false);
     }
