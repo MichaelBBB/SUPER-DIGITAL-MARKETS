@@ -38,6 +38,10 @@ export async function POST(request: Request) {
     const nonce = crypto.randomUUID();
     const merchantTransactionId = `SD-${orderId}-${Date.now()}`;
 
+    // ✅ Configuration
+    const peachSecurityOrigin = 'https://famous.ai'; // Allowlisted domain for headers
+    const siteUrl = 'https://super-digital-markets-co9n.vercel.app'; // Your Vercel site
+
     // Step 2: Create Hosted Checkout Session
     const checkoutRes = await fetch('https://testsecure.peachpayments.com/v2/checkout', {
       method: 'POST',
@@ -47,9 +51,8 @@ export async function POST(request: Request) {
         'Authorization': `Bearer ${token}`,
         'X-Merchant-ID': merchantId,
         'X-Secret-Token': secretToken,
-        // ✅ Use the exact domain from your screenshot
-        'Referer': 'https://super-digital-markets-co9n-pc05aa1os-michaelbbb-projects.vercel.app',
-        'Origin': 'https://super-digital-markets-co9n-pc05aa1os-michaelbbb-projects.vercel.app'
+        'Referer': peachSecurityOrigin,
+        'Origin': peachSecurityOrigin
       },
       body: JSON.stringify({
         entityId: entityId,
@@ -58,8 +61,8 @@ export async function POST(request: Request) {
         paymentType: 'DB',
         merchantTransactionId: merchantTransactionId,
         nonce: nonce,
-        shopperResultUrl: 'https://super-digital-markets-co9n.vercel.app/checkout/success',
-        notificationUrl: 'https://super-digital-markets-co9n.vercel.app/api/webhooks/peach'
+        shopperResultUrl: `${siteUrl}/checkout/success`,
+        notificationUrl: `${siteUrl}/api/webhooks/peach`
       })
     });
 
