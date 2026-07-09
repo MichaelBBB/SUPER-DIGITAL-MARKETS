@@ -52,12 +52,6 @@ function CheckoutInner() {
     );
   }
 
-  const handleCapitecClick = () => {
-    const subject = encodeURIComponent(`Payment - SD-${product.id}`);
-    const body = encodeURIComponent(`Order: ${product.name}\nReference: SD-${product.id}\nAmount: $${product.price}`);
-    window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
-  };
-
   const handlePayment = async (method: string) => {
     setProcessing(true);
     try {
@@ -79,7 +73,7 @@ function CheckoutInner() {
         window.location.href = data.checkoutUrl;
       } else {
         const msg = data.error || data.message || 'Payment failed';
-        alert(`❌ Payment Error: ${msg}`);
+        alert(` Payment Error: ${msg}`);
       }
     } catch (e) {
       alert('Failed to connect to payment server.');
@@ -190,7 +184,7 @@ function CheckoutInner() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">🇿🇦</span>
+                    <span className="text-2xl">🇦</span>
                     <span className="font-bold">Peach Payments</span>
                   </div>
                   <span className="text-xs text-orange-400">SA PRIMARY</span>
@@ -234,46 +228,54 @@ function CheckoutInner() {
                   <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
                     <span className="text-2xl">🇿🇦</span> Capitec Bank Transfer
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">Direct bank transfer to our Capitec account.</p>
+                  <p className="text-gray-400 text-sm mb-4">Direct EFT. Your product will be delivered once payment is confirmed.</p>
                   
-                  <div className="mb-4">
-                    <h4 className="text-sm font-bold text-gray-400 mb-2">CURRENCIES</h4>
-                    <span className="text-cyan-400">ZAR</span>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="text-sm font-bold text-gray-400 mb-2">ACCEPTED METHODS</h4>
-                    <div className="flex gap-2 flex-wrap">
-                      <span className="px-3 py-1 bg-slate-800 rounded-full text-xs">EFT</span>
-                      <span className="px-3 py-1 bg-slate-800 rounded-full text-xs">Internet Banking</span>
-                      <span className="px-3 py-1 bg-slate-800 rounded-full text-xs">Capitec App</span>
+                  <div className="bg-slate-950 p-4 rounded-xl mb-4 border border-slate-800">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-gray-500 text-xs block">Bank</span>
+                        <span className="font-bold text-white">Capitec Bank</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 text-xs block">Account Name</span>
+                        <span className="font-bold text-white">SUPER DIGITAL</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 text-xs block">Account Number</span>
+                        <span className="font-bold font-mono text-cyan-400">1975933441</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 text-xs block">Branch Code</span>
+                        <span className="font-bold font-mono text-white">470010</span>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                    <div className="bg-slate-950 p-3 rounded">
-                      <span className="text-gray-500 text-xs block">Account</span>
-                      <span className="font-bold">SUPER DIGITAL</span>
-                    </div>
-                    <div className="bg-slate-950 p-3 rounded">
-                      <span className="text-gray-500 text-xs block">Number</span>
-                      <span className="font-bold font-mono">1975933441</span>
-                    </div>
-                    <div className="bg-slate-950 p-3 rounded">
-                      <span className="text-gray-500 text-xs block">Branch</span>
-                      <span className="font-bold font-mono">470010</span>
-                    </div>
-                    <div className="bg-slate-950 p-3 rounded">
-                      <span className="text-gray-500 text-xs block">Reference</span>
-                      <span className="font-bold font-mono">SD-{product.id}</span>
+                    
+                    <div className="mt-3 pt-3 border-t border-slate-800">
+                      <span className="text-gray-500 text-xs block mb-1">Your Payment Reference</span>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 bg-slate-900 px-3 py-2 rounded font-mono text-cyan-400 font-bold">
+                          SD-{product.id}
+                        </code>
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(`SD-${product.id}`);
+                            alert('Reference copied!');
+                          }}
+                          className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded text-xs font-bold transition"
+                        >
+                          📋 Copy
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   <button 
-                    onClick={handleCapitecClick} 
+                    onClick={() => {
+                      alert('Thank you! We will verify your payment and deliver your product within 24 hours.');
+                    }} 
                     className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition"
                   >
-                    Pay with Capitec Bank Transfer
+                    ✅ I've Completed the Bank Transfer
                   </button>
                 </>
               )}
