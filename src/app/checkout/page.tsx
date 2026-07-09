@@ -42,7 +42,7 @@ function CheckoutInner() {
   const productId = searchParams.get('product');
   const product = products.find(p => p.id === Number(productId));
   const [processing, setProcessing] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState('peach'); // ✅ Default to Peach
+  const [showCapitecDetails, setShowCapitecDetails] = useState(false);
 
   if (!product) {
     return (
@@ -52,24 +52,24 @@ function CheckoutInner() {
     );
   }
 
-  const handlePayment = async (method: string) => {
+  const handleCapitecClick = () => {
+    const subject = encodeURIComponent(`Payment - SD-${product.id}`);
+    const body = encodeURIComponent(`Order: ${product.name}\nReference: SD-${product.id}\nAmount: $${product.price}`);
+    window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
+  };
+
+  const handlePeachPayment = async () => {
     setProcessing(true);
     try {
-      const res = await fetch(`/api/payment/${method}`, {
+      const res = await fetch('/api/peach-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          amount: product.price, 
-          orderId: `SD-${product.id}`,
-          productName: product.name 
-        })
+        body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}` })
       });
       
       const data = await res.json();
 
-      if (data.success && data.url) {
-        window.location.href = data.url;
-      } else if (data.success && data.checkoutUrl) {
+      if (data.success && data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
         const msg = data.error || data.message || 'Payment failed';
@@ -107,7 +107,7 @@ function CheckoutInner() {
           </div>
           
           <button
-            onClick={() => handlePayment('peach')}
+            onClick={handlePeachPayment}
             disabled={processing}
             className={`w-full py-4 rounded-xl font-bold text-lg mt-4 transition ${
               processing ? 'bg-gray-600' : 'bg-cyan-500 hover:bg-cyan-400'
@@ -123,124 +123,74 @@ function CheckoutInner() {
           </div>
         </div>
 
-        {/* Alternative Payment Methods */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-gray-400">Alternative Payment Methods</h3>
-
-          {/* Capitec Bank Transfer */}
-          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🏦</span>
-                <div>
-                  <h4 className="font-bold">Capitec Bank Transfer</h4>
-                  <p className="text-gray-400 text-xs">Direct EFT - Instant delivery</p>
-                </div>
+        {/* Capitec Bank Transfer */}
+        <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🏦</span>
+              <div>
+                <h4 className="font-bold">Capitec Bank Transfer</h4>
+                <p className="text-gray-400 text-xs">Direct EFT - Instant delivery</p>
               </div>
-              <button
-                onClick={() => setSelectedMethod(selectedMethod === 'capitec' ? 'peach' : 'capitec')}
-                className="text-cyan-400 text-sm"
-              >
-                {selectedMethod === 'capitec' ? 'Hide' : 'Show'} Details
-              </button>
             </div>
+            <button
+              onClick={() => setShowCapitecDetails(!showCapitecDetails)}
+              className="text-cyan-400 text-sm"
+            >
+              {showCapitecDetails ? 'Hide' : 'Show'} Details
+            </button>
+          </div>
 
-            {selectedMethod === 'capitec' && (
-              <div className="mt-4 pt-4 border-t border-slate-800">
-                <div className="bg-slate-950 p-4 rounded-xl mb-4">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-gray-500 text-xs block">Bank</span>
-                      <span className="font-bold text-white">Capitec Bank</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-xs block">Account Name</span>
-                      <span className="font-bold text-white">SUPER DIGITAL</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-xs block">Account Number</span>
-                      <span className="font-bold font-mono text-cyan-400">1975933441</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-xs block">Branch Code</span>
-                      <span className="font-bold font-mono text-white">470010</span>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-gray-500 text-xs block">Reference</span>
-                      <div className="flex items-center gap-2 mt-1">
-                        <code className="flex-1 bg-slate-900 px-3 py-2 rounded font-mono text-cyan-400 font-bold">
-                          SD-{product.id}
-                        </code>
-                        <button 
-                          onClick={() => {
-                            navigator.clipboard.writeText(`SD-${product.id}`);
-                            alert('Reference copied!');
-                          }}
-                          className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded text-xs font-bold transition"
-                        >
-                           Copy
-                        </button>
-                      </div>
+          {showCapitecDetails && (
+            <div className="mt-4 pt-4 border-t border-slate-800">
+              <div className="bg-slate-950 p-4 rounded-xl mb-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-500 text-xs block">Bank</span>
+                    <span className="font-bold text-white">Capitec Bank</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs block">Account Name</span>
+                    <span className="font-bold text-white">SUPER DIGITAL</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs block">Account Number</span>
+                    <span className="font-bold font-mono text-cyan-400">1975933441</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs block">Branch Code</span>
+                    <span className="font-bold font-mono text-white">470010</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-gray-500 text-xs block">Reference</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="flex-1 bg-slate-900 px-3 py-2 rounded font-mono text-cyan-400 font-bold">
+                        SD-{product.id}
+                      </code>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(`SD-${product.id}`);
+                          alert('Reference copied!');
+                        }}
+                        className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded text-xs font-bold transition"
+                      >
+                         Copy
+                      </button>
                     </div>
                   </div>
                 </div>
-
-                <button 
-                  onClick={() => {
-                    alert('Thank you! Your product will be delivered instantly once payment is confirmed.');
-                  }} 
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition"
-                >
-                  ✅ I've Completed the Bank Transfer
-                </button>
               </div>
-            )}
-          </div>
 
-          {/* Razorpay - India */}
-          <button 
-            onClick={() => handlePayment('razorpay')}
-            className="w-full bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-indigo-500/50 transition text-left"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🇮🇳</span>
-              <div className="flex-1">
-                <h4 className="font-bold">Razorpay</h4>
-                <p className="text-gray-400 text-xs">UPI, Cards & NetBanking (India)</p>
-              </div>
-              <span className="text-cyan-400">→</span>
+              <button 
+                onClick={() => {
+                  alert('Thank you! Your product will be delivered instantly once payment is confirmed.');
+                }} 
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition"
+              >
+                ✅ I've Completed the Bank Transfer
+              </button>
             </div>
-          </button>
-
-          {/* Alipay - China */}
-          <button 
-            onClick={() => handlePayment('alipay')}
-            className="w-full bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-blue-500/50 transition text-left"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🇨🇳</span>
-              <div className="flex-1">
-                <h4 className="font-bold">Alipay</h4>
-                <p className="text-gray-400 text-xs">China's leading payment platform</p>
-              </div>
-              <span className="text-cyan-400">→</span>
-            </div>
-          </button>
-
-          {/* Payoneer - USA/Global */}
-          <button 
-            onClick={() => handlePayment('payoneer')}
-            className="w-full bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-yellow-500/50 transition text-left"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl"></span>
-              <div className="flex-1">
-                <h4 className="font-bold">Payoneer</h4>
-                <p className="text-gray-400 text-xs">International payments</p>
-              </div>
-              <span className="text-cyan-400">→</span>
-            </div>
-          </button>
+          )}
         </div>
       </div>
     </div>
