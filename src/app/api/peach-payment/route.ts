@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// ✅ Force Node.js Runtime
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
@@ -19,7 +18,6 @@ export async function POST(request: Request) {
     }
 
     // Step 1: Get Access Token
-    console.log(' Getting access token...');
     const tokenRes = await fetch('https://sandbox-dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
       headers: {
@@ -36,13 +34,8 @@ export async function POST(request: Request) {
     const token = tokenData.access_token || tokenData.jwt;
     if (!token) throw new Error('No token received');
 
-    console.log('✅ Token received. Creating checkout...');
-
-    // ✅ FIX 1: Generate a unique NONCE (Required by Peach)
+    // ✅ Generate unique NONCE and Transaction ID
     const nonce = crypto.randomUUID();
-
-    // ✅ FIX 2: Create a Merchant Transaction ID with min 8 characters
-    // "SD-3" is too short. We add a timestamp to make it unique and long enough.
     const merchantTransactionId = `SD-${orderId}-${Date.now()}`;
 
     // Step 2: Create Hosted Checkout Session
@@ -53,25 +46,24 @@ export async function POST(request: Request) {
         'Accept': 'application/json',
         'Authorization': `Bearer ${token}`,
         'X-Merchant-ID': merchantId,
-        'X-Secret-Token': secretToken
+        'X-Secret-Token': secretToken,
+        // ✅ Use the exact domain from your screenshot
+        'Referer': 'https://super-digital-markets-co9n-pc05aa1os-michaelbbb-projects.vercel.app',
+        'Origin': 'https://super-digital-markets-co9n-pc05aa1os-michaelbbb-projects.vercel.app'
       },
       body: JSON.stringify({
         entityId: entityId,
         amount: parseFloat(amount).toFixed(2),
         currency: 'ZAR',
         paymentType: 'DB',
-        
-        // ✅ The Fixes
-        merchantTransactionId: merchantTransactionId, 
+        merchantTransactionId: merchantTransactionId,
         nonce: nonce,
-        
         shopperResultUrl: 'https://super-digital-markets-co9n.vercel.app/checkout/success',
         notificationUrl: 'https://super-digital-markets-co9n.vercel.app/api/webhooks/peach'
       })
     });
 
     const checkoutText = await checkoutRes.text();
-    console.log(`Checkout Status: ${checkoutRes.status}`);
 
     if (!checkoutRes.ok) {
       throw new Error(`Checkout failed (${checkoutRes.status}): ${checkoutText}`);
@@ -81,10 +73,9 @@ export async function POST(request: Request) {
     const redirectUrl = checkoutData.redirectUrl || checkoutData.checkoutUrl;
 
     if (!redirectUrl) {
-      throw new Error(`No redirect URL in response: ${JSON.stringify(checkoutData)}`);
+      throw new Error(`No redirect URL. Response: ${JSON.stringify(checkoutData)}`);
     }
 
-    console.log('✅ SUCCESS! Redirecting to:', redirectUrl);
     return NextResponse.json({ success: true, checkoutUrl: redirectUrl });
 
   } catch (error: any) {
