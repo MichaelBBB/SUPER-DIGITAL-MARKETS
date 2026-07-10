@@ -42,7 +42,6 @@ function CheckoutInner() {
   const productId = searchParams.get('product');
   const product = products.find(p => p.id === Number(productId));
   const [processing, setProcessing] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState('capitec');
 
   if (!product) {
     return (
@@ -92,7 +91,7 @@ function CheckoutInner() {
       const data = await res.json();
 
       if (data.success) {
-        alert('✅ Payment recorded! Your product will be delivered within 2 hours.');
+        alert('✅ Payment recorded! Please email your proof of payment to payments@superdigital.store.');
       } else {
         alert(`❌ Error: ${data.error || 'Failed to record payment'}`);
       }
@@ -106,239 +105,154 @@ function CheckoutInner() {
   return (
     <div className="min-h-screen bg-slate-950 text-white py-10 px-4">
       <div className="max-w-6xl mx-auto">
-        <Link href="/" className="text-cyan-400 mb-6 block">← Back to Products</Link>
+        <Link href="/" className="text-cyan-400 mb-6 block">&larr; Back to Products</Link>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Sidebar - Payment Methods */}
-          <div className="space-y-3">
-            {/* Razorpay */}
-            <button 
-              onClick={() => setSelectedMethod('razorpay')}
-              className={`w-full p-4 rounded-xl border-2 transition text-left ${
-                selectedMethod === 'razorpay' 
-                  ? 'border-cyan-500 bg-slate-900' 
-                  : 'border-slate-800 bg-slate-950 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🇮🇳</span>
+          {/* Left Sidebar - Payment Guide */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold mb-4">Payment Steps</h2>
+            
+            <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-cyan-900/50 flex items-center justify-center text-cyan-400 font-bold text-sm">01</div>
                 <div>
-                  <div className="font-bold">Razorpay</div>
-                  <span className="text-xs text-blue-400">INDIA PRIMARY</span>
+                  <h3 className="font-bold">Choose Your Product</h3>
+                  <p className="text-gray-400 text-xs mt-1">Browse all 30 digital products and click "Buy Now" on your selection.</p>
                 </div>
               </div>
-            </button>
+            </div>
 
-            {/* Alipay */}
-            <button 
-              onClick={() => setSelectedMethod('alipay')}
-              className={`w-full p-4 rounded-xl border-2 transition text-left ${
-                selectedMethod === 'alipay' 
-                  ? 'border-cyan-500 bg-slate-900' 
-                  : 'border-slate-800 bg-slate-950 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🇨🇳</span>
+            <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-cyan-900/50 flex items-center justify-center text-cyan-400 font-bold text-sm">02</div>
                 <div>
-                  <div className="font-bold">Alipay</div>
-                  <span className="text-xs text-blue-400">CHINA PRIMARY</span>
+                  <h3 className="font-bold">Select Payment Method</h3>
+                  <p className="text-gray-400 text-xs mt-1">Choose from Razorpay (India), Alipay (China), Payoneer (USA), Google Pay, Peach Payments, or direct bank transfer.</p>
                 </div>
               </div>
-            </button>
+            </div>
 
-            {/* Payoneer */}
-            <button 
-              onClick={() => setSelectedMethod('payoneer')}
-              className={`w-full p-4 rounded-xl border-2 transition text-left ${
-                selectedMethod === 'payoneer' 
-                  ? 'border-cyan-500 bg-slate-900' 
-                  : 'border-slate-800 bg-slate-950 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🇺</span>
+            <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-cyan-900/50 flex items-center justify-center text-cyan-400 font-bold text-sm">03</div>
                 <div>
-                  <div className="font-bold">Payoneer</div>
-                  <span className="text-xs text-red-400">USA PRIMARY</span>
+                  <h3 className="font-bold">Complete Payment</h3>
+                  <p className="text-gray-400 text-xs mt-1">Follow the secure checkout flow. For bank transfers, use the Capitec details below and email your proof of payment.</p>
                 </div>
               </div>
-            </button>
+            </div>
 
-            {/* Google Pay */}
-            <button 
-              onClick={() => setSelectedMethod('googlepay')}
-              className={`w-full p-4 rounded-xl border-2 transition text-left ${
-                selectedMethod === 'googlepay' 
-                  ? 'border-cyan-500 bg-slate-900' 
-                  : 'border-slate-800 bg-slate-950 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🌍</span>
+            <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-cyan-900/50 flex items-center justify-center text-cyan-400 font-bold text-sm">04</div>
                 <div>
-                  <div className="font-bold">Google Pay</div>
-                  <span className="text-xs text-blue-400">GLOBAL</span>
+                  <h3 className="font-bold">Instant Delivery</h3>
+                  <p className="text-gray-400 text-xs mt-1">Your digital product is delivered immediately to your email after payment confirmation.</p>
                 </div>
               </div>
-            </button>
-
-            {/* Peach Payments */}
-            <button 
-              onClick={() => setSelectedMethod('peach')}
-              className={`w-full p-4 rounded-xl border-2 transition text-left ${
-                selectedMethod === 'peach' 
-                  ? 'border-cyan-500 bg-slate-900' 
-                  : 'border-slate-800 bg-slate-950 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🇿🇦</span>
-                <div>
-                  <div className="font-bold">Peach Payments</div>
-                  <span className="text-xs text-orange-400">SA PRIMARY</span>
-                </div>
-              </div>
-            </button>
-
-            {/* Capitec Bank Transfer */}
-            <button 
-              onClick={() => setSelectedMethod('capitec')}
-              className={`w-full p-4 rounded-xl border-2 transition text-left ${
-                selectedMethod === 'capitec' 
-                  ? 'border-cyan-500 bg-slate-900' 
-                  : 'border-slate-800 bg-slate-950 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🇿🇦</span>
-                  <div>
-                    <div className="font-bold">Capitec Bank Transfer</div>
-                    <span className="text-xs text-gray-500">MANUAL</span>
-                  </div>
-                </div>
-                {selectedMethod === 'capitec' && <span className="text-cyan-400 text-xl">✓</span>}
-              </div>
-            </button>
+            </div>
           </div>
 
           {/* Right Panel - Payment Details */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Capitec Bank Transfer Block */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-              
-              {/* Capitec Details */}
-              {selectedMethod === 'capitec' && (
-                <>
-                  <div className="flex items-start justify-between mb-6">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-3xl">🇿🇦</span>
-                        <div>
-                          <h2 className="text-2xl font-bold">Capitec Bank Transfer</h2>
-                          <p className="text-gray-400">South Africa Market</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-2 bg-slate-800 rounded-lg">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                    </div>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🇿</span>
+                  <div>
+                    <h2 className="text-2xl font-bold">Capitec Bank Transfer</h2>
+                    <p className="text-gray-400">South Africa Market</p>
                   </div>
+                </div>
+                <span className="px-2 py-1 bg-green-900/30 text-green-400 text-xs rounded-full border border-green-800 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                  Verified
+                </span>
+              </div>
 
-                  <p className="text-gray-400 mb-6">Direct bank transfer to our Capitec account.</p>
-
-                  <div className="mb-6">
-                    <h3 className="text-sm font-bold text-gray-400 mb-3">CURRENCIES</h3>
-                    <div className="text-cyan-400 font-bold">ZAR</div>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  <span className="text-gray-500 text-xs block">Account Holder</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold">SUPER DIGITAL</span>
+                    <button onClick={() => navigator.clipboard.writeText('SUPER DIGITAL')}>📋</button>
                   </div>
-
-                  <div className="mb-6">
-                    <h3 className="text-sm font-bold text-gray-400 mb-3">ACCEPTED METHODS</h3>
-                    <div className="flex gap-2 flex-wrap">
-                      <span className="px-3 py-1 bg-slate-800 rounded-full text-xs flex items-center gap-1">
-                        <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        EFT
-                      </span>
-                      <span className="px-3 py-1 bg-slate-800 rounded-full text-xs flex items-center gap-1">
-                        <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Internet Banking
-                      </span>
-                      <span className="px-3 py-1 bg-slate-800 rounded-full text-xs flex items-center gap-1">
-                        <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Capitec App
-                      </span>
-                    </div>
+                </div>
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  <span className="text-gray-500 text-xs block">Account Number</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold font-mono">1975933441</span>
+                    <button onClick={() => navigator.clipboard.writeText('1975933441')}>📋</button>
                   </div>
+                </div>
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  <span className="text-gray-500 text-xs block">Swift Code</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold">CABLZAJJ</span>
+                    <button onClick={() => navigator.clipboard.writeText('CABLZAJJ')}>📋</button>
+                  </div>
+                </div>
+                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  <span className="text-gray-500 text-xs block">Branch Code</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold">470010</span>
+                    <button onClick={() => navigator.clipboard.writeText('470010')}>📋</button>
+                  </div>
+                </div>
+              </div>
 
-                  <button 
-                    onClick={handleCapitecConfirmation}
-                    disabled={processing}
-                    className="w-full py-4 bg-blue-900/50 hover:bg-blue-900/70 rounded-xl font-bold transition disabled:bg-gray-700 flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    {processing ? 'Processing...' : 'Pay with Capitec Bank Transfer'}
-                  </button>
-                </>
-              )}
+              <div className="bg-blue-900/20 border border-blue-800 p-4 rounded-xl mb-6">
+                <p className="text-xs text-blue-200">
+                  <strong>After payment:</strong> Email your proof of payment to <a href="mailto:payments@superdigital.store" className="underline hover:text-blue-100">payments@superdigital.store</a> with your order number. Products are delivered within 2 hours of payment confirmation. Reference your order number in the payment description.
+                </p>
+              </div>
 
-              {/* Peach Payments Details */}
-              {selectedMethod === 'peach' && (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-bold mb-4">Credit / Debit Card</h3>
-                  <p className="text-gray-400 mb-6">Secure checkout powered by Peach Payments</p>
-                  <button
-                    onClick={handlePeachPayment}
-                    disabled={processing}
-                    className={`w-full py-4 rounded-xl font-bold text-lg transition ${
-                      processing ? 'bg-gray-600' : 'bg-cyan-500 hover:bg-cyan-400'
-                    }`}
-                  >
-                    {processing ? 'Processing...' : `Pay $${product.price.toFixed(2)} Securely`}
-                  </button>
-                </div>
-              )}
-
-              {/* Other methods placeholder */}
-              {selectedMethod === 'razorpay' && (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-bold mb-4">🇮🇳 Razorpay</h3>
-                  <p className="text-gray-400 mb-6">UPI, Cards & NetBanking for India</p>
-                  <button className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold">Pay via Razorpay (Coming Soon)</button>
-                </div>
-              )}
-              {selectedMethod === 'alipay' && (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-bold mb-4">🇨🇳 Alipay</h3>
-                  <p className="text-gray-400 mb-6">China's leading payment platform</p>
-                  <button className="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold">Pay via Alipay (Coming Soon)</button>
-                </div>
-              )}
-              {selectedMethod === 'payoneer' && (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-bold mb-4">🇺🇸 Payoneer</h3>
-                  <p className="text-gray-400 mb-6">International payments</p>
-                  <button className="w-full py-4 bg-yellow-600 hover:bg-yellow-500 rounded-xl font-bold">Pay via Payoneer (Coming Soon)</button>
-                </div>
-              )}
-              {selectedMethod === 'googlepay' && (
-                <div className="text-center py-12">
-                  <h3 className="text-xl font-bold mb-4">🌍 Google Pay</h3>
-                  <p className="text-gray-400 mb-6">Fast & secure global payments</p>
-                  <button className="w-full py-4 bg-slate-700 hover:bg-slate-600 rounded-xl font-bold">Pay via Google Pay (Coming Soon)</button>
-                </div>
-              )}
-
+              <button 
+                onClick={handleCapitecConfirmation}
+                disabled={processing}
+                className="w-full py-4 bg-blue-900/50 hover:bg-blue-900/70 rounded-xl font-bold transition disabled:bg-gray-700 flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                {processing ? 'Processing...' : 'Pay with Capitec Bank Transfer'}
+              </button>
             </div>
+
+            {/* Other Payment Methods (Accordion Style) */}
+            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+              <h3 className="text-lg font-bold mb-4">ALL ACCEPTED PAYMENT METHODS</h3>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <button className="flex flex-col items-center gap-2 p-4 bg-slate-950 rounded-xl hover:bg-slate-800 transition group">
+                  <span className="text-2xl">🇮🇳</span>
+                  <span className="text-sm font-bold group-hover:text-cyan-400">Razorpay</span>
+                </button>
+                <button className="flex flex-col items-center gap-2 p-4 bg-slate-950 rounded-xl hover:bg-slate-800 transition group">
+                  <span className="text-2xl">🇨</span>
+                  <span className="text-sm font-bold group-hover:text-cyan-400">Alipay</span>
+                </button>
+                <button className="flex flex-col items-center gap-2 p-4 bg-slate-950 rounded-xl hover:bg-slate-800 transition group">
+                  <span className="text-2xl">🇺</span>
+                  <span className="text-sm font-bold group-hover:text-cyan-400">Payoneer</span>
+                </button>
+                <button className="flex flex-col items-center gap-2 p-4 bg-slate-950 rounded-xl hover:bg-slate-800 transition group">
+                  <span className="text-2xl">🌍</span>
+                  <span className="text-sm font-bold group-hover:text-cyan-400">Google Pay</span>
+                </button>
+                <button 
+                  onClick={handlePeachPayment}
+                  disabled={processing}
+                  className={`col-span-2 md:col-span-1 flex flex-col items-center gap-2 p-4 rounded-xl transition group ${processing ? 'bg-gray-700 cursor-not-allowed' : 'bg-cyan-900/50 hover:bg-cyan-900/70 border border-cyan-800'}`}
+                >
+                  <span className="text-2xl">💳</span>
+                  <span className="text-sm font-bold text-cyan-400">Credit Card</span>
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
