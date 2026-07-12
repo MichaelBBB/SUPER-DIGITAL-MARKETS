@@ -1,130 +1,236 @@
+'use client';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 const products = [
-  { id: 1, name: "ChatGPT Plus", price: 20.00 },
-  { id: 2, name: "Adobe Creative Cloud", price: 54.99 },
-  { id: 3, name: "Netflix Premium", price: 22.99 },
-  { id: 4, name: "Microsoft 365 Business", price: 12.50 },
-  { id: 5, name: "Spotify Premium", price: 9.99 },
-  { id: 6, name: "NordVPN", price: 3.99 },
-  { id: 7, name: "Notion Plus", price: 8.00 },
-  { id: 8, name: "Figma Professional", price: 12.00 },
-  { id: 9, name: "Dropbox Plus", price: 9.99 },
-  { id: 10, name: "Canva Pro", price: 12.99 },
-  { id: 11, name: "Grammarly Premium", price: 12.00 },
-  { id: 12, name: "Zoom Pro", price: 14.99 },
-  { id: 13, name: "LastPass Premium", price: 3.00 },
-  { id: 14, name: "Cursor AI Pro", price: 20.00 },
-  { id: 15, name: "Midjourney Standard", price: 24.00 },
-  { id: 16, name: "GitHub Copilot", price: 10.00 },
-  { id: 17, name: "Slack Pro", price: 7.25 },
-  { id: 18, name: "Dashlane Premium", price: 4.99 },
-  { id: 19, name: "Adobe Photoshop", price: 22.99 },
-  { id: 20, name: "Claude Pro", price: 20.00 },
-  { id: 21, name: "Adobe Premiere Pro", price: 22.99 },
-  { id: 22, name: "Asana Premium", price: 10.99 },
-  { id: 23, name: "ExpressVPN", price: 6.67 },
-  { id: 24, name: "YouTube Premium", price: 13.99 },
-  { id: 25, name: "1Password", price: 2.99 },
-  { id: 26, name: "Monday.com Pro", price: 9.00 },
-  { id: 27, name: "Perplexity Pro", price: 20.00 },
-  { id: 28, name: "Loom Business", price: 12.50 },
-  { id: 29, name: "Webflow CMS", price: 14.00 },
-  { id: 30, name: "ElevenLabs Starter", price: 5.00 }
+  { id: 1, name: "ChatGPT Plus", price: 20.00 }, { id: 2, name: "Adobe Creative Cloud", price: 54.99 }, { id: 3, name: "Netflix Premium", price: 22.99 },
+  { id: 4, name: "Microsoft 365 Business", price: 12.50 }, { id: 5, name: "Spotify Premium", price: 9.99 }, { id: 6, name: "NordVPN", price: 3.99 },
+  { id: 7, name: "Notion Plus", price: 8.00 }, { id: 8, name: "Figma Professional", price: 12.00 }, { id: 9, name: "Dropbox Plus", price: 9.99 },
+  { id: 10, name: "Canva Pro", price: 12.99 }, { id: 11, name: "Grammarly Premium", price: 12.00 }, { id: 12, name: "Zoom Pro", price: 14.99 },
+  { id: 13, name: "LastPass Premium", price: 3.00 }, { id: 14, name: "Cursor AI Pro", price: 20.00 }, { id: 15, name: "Midjourney Standard", price: 24.00 },
+  { id: 16, name: "GitHub Copilot", price: 10.00 }, { id: 17, name: "Slack Pro", price: 7.25 }, { id: 18, name: "Dashlane Premium", price: 4.99 },
+  { id: 19, name: "Adobe Photoshop", price: 22.99 }, { id: 20, name: "Claude Pro", price: 20.00 }, { id: 21, name: "Adobe Premiere Pro", price: 22.99 },
+  { id: 22, name: "Asana Premium", price: 10.99 }, { id: 23, name: "ExpressVPN", price: 6.67 }, { id: 24, name: "YouTube Premium", price: 13.99 },
+  { id: 25, name: "1Password", price: 2.99 }, { id: 26, name: "Monday.com Pro", price: 9.00 }, { id: 27, name: "Perplexity Pro", price: 20.00 },
+  { id: 28, name: "Loom Business", price: 12.50 }, { id: 29, name: "Webflow CMS", price: 14.00 }, { id: 30, name: "ElevenLabs Starter", price: 5.00 }
 ];
 
-export default function Home() {
+function CheckoutInner() {
+  const searchParams = useSearchParams();
+  const product = products.find(p => p.id === Number(searchParams.get('product')));
+  const [processing, setProcessing] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState('capitec');
+
+  if (!product) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><p className="text-red-400">Product not found</p></div>;
+
+  const handlePeachPayment = async () => {
+    setProcessing(true);
+    try {
+      const res = await fetch('/api/peach-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}` }) });
+      const data = await res.json();
+      if (data.success && data.checkoutUrl) window.location.href = data.checkoutUrl;
+      else alert(`❌ Payment Error: ${data.error || data.message}`);
+    } catch (e) { alert('Failed to connect to payment server.'); }
+    finally { setProcessing(false); }
+  };
+
+  const handleCapitecConfirmation = async () => {
+    setProcessing(true);
+    try {
+      const customerEmail = prompt('Please enter your email for instant delivery after approval:');
+      if (!customerEmail) { alert('Email is required for delivery.'); return; }
+      const res = await fetch('/api/payment/capitec', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}`, productName: product.name, customerEmail }) });
+      const data = await res.json();
+      alert(data.success ? '✅ Payment recorded! Admin will verify & deliver instantly.' : `❌ Error: ${data.error}`);
+    } catch (e) { alert('Failed to connect to server.'); }
+    finally { setProcessing(false); }
+  };
+
   return (
-    <div className="min-h-screen bg-[#0B1120] text-white relative overflow-hidden flex flex-col">
-      <div className="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80" alt="Earth Background" className="w-full h-full object-cover brightness-110 contrast-110 saturate-110" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_40%,_rgba(11,17,32,0.85)_100%)]" />
-      </div>
+    <div className="min-h-screen bg-[#050B14] text-white py-12 px-4 md:px-8">
+      <div className="max-w-6xl mx-auto">
+        <Link href="/products" className="text-cyan-400 hover:text-white mb-8 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest">&larr; Back to Products</Link>
+        
+        <h1 className="text-4xl font-bold mb-8">Secure Checkout</h1>
+        <p className="text-gray-400 mb-8">Order: <span className="text-white font-bold">{product.name}</span> — Total: <span className="text-cyan-400 font-bold">${product.price.toFixed(2)}</span></p>
 
-      <nav className="relative z-10 flex items-center justify-between px-10 py-5">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20"><span className="text-lg">❄️</span></div>
-          <span className="text-2xl font-bold tracking-tight">SUPER DIGITAL</span>
-        </div>
-        <div className="flex items-center gap-8 px-8 py-3 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-          <Link href="/" className="text-base font-medium hover:text-cyan-400 transition">Home</Link>
-          <Link href="/products" className="text-base font-medium hover:text-cyan-400 transition">Products</Link>
-          <Link href="/checkout" className="text-base font-medium hover:text-cyan-400 transition">Checkout</Link>
-        </div>
-        <div className="flex items-center gap-5">
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-500/40 backdrop-blur-sm">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-            <span className="text-xs font-bold text-green-400 uppercase tracking-wider">LIVE</span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* LEFT SIDEBAR: Payment Selection */}
+          <div className="space-y-3">
+            <h2 className="text-lg font-bold text-gray-300 mb-4 px-1">Select Payment Method</h2>
+            
+            <button onClick={() => setSelectedMethod('capitec')} className={`w-full p-4 rounded-xl border transition text-left flex items-center justify-between group ${selectedMethod === 'capitec' ? 'bg-slate-900 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'bg-slate-900/50 border-slate-800 hover:border-slate-600'}`}>
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇿</span>
+                <div>
+                  <div className="font-bold">Capitec Bank Transfer</div>
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">Manual</div>
+                </div>
+              </div>
+              {selectedMethod === 'capitec' && <div className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-xs">✓</div>}
+            </button>
+
+            <button onClick={() => setSelectedMethod('peach')} className={`w-full p-4 rounded-xl border transition text-left flex items-center justify-between group ${selectedMethod === 'peach' ? 'bg-slate-900 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'bg-slate-900/50 border-slate-800 hover:border-slate-600'}`}>
+              <div className="flex items-center gap-3">
+                <span className="text-xl">💳</span>
+                <div>
+                  <div className="font-bold">Credit / Debit Card</div>
+                  <div className="text-[10px] text-orange-400 uppercase tracking-wider font-bold">Instant Delivery</div>
+                </div>
+              </div>
+              {selectedMethod === 'peach' && <div className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-xs">✓</div>}
+            </button>
+
+            <button onClick={() => setSelectedMethod('razorpay')} className={`w-full p-4 rounded-xl border transition text-left flex items-center justify-between group ${selectedMethod === 'razorpay' ? 'bg-slate-900 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'bg-slate-900/50 border-slate-800 hover:border-slate-600'}`}>
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇮🇳</span>
+                <div>
+                  <div className="font-bold">Razorpay</div>
+                  <div className="text-[10px] text-blue-400 uppercase tracking-wider font-bold">India Primary</div>
+                </div>
+              </div>
+              {selectedMethod === 'razorpay' && <div className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-xs">✓</div>}
+            </button>
+
+            <button onClick={() => setSelectedMethod('alipay')} className={`w-full p-4 rounded-xl border transition text-left flex items-center justify-between group ${selectedMethod === 'alipay' ? 'bg-slate-900 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'bg-slate-900/50 border-slate-800 hover:border-slate-600'}`}>
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇨🇳</span>
+                <div>
+                  <div className="font-bold">Alipay</div>
+                  <div className="text-[10px] text-blue-400 uppercase tracking-wider font-bold">China Primary</div>
+                </div>
+              </div>
+              {selectedMethod === 'alipay' && <div className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-xs">✓</div>}
+            </button>
           </div>
-          <Link href="/products" className="bg-cyan-500 hover:bg-cyan-400 text-white px-6 py-3 rounded-xl font-bold text-base transition flex items-center gap-2 shadow-lg shadow-cyan-500/25">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-            Shop Now
-          </Link>
-        </div>
-      </nav>
 
-      <div className="absolute top-24 left-10 z-10">
-        <div className="flex items-center gap-4 px-5 py-3 rounded-full bg-black/40 backdrop-blur-md border border-cyan-500/30 shadow-lg">
-          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-          <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">LIVE GLOBAL MARKETPLACE</span>
-          <span className="text-xs text-gray-300">USA • India • China • South Africa</span>
-        </div>
-      </div>
-
-      <main className="relative z-10 flex-1 container mx-auto px-10 pt-36 pb-24 flex flex-col justify-center">
-        <h1 className="text-6xl font-extrabold leading-[1.05] mb-8 drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)] max-w-5xl">
-          The World's <span className="text-cyan-400">Top 30</span><br />Digital Products<br /><span className="text-yellow-400">Delivered Instantly.</span>
-        </h1>
-        <p className="text-lg text-gray-300 max-w-3xl mb-12 leading-relaxed drop-shadow-md">From AI tools to creative software — shop in USD, pay your way, receive instantly. Trusted by buyers across 3 continents.</p>
-        <Link href="/products" className="inline-flex items-center gap-3 bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-5 px-10 rounded-xl text-xl transition transform hover:scale-[1.02] shadow-lg shadow-cyan-500/30 w-fit">Browse All Products</Link>
-      </main>
-
-      <section className="relative z-10 container mx-auto px-10 pb-20">
-        <div className="bg-slate-900/80 backdrop-blur-lg p-10 rounded-3xl border border-slate-800 shadow-2xl">
-          <h2 className="text-3xl font-bold text-center mb-10">Live Global Sales Tracker</h2>
-          <div className="grid grid-cols-4 gap-8 text-center">
-            <div className="p-6 bg-slate-800/50 rounded-2xl"><div className="text-blue-400 text-sm font-bold mb-3 uppercase tracking-wider">USA</div><div className="text-4xl font-bold text-white">226,679</div></div>
-            <div className="p-6 bg-slate-800/50 rounded-2xl"><div className="text-orange-400 text-sm font-bold mb-3 uppercase tracking-wider">INDIA</div><div className="text-4xl font-bold text-white">233,806</div></div>
-            <div className="p-6 bg-slate-800/50 rounded-2xl"><div className="text-red-400 text-sm font-bold mb-3 uppercase tracking-wider">CHINA</div><div className="text-4xl font-bold text-white">231,639</div></div>
-            <div className="p-6 bg-slate-800/50 rounded-2xl border border-cyan-900/50"><div className="text-green-400 text-sm font-bold mb-3 uppercase tracking-wider">SOUTH AFRICA</div><div className="text-4xl font-bold text-white">215,475</div></div>
-          </div>
-          <div className="mt-10 text-center">
-            <div className="inline-block bg-cyan-900/30 px-10 py-5 rounded-full border border-cyan-800 shadow-lg">
-              <span className="text-cyan-400 text-sm font-bold uppercase tracking-widest mr-3">GLOBAL TOTAL</span>
-              <span className="text-white font-bold text-3xl">907,599</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="relative z-10 container mx-auto px-10 pb-20">
-        <div className="flex justify-between items-end mb-10">
-          <div><h2 className="text-3xl font-bold mb-2">Latest Products</h2><p className="text-gray-400 text-lg">Premium digital assets delivered instantly.</p></div>
-          <Link href="/products" className="text-cyan-400 hover:underline text-lg font-medium">View All &rarr;</Link>
-        </div>
-        <div className="grid grid-cols-4 gap-6">
-          {products.slice(0, 8).map((p) => (
-            <div key={p.id} className="bg-slate-900 rounded-2xl p-6 border border-slate-800 hover:border-cyan-500/50 transition group shadow-lg">
-              <img src={`https://placehold.co/400x225/0f172a/06b6d4?text=${encodeURIComponent(p.name.split(' ')[0])}`} alt={p.name} className="w-full rounded-xl mb-5 object-cover shadow-md" />
-              <h3 className="font-bold text-xl mb-2">{p.name}</h3>
-              <div className="flex justify-between items-center mt-4">
-                <span className="text-cyan-400 font-bold text-xl">${p.price.toFixed(2)}</span>
-                <Link href={`/checkout?product=${p.id}`} className="bg-slate-800 hover:bg-cyan-500 hover:text-white text-white text-sm px-5 py-2.5 rounded-lg transition font-medium">Buy Now</Link>
+          {/* RIGHT PANEL: The Guide & Action */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* --- PAYMENT GUIDE (RESTORED) --- */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">📋 Payment Steps</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-900/50 text-cyan-400 font-bold flex items-center justify-center flex-shrink-0">01</div>
+                  <div>
+                    <div className="font-bold text-sm">Choose Product</div>
+                    <div className="text-xs text-gray-400">You selected: {product.name}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-900/50 text-cyan-400 font-bold flex items-center justify-center flex-shrink-0">02</div>
+                  <div>
+                    <div className="font-bold text-sm">Select Method</div>
+                    <div className="text-xs text-gray-400">{selectedMethod === 'capitec' ? 'Capitec Bank Transfer' : 'Credit Card / Other'}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-900/50 text-cyan-400 font-bold flex items-center justify-center flex-shrink-0">03</div>
+                  <div>
+                    <div className="font-bold text-sm">Complete Payment</div>
+                    <div className="text-xs text-gray-400">Click the button below to proceed.</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-900/50 text-green-400 font-bold flex items-center justify-center flex-shrink-0">04</div>
+                  <div>
+                    <div className="font-bold text-sm">Instant Delivery</div>
+                    <div className="text-xs text-gray-400">Receive access immediately via email.</div>
+                  </div>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      <footer className="relative z-10 border-t border-white/10 py-10 text-center text-gray-400 text-sm">
-        <h2 className="text-2xl font-bold text-white mb-6 tracking-tighter">SUPER DIGITAL</h2>
-        <div className="flex justify-center gap-8 mb-6 text-base">
-          <a href="#" className="hover:text-cyan-400 transition">Terms</a>
-          <a href="#" className="hover:text-cyan-400 transition">Privacy</a>
-          <Link href="/products" className="hover:text-cyan-400 transition">Shop Now</Link>
+            {/* --- PAYMENT ACTION CARD --- */}
+            <div className="bg-[#0B1120] p-8 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+              {selectedMethod === 'capitec' && (
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🇿</span>
+                      <div>
+                        <h2 className="text-2xl font-bold">Capitec Bank Transfer</h2>
+                        <p className="text-gray-400 text-sm">South Africa Market</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div>
+                      <span className="text-xs text-gray-500 uppercase font-bold">Currencies</span>
+                      <div className="text-cyan-400 font-bold text-lg">ZAR</div>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 uppercase font-bold">Accepted Methods</span>
+                      <div className="flex gap-2 mt-1">
+                        <span className="px-2 py-1 bg-slate-800 rounded text-xs border border-slate-700">✓ EFT</span>
+                        <span className="px-2 py-1 bg-slate-800 rounded text-xs border border-slate-700">✓ Internet Banking</span>
+                        <span className="px-2 py-1 bg-slate-800 rounded text-xs border border-slate-700">✓ Capitec App</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-400 text-sm mb-8">Direct bank transfer to our Capitec account. Funds usually reflect within minutes.</p>
+
+                  <button 
+                    onClick={handleCapitecConfirmation}
+                    disabled={processing}
+                    className="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-lg transition shadow-lg shadow-blue-900/20 flex items-center justify-center gap-3"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    {processing ? 'Processing...' : 'Pay with Capitec Bank Transfer'}
+                  </button>
+                  
+                  <div className="mt-4 text-center">
+                    <p className="text-green-400 text-xs font-bold flex items-center justify-center gap-1">
+                      <span>⚡</span> Instant delivery after payment confirmation
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {selectedMethod === 'peach' && (
+                <div className="text-center py-4 relative z-10">
+                  <div className="w-16 h-16 bg-slate-800 rounded-2xl mx-auto flex items-center justify-center mb-4 text-3xl">💳</div>
+                  <h2 className="text-2xl font-bold mb-2">Credit / Debit Card</h2>
+                  <p className="text-gray-400 mb-8">Securely powered by Peach Payments. Accepts Visa, Mastercard, and more.</p>
+                  
+                  <button 
+                    onClick={handlePeachPayment}
+                    disabled={processing}
+                    className="w-full max-w-md mx-auto py-4 bg-cyan-500 hover:bg-cyan-400 rounded-xl font-bold text-lg transition shadow-lg shadow-cyan-500/25"
+                  >
+                    {processing ? 'Processing...' : `Pay $${product.price.toFixed(2)} Securely`}
+                  </button>
+                </div>
+              )}
+
+              {(selectedMethod === 'razorpay' || selectedMethod === 'alipay') && (
+                 <div className="text-center py-10">
+                   <h3 className="text-xl font-bold mb-2 capitalize">{selectedMethod}</h3>
+                   <p className="text-gray-400 mb-6">This payment method is being configured.</p>
+                   <button disabled className="py-3 px-8 bg-slate-800 rounded-lg font-bold cursor-not-allowed opacity-50">Coming Soon</button>
+                 </div>
+              )}
+
+            </div>
+          </div>
+
         </div>
-        <p>&copy; {new Date().getFullYear()} Super Digital Markets. All rights reserved.</p>
-      </footer>
+      </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#050B14] text-white flex items-center justify-center">Loading...</div>}>
+      <CheckoutInner />
+    </Suspense>
   );
 }
