@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#050B14] text-white font-sans selection:bg-cyan-500 selection:text-white">
       
-      {/* --- NAVBAR --- */}
+      {/* --- NAVBAR (INLINE) --- */}
       <nav className="relative z-20 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center">
@@ -63,7 +63,7 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* --- LIVE BADGE --- */}
+      {/* --- LIVE BADGE (INLINE) --- */}
       <div className="absolute top-20 left-6 z-10 animate-fade-in">
         <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-black/40 border border-cyan-500/30 backdrop-blur-md shadow-lg shadow-cyan-900/20">
           <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
@@ -73,7 +73,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* --- HERO SECTION (BRIGHTER EARTH) --- */}
+      {/* --- HERO SECTION (INLINE - BRIGHTER EARTH) --- */}
       <main className="relative z-10 min-h-[85vh] flex flex-col items-center justify-center text-center px-6 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center">
         
         {/* FIXED OVERLAY: Much lighter so Earth is visible and bright */}
@@ -95,7 +95,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* --- MOVING SALES TRACKER --- */}
+      {/* --- MOVING SALES TRACKER (INLINE) --- */}
       <section className="relative z-20 py-12 px-6 bg-[#050B14]">
         <div className="max-w-6xl mx-auto bg-[#0B1120] border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <h2 className="text-center text-xl font-bold text-cyan-400 mb-8 uppercase tracking-widest">Live Sales Activity</h2>
