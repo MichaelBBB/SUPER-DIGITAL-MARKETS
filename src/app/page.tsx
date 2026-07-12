@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#050B14] text-white font-sans selection:bg-cyan-500 selection:text-white">
       
-      {/* --- NAVBAR (INLINE) --- */}
+      {/* --- NAVBAR (INLINE - NO IMPORTS) --- */}
       <nav className="relative z-20 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center">
@@ -76,8 +76,8 @@ export default function Home() {
       {/* --- HERO SECTION (INLINE - BRIGHTER EARTH) --- */}
       <main className="relative z-10 min-h-[85vh] flex flex-col items-center justify-center text-center px-6 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center">
         
-        {/* FIXED OVERLAY: Much lighter so Earth is visible and bright */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050B14]/20 to-[#050B14]"></div>
+        {/* FIXED OVERLAY: Very light so Earth is visible and bright */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050B14]/10 to-[#050B14]"></div>
 
         <div className="relative z-10 max-w-4xl mx-auto pt-10">
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6 drop-shadow-2xl">
