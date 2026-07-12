@@ -14,7 +14,6 @@ const useLiveSales = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      // Randomly increment a region to simulate live sales
       const regions = ['usa', 'india', 'china', 'southAfrica'] as const;
       const randomRegion = regions[Math.floor(Math.random() * regions.length)];
       
@@ -22,7 +21,7 @@ const useLiveSales = () => {
         ...prev,
         [randomRegion]: prev[randomRegion] + Math.floor(Math.random() * 5) + 1
       }));
-    }, 3000); // Updates every 3 seconds
+    }, 3000); 
 
     return () => clearInterval(interval);
   }, []);
@@ -37,7 +36,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#050B14] text-white font-sans selection:bg-cyan-500 selection:text-white">
       
-      {/* --- NAVBAR (INLINE - NO IMPORTS) --- */}
+      {/* NAVBAR */}
       <nav className="relative z-20 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center">
@@ -63,8 +62,8 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* --- LIVE BADGE (INLINE) --- */}
-      <div className="absolute top-20 left-6 z-10 animate-fade-in">
+      {/* LIVE BADGE */}
+      <div className="absolute top-20 left-6 z-10">
         <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-black/40 border border-cyan-500/30 backdrop-blur-md shadow-lg shadow-cyan-900/20">
           <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
           <span className="text-xs font-bold text-cyan-400 uppercase tracking-widest">Live Global Marketplace</span>
@@ -73,11 +72,17 @@ export default function Home() {
         </div>
       </div>
 
-      {/* --- HERO SECTION (INLINE - BRIGHTER EARTH) --- */}
-      <main className="relative z-10 min-h-[85vh] flex flex-col items-center justify-center text-center px-6 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center">
+      {/* HERO SECTION WITH BRIGHT EARTH */}
+      <main className="relative z-10 min-h-[85vh] flex flex-col items-center justify-center text-center px-6 overflow-hidden">
         
-        {/* FIXED OVERLAY: Very light so Earth is visible and bright */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050B14]/10 to-[#050B14]"></div>
+        {/* Background Image Layer */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80')" }}
+        ></div>
+
+        {/* Overlay - Very subtle to keep Earth bright */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-[#050B14]/10 to-[#050B14]"></div>
 
         <div className="relative z-10 max-w-4xl mx-auto pt-10">
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6 drop-shadow-2xl">
@@ -95,7 +100,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* --- MOVING SALES TRACKER (INLINE) --- */}
+      {/* MOVING SALES TRACKER */}
       <section className="relative z-20 py-12 px-6 bg-[#050B14]">
         <div className="max-w-6xl mx-auto bg-[#0B1120] border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <h2 className="text-center text-xl font-bold text-cyan-400 mb-8 uppercase tracking-widest">Live Sales Activity</h2>
