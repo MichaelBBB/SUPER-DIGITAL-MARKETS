@@ -56,12 +56,15 @@ export default function Home() {
       </nav>
 
       <main className="flex-1 relative overflow-hidden">
-        {/* BACKGROUND LAYER */}
-        <div 
-          className="absolute inset-0 z-0 bg-cover bg-center opacity-40"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80')" }}
-        />
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-950/80 via-slate-950/50 to-slate-950 pointer-events-none" />
+        {/* EARTH BACKGROUND (Guaranteed to load) */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80"
+            alt="Earth Background"
+            className="absolute inset-0 w-full h-full object-cover opacity-30"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/70 to-slate-950 pointer-events-none"></div>
+        </div>
         
         <div className="relative z-10 container mx-auto px-4 py-8 space-y-20">
           
@@ -105,7 +108,12 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.slice(0, 8).map((p) => (
                 <div key={p.id} className="bg-slate-900 rounded-2xl p-6 border border-slate-800 hover:border-cyan-500/50 transition group">
-                  <div className="aspect-video bg-slate-800 rounded-xl mb-4 flex items-center justify-center text-4xl">📦</div>
+                  <img 
+                    src={`https://placehold.co/400x225/0f172a/06b6d4?text=${encodeURIComponent(p.name.split(' ')[0])}`}
+                    alt={p.name}
+                    className="aspect-video w-full rounded-xl mb-4 object-cover"
+                    loading="lazy"
+                  />
                   <h3 className="font-bold text-lg mb-2">{p.name}</h3>
                   <div className="flex justify-between items-center mt-4">
                     <span className="text-cyan-400 font-bold">${p.price.toFixed(2)}</span>
