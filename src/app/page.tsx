@@ -55,10 +55,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* HERO SECTION WITH BRIGHTER EARTH */}
+      {/* HERO SECTION - BRIGHTER EARTH */}
       <main className="relative z-10 min-h-[85vh] flex flex-col items-center justify-center text-center px-6 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center">
-        {/* Overlay - Less dark to make Earth brighter */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050B14]/60 via-[#050B14]/40 to-[#050B14]"></div>
+        {/* REMOVED HEAVY OVERLAY TO MAKE EARTH BRIGHTER */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050B14]/30 to-[#050B14]"></div>
 
         <div className="relative z-10 max-w-4xl mx-auto pt-10">
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6 drop-shadow-2xl">
@@ -66,7 +66,7 @@ export default function Home() {
             Digital Products<br />
             <span className="text-yellow-400">Delivered Instantly.</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl mx-auto drop-shadow-md">
+          <p className="text-lg md:text-xl text-gray-100 mb-10 max-w-2xl mx-auto drop-shadow-md">
             From AI tools to creative software — shop in USD, pay your way, receive instantly. Trusted by buyers across 3 continents.
           </p>
           <Link href="/products" className="inline-block bg-cyan-500 hover:bg-cyan-400 text-white font-bold text-lg py-4 px-10 rounded-2xl transition transform hover:scale-105 shadow-xl shadow-cyan-500/30">
