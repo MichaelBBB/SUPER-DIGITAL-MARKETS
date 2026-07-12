@@ -1,4 +1,4 @@
-'use client'; // Client component for moving tracker
+'use client'; // Required for useState/useEffect
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -57,6 +57,7 @@ export default function Home() {
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
             <span className="text-xs font-bold text-green-400">LIVE</span>
           </div>
+          {/* FIXED: Shop Now now goes to /products */}
           <Link href="/products" className="bg-cyan-500 hover:bg-cyan-400 text-white px-5 py-2 rounded-xl font-bold text-sm transition shadow-lg shadow-cyan-500/20 flex items-center gap-2">
             <span>🛍️</span> Shop Now
           </Link>
