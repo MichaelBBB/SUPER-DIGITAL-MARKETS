@@ -6,7 +6,6 @@ import { useState, useEffect } from 'react';
 export default function Home() {
   const [stats, setStats] = useState({ usa: 226679, india: 233806, china: 231639, southAfrica: 215475 });
 
-  // Moving Tracker Logic
   useEffect(() => {
     const interval = setInterval(() => {
       const regions = ['usa', 'india', 'china', 'southAfrica'];
@@ -47,13 +46,11 @@ export default function Home() {
 
       {/* HERO SECTION WITH BRIGHT EARTH */}
       <div style={{ position: 'relative', minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        {/* Bright Earth Image */}
         <img 
           src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80" 
           alt="Earth" 
           style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
         />
-        {/* Subtle Overlay */}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, #050B14)', zIndex: 1 }}></div>
 
         <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: '800px', padding: '20px' }}>
