@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
+// Product Data
 const products = [
   { id: 1, name: "ChatGPT Plus", price: 20.00 }, { id: 2, name: "Adobe Creative Cloud", price: 54.99 }, { id: 3, name: "Netflix Premium", price: 22.99 },
   { id: 4, name: "Microsoft 365 Business", price: 12.50 }, { id: 5, name: "Spotify Premium", price: 9.99 }, { id: 6, name: "NordVPN", price: 3.99 },
@@ -19,29 +20,25 @@ const products = [
 
 function CheckoutInner() {
   const searchParams = useSearchParams();
-  const product = products.find(p => p.id === Number(searchParams.get('product')));
+  
+  // FIX: Default to product ID 1 (ChatGPT) if no product is specified in URL
+  const productIdParam = searchParams.get('product');
+  const productId = productIdParam ? Number(productIdParam) : 1;
+  const product = products.find(p => p.id === productId) || products[0];
+  
   const [processing, setProcessing] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState('capitec');
-
-  if (!product) return <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Product not found</div>;
-
-  const handlePeachPayment = async () => {
-    setProcessing(true);
-    try {
-      const res = await fetch('/api/peach-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}` }) });
-      const data = await res.json();
-      if (data.success && data.checkoutUrl) window.location.href = data.checkoutUrl;
-      else alert(`❌ Payment Error: ${data.error || data.message}`);
-    } catch (e) { alert('Failed to connect to payment server.'); }
-    finally { setProcessing(false); }
-  };
 
   const handleCapitecConfirmation = async () => {
     setProcessing(true);
     try {
       const customerEmail = prompt('Please enter your email for instant delivery after approval:');
       if (!customerEmail) { alert('Email is required for delivery.'); return; }
-      const res = await fetch('/api/payment/capitec', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}`, productName: product.name, customerEmail }) });
+      
+      const res = await fetch('/api/payment/capitec', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}`, productName: product.name, customerEmail }) 
+      });
       const data = await res.json();
       alert(data.success ? '✅ Payment recorded! Admin will verify & deliver instantly.' : `❌ Error: ${data.error}`);
     } catch (e) { alert('Failed to connect to server.'); }
@@ -49,109 +46,193 @@ function CheckoutInner() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#050B14', color: 'white', padding: '40px 20px', fontFamily: 'sans-serif' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <Link href="/products" style={{ color: '#22d3ee', textDecoration: 'none', marginBottom: '30px', display: 'inline-block', fontWeight: 'bold' }}>← Back to Products</Link>
+    <div className="min-h-screen bg-[#0B1120] text-white py-12 px-4 md:px-8 font-sans">
+      <div className="max-w-6xl mx-auto">
         
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '30px' }}>Secure Checkout</h1>
-        <p style={{ color: '#94a3b8', marginBottom: '40px' }}>Order: <span style={{ color: 'white', fontWeight: 'bold' }}>{product.name}</span> — Total: <span style={{ color: '#22d3ee', fontWeight: 'bold' }}>${product.price.toFixed(2)}</span></p>
+        <Link href="/products" className="text-cyan-400 hover:text-white mb-8 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest transition">
+          &larr; Back to Products
+        </Link>
+        
+        <h1 className="text-4xl font-bold mb-8">Secure Checkout</h1>
+        <p className="text-gray-400 mb-10 text-lg">
+          Order: <span className="text-white font-bold">{product.name}</span> — Total: <span className="text-cyan-400 font-bold">${product.price.toFixed(2)}</span>
+        </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '40px' }}>
+        {/* TWO COLUMN LAYOUT */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* LEFT: PAYMENT STEPS GUIDE */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#cbd5e1', marginBottom: '10px' }}>Payment Steps</h2>
-            {[
-              { num: '01', title: 'Choose Product', desc: 'Browse all 30 digital products and click "Buy Now".' },
-              { num: '02', title: 'Select Method', desc: 'Choose from Razorpay, Alipay, Peach, or direct bank transfer.' },
-              { num: '03', title: 'Complete Payment', desc: 'Follow the secure flow. Use Capitec details below for transfers.' },
-              { num: '04', title: 'Instant Delivery', desc: 'Receive access immediately to your email after confirmation.' }
-            ].map((step) => (
-              <div key={step.num} style={{ padding: '15px', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }}>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'start' }}>
-                  <span style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: step.num === '04' ? '#166534' : '#164e63', color: step.num === '04' ? '#4ade80' : '#22d3ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px', flexShrink: 0 }}>{step.num}</span>
-                  <div>
-                    <div style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '4px' }}>{step.title}</div>
-                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>{step.desc}</div>
-                  </div>
+          {/* LEFT SIDEBAR: Payment Options */}
+          <div className="space-y-3">
+            {/* Razorpay */}
+            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇮🇳</span>
+                <div>
+                  <div className="font-bold text-sm">Razorpay</div>
+                  <div className="text-[10px] text-blue-400 uppercase tracking-wider">India Primary</div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* RIGHT: BANK DETAILS & ACTION */}
-          <div style={{ backgroundColor: '#0B1120', padding: '30px', borderRadius: '20px', border: '1px solid #1e293b', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+            </div>
             
-            {selectedMethod === 'capitec' && (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
-                  <span style={{ fontSize: '32px' }}>🇿🇦</span>
-                  <div>
-                    <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Capitec Bank Transfer</h2>
-                    <p style={{ color: '#94a3b8', margin: 0, fontSize: '14px' }}>South Africa Market</p>
-                  </div>
-                  <span style={{ marginLeft: 'auto', padding: '4px 10px', backgroundColor: '#166534', color: '#4ade80', borderRadius: '50px', fontSize: '12px', fontWeight: 'bold' }}>✓ Verified</span>
+            {/* Alipay */}
+            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇨</span>
+                <div>
+                  <div className="font-bold text-sm">Alipay</div>
+                  <div className="text-[10px] text-blue-400 uppercase tracking-wider">China Primary</div>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '30px' }}>
-                  <div style={{ backgroundColor: '#0f172a', padding: '15px', borderRadius: '12px', border: '1px solid #334155' }}>
-                    <span style={{ color: '#64748b', fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold' }}>Account Holder</span>
-                    <div style={{ fontWeight: 'bold', marginTop: '5px' }}>SUPER DIGITAL</div>
-                  </div>
-                  <div style={{ backgroundColor: '#0f172a', padding: '15px', borderRadius: '12px', border: '1px solid #334155' }}>
-                    <span style={{ color: '#64748b', fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold' }}>Account Number</span>
-                    <div style={{ fontWeight: 'bold', marginTop: '5px', fontFamily: 'monospace' }}>1975933441</div>
-                  </div>
-                  <div style={{ backgroundColor: '#0f172a', padding: '15px', borderRadius: '12px', border: '1px solid #334155' }}>
-                    <span style={{ color: '#64748b', fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold' }}>Swift Code</span>
-                    <div style={{ fontWeight: 'bold', marginTop: '5px' }}>CABLZAJJ</div>
-                  </div>
-                  <div style={{ backgroundColor: '#0f172a', padding: '15px', borderRadius: '12px', border: '1px solid #334155' }}>
-                    <span style={{ color: '#64748b', fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold' }}>Branch Code</span>
-                    <div style={{ fontWeight: 'bold', marginTop: '5px' }}>470010</div>
-                  </div>
-                </div>
-
-                <div style={{ backgroundColor: 'rgba(30, 58, 138, 0.2)', border: '1px solid #1e3a8a', padding: '15px', borderRadius: '12px', marginBottom: '30px' }}>
-                  <p style={{ fontSize: '12px', color: '#bfdbfe', margin: 0 }}>
-                    <strong>After payment:</strong> Email proof of payment to <a href="mailto:payments@superdigital.store" style={{ color: '#bfdbfe', textDecoration: 'underline' }}>payments@superdigital.store</a> with your order number.
-                  </p>
-                </div>
-
-                <button 
-                  onClick={handleCapitecConfirmation}
-                  disabled={processing}
-                  style={{ width: '100%', padding: '15px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '16px', cursor: processing ? 'not-allowed' : 'pointer', opacity: processing ? 0.7 : 1 }}
-                >
-                  {processing ? 'Processing...' : 'Pay with Capitec Bank Transfer'}
-                </button>
-                <p style={{ textAlign: 'center', marginTop: '15px', color: '#4ade80', fontSize: '12px', fontWeight: 'bold' }}>⚡ Instant delivery after payment confirmation</p>
               </div>
-            )}
+            </div>
 
-            {selectedMethod === 'peach' && (
-              <div style={{ textAlign: 'center', padding: '20px' }}>
-                <div style={{ width: '64px', height: '64px', backgroundColor: '#1e293b', borderRadius: '12px', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>💳</div>
-                <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px' }}>Credit / Debit Card</h2>
-                <p style={{ color: '#94a3b8', marginBottom: '30px' }}>Securely powered by Peach Payments.</p>
-                <button 
-                  onClick={handlePeachPayment}
-                  disabled={processing}
-                  style={{ width: '100%', maxWidth: '300px', padding: '15px', backgroundColor: '#06b6d4', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '16px', cursor: processing ? 'not-allowed' : 'pointer' }}
-                >
-                  {processing ? 'Processing...' : `Pay $${product.price.toFixed(2)} Securely`}
-                </button>
+            {/* Payoneer */}
+            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇺🇸</span>
+                <div>
+                  <div className="font-bold text-sm">Payoneer</div>
+                  <div className="text-[10px] text-orange-400 uppercase tracking-wider">USA Primary</div>
+                </div>
               </div>
-            )}
+            </div>
 
-            {(selectedMethod !== 'capitec' && selectedMethod !== 'peach') && (
-               <div style={{ textAlign: 'center', padding: '40px' }}>
-                 <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', textTransform: 'capitalize' }}>{selectedMethod}</h3>
-                 <p style={{ color: '#94a3b8', marginBottom: '20px' }}>Coming soon.</p>
-                 <button disabled style={{ padding: '10px 30px', backgroundColor: '#334155', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'not-allowed', opacity: 0.5 }}>Unavailable</button>
-               </div>
-            )}
+            {/* Google Pay */}
+            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🌍</span>
+                <div>
+                  <div className="font-bold text-sm">Google Pay</div>
+                  <div className="text-[10px] text-blue-400 uppercase tracking-wider">Global</div>
+                </div>
+              </div>
+            </div>
+
+             {/* Peach */}
+             <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇿🇦</span>
+                <div>
+                  <div className="font-bold text-sm">Peach Payments</div>
+                  <div className="text-[10px] text-orange-400 uppercase tracking-wider">SA Primary</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Capitec - SELECTED */}
+            <div className="p-4 rounded-xl border-2 border-cyan-500 bg-[#0F172A] flex items-center justify-between shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇿🇦</span>
+                <div>
+                  <div className="font-bold text-sm text-white">Capitec Bank Transfer</div>
+                  <div className="text-[10px] text-gray-400 uppercase tracking-wider">Manual Transfer</div>
+                </div>
+              </div>
+              <div className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-xs text-white">✓</div>
+            </div>
           </div>
+
+          {/* RIGHT PANEL: SEPARATED GUIDE & PAYMENT DETAILS */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* SECTION 1: THE PAYMENT GUIDE (Separate Card) */}
+            <div className="bg-[#0B1120] p-6 rounded-2xl border border-slate-800 shadow-lg">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <span className="text-cyan-400">📋</span> Payment Steps
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-900/50 text-cyan-400 font-bold flex items-center justify-center flex-shrink-0">01</div>
+                  <div>
+                    <div className="font-bold text-sm">Choose Product</div>
+                    <div className="text-xs text-gray-400">You selected: {product.name}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-900/50 text-cyan-400 font-bold flex items-center justify-center flex-shrink-0">02</div>
+                  <div>
+                    <div className="font-bold text-sm">Select Method</div>
+                    <div className="text-xs text-gray-400">Capitec Bank Transfer</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-900/50 text-cyan-400 font-bold flex items-center justify-center flex-shrink-0">03</div>
+                  <div>
+                    <div className="font-bold text-sm">Complete Payment</div>
+                    <div className="text-xs text-gray-400">Transfer funds using details below.</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-900/50 text-green-400 font-bold flex items-center justify-center flex-shrink-0">04</div>
+                  <div>
+                    <div className="font-bold text-sm">Instant Delivery</div>
+                    <div className="text-xs text-gray-400">Receive access immediately via email.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 2: THE PAYMENT PANEL (Separate Card) */}
+            <div className="bg-[#0B1120] p-8 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
+              
+              {/* Header */}
+              <div className="flex items-center justify-between mb-8 border-b border-slate-800 pb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-2xl border border-slate-700">🇿</div>
+                  <div>
+                    <h2 className="text-2xl font-bold">Capitec Bank Transfer</h2>
+                    <p className="text-slate-400 text-sm">South Africa Market • Direct EFT</p>
+                  </div>
+                </div>
+                <div className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold uppercase flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-500 rounded-full"></span> Verified Account
+                </div>
+              </div>
+
+              {/* Payment Details Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                  <span className="text-slate-500 text-xs uppercase font-bold block mb-1">Account Holder</span>
+                  <span className="font-bold text-lg">SUPER DIGITAL</span>
+                </div>
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                  <span className="text-slate-500 text-xs uppercase font-bold block mb-1">Account Number</span>
+                  <span className="font-bold text-lg font-mono">1975933441</span>
+                </div>
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                  <span className="text-slate-500 text-xs uppercase font-bold block mb-1">Branch Code</span>
+                  <span className="font-bold text-lg">470010</span>
+                </div>
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                  <span className="text-slate-500 text-xs uppercase font-bold block mb-1">Reference</span>
+                  <span className="font-bold text-lg text-cyan-400 font-mono">SD-{product.id}</span>
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="bg-blue-900/10 border border-blue-900/50 p-4 rounded-xl mb-8">
+                <p className="text-sm text-blue-200">
+                  <strong>Instructions:</strong> Please transfer the exact amount of <span className="text-white font-bold">${product.price.toFixed(2)}</span>. 
+                  Use your Order ID as reference. Once payment reflects, your product will be delivered instantly to your email.
+                </p>
+              </div>
+
+              {/* Pay Button */}
+              <button 
+                onClick={handleCapitecConfirmation}
+                disabled={processing}
+                className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-bold text-lg transition shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                {processing ? 'Processing...' : 'Pay with Capitec Bank Transfer'}
+              </button>
+              
+              <p className="text-center text-slate-500 text-xs mt-4">
+                Accepted methods: EFT, Internet Banking, Capitec App
+              </p>
+
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -160,7 +241,7 @@ function CheckoutInner() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', backgroundColor: '#050B14', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#0B1120] text-white flex items-center justify-center">Loading Checkout...</div>}>
       <CheckoutInner />
     </Suspense>
   );
