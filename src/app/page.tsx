@@ -1,12 +1,10 @@
 'use client';
-
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 export default function Home() {
   const [stats, setStats] = useState({ usa: 226679, india: 233806, china: 231639, southAfrica: 215475 });
 
-  // Moving Tracker Logic
   useEffect(() => {
     const interval = setInterval(() => {
       const regions = ['usa', 'india', 'china', 'southAfrica'];
@@ -19,95 +17,77 @@ export default function Home() {
   const total = stats.usa + stats.india + stats.china + stats.southAfrica;
 
   return (
-    <div className="min-h-screen bg-[#050B14] text-white font-sans">
+    <div style={{ minHeight: '100vh', backgroundColor: '#050B14', color: 'white', fontFamily: 'system-ui, sans-serif' }}>
       
-      {/* NAVBAR */}
-      <nav className="relative z-20 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center font-bold">❄</div>
-          <span className="text-xl font-bold tracking-wide">SUPER DIGITAL</span>
+      <nav style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#06b6d4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>❄</div>
+          <span style={{ fontSize: '18px', fontWeight: 'bold' }}>SUPER DIGITAL</span>
         </div>
-
-        <div className="hidden md:flex items-center gap-1 px-6 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-          <Link href="/" className="px-4 py-1 text-sm font-medium text-white hover:text-cyan-400 transition">Home</Link>
-          <Link href="/products" className="px-4 py-1 text-sm font-medium text-gray-300 hover:text-cyan-400 transition">Products</Link>
-          <Link href="/checkout" className="px-4 py-1 text-sm font-medium text-gray-300 hover:text-cyan-400 transition">Checkout</Link>
+        <div style={{ display: 'flex', gap: '16px', padding: '8px 16px', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)' }}>
+          <Link href="/" style={{ textDecoration: 'none', color: 'white' }}>Home</Link>
+          <Link href="/products" style={{ textDecoration: 'none', color: '#cbd5e1' }}>Products</Link>
+          <Link href="/checkout" style={{ textDecoration: 'none', color: '#cbd5e1' }}>Checkout</Link>
         </div>
-
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            <span className="text-xs font-bold text-green-400">LIVE</span>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '50px', border: '1px solid rgba(34,197,94,0.3)', backgroundColor: 'rgba(34,197,94,0.1)' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#4ade80' }}>LIVE</span>
           </div>
-          <Link href="/products" className="bg-cyan-500 hover:bg-cyan-400 text-white px-5 py-2 rounded-xl font-bold text-sm transition shadow-lg shadow-cyan-500/20 flex items-center gap-2">
-            Shop Now
-          </Link>
+          <Link href="/products" style={{ backgroundColor: '#06b6d4', color: 'white', padding: '8px 16px', borderRadius: '10px', textDecoration: 'none', fontWeight: 'bold' }}>Shop Now</Link>
         </div>
       </nav>
 
-      {/* LIVE BADGE */}
-      <div className="absolute top-20 left-6 z-10">
-        <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-black/40 border border-cyan-500/30 backdrop-blur-md shadow-lg">
-          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-          <span className="text-xs font-bold text-cyan-400 uppercase tracking-widest">Live Global Marketplace</span>
-          <span className="h-4 w-[1px] bg-white/20"></span>
-          <span className="text-xs text-gray-300">USA • India • China • South Africa</span>
-        </div>
-      </div>
+      <div style={{ position: 'relative', minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        {/* BRIGHT EARTH: No dark overlay, explicit brightness filter */}
+        <img 
+          src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80" 
+          alt="Earth" 
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, filter: 'brightness(1.1) contrast(1.05)' }}
+        />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(5,11,20,0.4), rgba(5,11,20,0.8))', zIndex: 1 }}></div>
 
-      {/* HERO SECTION - BRIGHTER EARTH */}
-      <main className="relative z-10 min-h-[85vh] flex flex-col items-center justify-center text-center px-6 overflow-hidden">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 z-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80')" }}
-        ></div>
-        
-        {/* Dark Overlay - Very Subtle to keep Earth Bright */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-[#050B14]/20 to-[#050B14]"></div>
-
-        <div className="relative z-10 max-w-4xl mx-auto pt-10">
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6 drop-shadow-2xl">
-            The World's <span className="text-cyan-400">Top 30</span><br />
+        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: '800px', padding: '20px' }}>
+          <h1 style={{ fontSize: '56px', fontWeight: 'bold', lineHeight: '1.1', marginBottom: '16px', textShadow: '0 4px 12px rgba(0,0,0,0.6)' }}>
+            The World's <span style={{ color: '#22d3ee' }}>Top 30</span><br />
             Digital Products<br />
-            <span className="text-yellow-400">Delivered Instantly.</span>
+            <span style={{ color: '#facc15' }}>Delivered Instantly.</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-2xl mx-auto drop-shadow-md">
+          <p style={{ fontSize: '16px', color: '#e2e8f0', marginBottom: '24px' }}>
             From AI tools to creative software — shop in USD, pay your way, receive instantly.
           </p>
-          <Link href="/products" className="inline-block bg-cyan-500 hover:bg-cyan-400 text-white font-bold text-lg py-4 px-10 rounded-2xl transition transform hover:scale-105 shadow-xl shadow-cyan-500/30">
+          <Link href="/products" style={{ backgroundColor: '#06b6d4', color: 'white', padding: '12px 32px', borderRadius: '10px', textDecoration: 'none', fontWeight: 'bold', fontSize: '16px', display: 'inline-block' }}>
             Browse All Products
           </Link>
         </div>
-      </main>
+      </div>
 
-      {/* MOVING SALES TRACKER */}
-      <section className="relative z-20 py-12 px-6 bg-[#050B14]">
-        <div className="max-w-6xl mx-auto bg-[#0B1120] border border-slate-800 rounded-3xl p-8 shadow-2xl">
-          <h2 className="text-center text-xl font-bold text-cyan-400 mb-8 uppercase tracking-widest">Live Sales Activity</h2>
+      <section style={{ padding: '40px 20px', backgroundColor: '#050B14' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', backgroundColor: '#0B1120', border: '1px solid #1e293b', borderRadius: '16px', padding: '24px' }}>
+          <h2 style={{ textAlign: 'center', color: '#22d3ee', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '16px' }}>Live Sales Activity</h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="p-4 rounded-2xl bg-slate-800/30 border border-slate-700/50">
-              <div className="text-xs text-blue-400 font-bold uppercase mb-2">USA</div>
-              <div className="text-2xl md:text-3xl font-mono font-bold text-white tabular-nums">{stats.usa.toLocaleString()}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', textAlign: 'center' }}>
+            <div style={{ padding: '16px', backgroundColor: 'rgba(30, 41, 59, 0.3)', borderRadius: '12px', border: '1px solid #334155' }}>
+              <div style={{ color: '#60a5fa', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px' }}>USA</div>
+              <div style={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'monospace' }}>{stats.usa.toLocaleString()}</div>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-800/30 border border-slate-700/50">
-              <div className="text-xs text-orange-400 font-bold uppercase mb-2">INDIA</div>
-              <div className="text-2xl md:text-3xl font-mono font-bold text-white tabular-nums">{stats.india.toLocaleString()}</div>
+            <div style={{ padding: '16px', backgroundColor: 'rgba(30, 41, 59, 0.3)', borderRadius: '12px', border: '1px solid #334155' }}>
+              <div style={{ color: '#fb923c', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px' }}>INDIA</div>
+              <div style={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'monospace' }}>{stats.india.toLocaleString()}</div>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-800/30 border border-slate-700/50">
-              <div className="text-xs text-red-400 font-bold uppercase mb-2">CHINA</div>
-              <div className="text-2xl md:text-3xl font-mono font-bold text-white tabular-nums">{stats.china.toLocaleString()}</div>
+            <div style={{ padding: '16px', backgroundColor: 'rgba(30, 41, 59, 0.3)', borderRadius: '12px', border: '1px solid #334155' }}>
+              <div style={{ color: '#f87171', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px' }}>CHINA</div>
+              <div style={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'monospace' }}>{stats.china.toLocaleString()}</div>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-800/30 border border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-              <div className="text-xs text-green-400 font-bold uppercase mb-2">SOUTH AFRICA</div>
-              <div className="text-2xl md:text-3xl font-mono font-bold text-white tabular-nums">{stats.southAfrica.toLocaleString()}</div>
+            <div style={{ padding: '16px', backgroundColor: 'rgba(30, 41, 59, 0.3)', borderRadius: '12px', border: '1px solid #22c55e', boxShadow: '0 0 12px rgba(34,197,94,0.2)' }}>
+              <div style={{ color: '#4ade80', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px' }}>SOUTH AFRICA</div>
+              <div style={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'monospace' }}>{stats.southAfrica.toLocaleString()}</div>
             </div>
           </div>
           
-          <div className="mt-8 pt-6 border-t border-slate-800 flex justify-center">
-             <span className="text-slate-500 text-sm">Total Global Volume: </span>
-             <span className="ml-2 text-cyan-400 font-bold text-xl">{total.toLocaleString()}</span>
+          <div style={{ marginTop: '16px', borderTop: '1px solid #1e293b', paddingTop: '16px', textAlign: 'center' }}>
+             <span style={{ color: '#64748b' }}>Total Global Volume: </span>
+             <span style={{ marginLeft: '8px', color: '#22d3ee', fontWeight: 'bold', fontSize: '18px' }}>{total.toLocaleString()}</span>
           </div>
         </div>
       </section>
