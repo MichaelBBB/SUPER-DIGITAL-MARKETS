@@ -1,96 +1,207 @@
 'use client';
+
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
-export default function Home() {
-  const [stats, setStats] = useState({ usa: 226679, india: 233806, china: 231639, southAfrica: 215475 });
+// Product Data
+const products = [
+  { id: 1, name: "ChatGPT Plus", price: 20.00 }, { id: 2, name: "Adobe Creative Cloud", price: 54.99 }, { id: 3, name: "Netflix Premium", price: 22.99 },
+  { id: 4, name: "Microsoft 365 Business", price: 12.50 }, { id: 5, name: "Spotify Premium", price: 9.99 }, { id: 6, name: "NordVPN", price: 3.99 },
+  { id: 7, name: "Notion Plus", price: 8.00 }, { id: 8, name: "Figma Professional", price: 12.00 }, { id: 9, name: "Dropbox Plus", price: 9.99 },
+  { id: 10, name: "Canva Pro", price: 12.99 }, { id: 11, name: "Grammarly Premium", price: 12.00 }, { id: 12, name: "Zoom Pro", price: 14.99 },
+  { id: 13, name: "LastPass Premium", price: 3.00 }, { id: 14, name: "Cursor AI Pro", price: 20.00 }, { id: 15, name: "Midjourney Standard", price: 24.00 },
+  { id: 16, name: "GitHub Copilot", price: 10.00 }, { id: 17, name: "Slack Pro", price: 7.25 }, { id: 18, name: "Dashlane Premium", price: 4.99 },
+  { id: 19, name: "Adobe Photoshop", price: 22.99 }, { id: 20, name: "Claude Pro", price: 20.00 }, { id: 21, name: "Adobe Premiere Pro", price: 22.99 },
+  { id: 22, name: "Asana Premium", price: 10.99 }, { id: 23, name: "ExpressVPN", price: 6.67 }, { id: 24, name: "YouTube Premium", price: 13.99 },
+  { id: 25, name: "1Password", price: 2.99 }, { id: 26, name: "Monday.com Pro", price: 9.00 }, { id: 27, name: "Perplexity Pro", price: 20.00 },
+  { id: 28, name: "Loom Business", price: 12.50 }, { id: 29, name: "Webflow CMS", price: 14.00 }, { id: 30, name: "ElevenLabs Starter", price: 5.00 }
+];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const regions = ['usa', 'india', 'china', 'southAfrica'];
-      const randomRegion = regions[Math.floor(Math.random() * regions.length)];
-      setStats(prev => ({ ...prev, [randomRegion]: prev[randomRegion] + Math.floor(Math.random() * 5) + 1 }));
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+function CheckoutInner() {
+  const searchParams = useSearchParams();
+  const product = products.find(p => p.id === Number(searchParams.get('product')));
+  const [processing, setProcessing] = useState(false);
 
-  const total = stats.usa + stats.india + stats.china + stats.southAfrica;
+  if (!product) return <div className="min-h-screen bg-[#0B1120] text-white flex items-center justify-center text-xl">Product not found.</div>;
+
+  const handleCapitecConfirmation = async () => {
+    setProcessing(true);
+    try {
+      // In a real app, this would be a modal, but prompt is fine for this stage
+      const customerEmail = prompt('Please enter your email for instant delivery after approval:');
+      if (!customerEmail) { alert('Email is required for delivery.'); return; }
+      
+      const res = await fetch('/api/payment/capitec', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}`, productName: product.name, customerEmail }) 
+      });
+      const data = await res.json();
+      alert(data.success ? '✅ Payment recorded! Admin will verify & deliver instantly.' : `❌ Error: ${data.error}`);
+    } catch (e) { alert('Failed to connect to server.'); }
+    finally { setProcessing(false); }
+  };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#050B14', color: 'white', fontFamily: 'system-ui, sans-serif' }}>
-      
-      <nav style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#06b6d4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>❄</div>
-          <span style={{ fontSize: '18px', fontWeight: 'bold' }}>SUPER DIGITAL</span>
-        </div>
-        <div style={{ display: 'flex', gap: '16px', padding: '8px 16px', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)' }}>
-          <Link href="/" style={{ textDecoration: 'none', color: 'white' }}>Home</Link>
-          <Link href="/products" style={{ textDecoration: 'none', color: '#cbd5e1' }}>Products</Link>
-          <Link href="/checkout" style={{ textDecoration: 'none', color: '#cbd5e1' }}>Checkout</Link>
-        </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '50px', border: '1px solid rgba(34,197,94,0.3)', backgroundColor: 'rgba(34,197,94,0.1)' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#4ade80' }}>LIVE</span>
+    <div className="min-h-screen bg-[#0B1120] text-white py-12 px-4 md:px-8 font-sans">
+      <div className="max-w-6xl mx-auto">
+        
+        <Link href="/products" className="text-cyan-400 hover:text-white mb-8 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest transition">
+          &larr; Back to Products
+        </Link>
+        
+        <h1 className="text-4xl font-bold mb-8">Secure Checkout</h1>
+        <p className="text-gray-400 mb-10 text-lg">
+          Order: <span className="text-white font-bold">{product.name}</span> — Total: <span className="text-cyan-400 font-bold">${product.price.toFixed(2)}</span>
+        </p>
+
+        {/* TWO COLUMN LAYOUT */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* LEFT SIDEBAR: Payment Options */}
+          <div className="space-y-3">
+            {/* Razorpay */}
+            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇮🇳</span>
+                <div>
+                  <div className="font-bold text-sm">Razorpay</div>
+                  <div className="text-[10px] text-blue-400 uppercase tracking-wider">India Primary</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Alipay */}
+            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇨</span>
+                <div>
+                  <div className="font-bold text-sm">Alipay</div>
+                  <div className="text-[10px] text-blue-400 uppercase tracking-wider">China Primary</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Payoneer */}
+            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇺🇸</span>
+                <div>
+                  <div className="font-bold text-sm">Payoneer</div>
+                  <div className="text-[10px] text-orange-400 uppercase tracking-wider">USA Primary</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Google Pay */}
+            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🌍</span>
+                <div>
+                  <div className="font-bold text-sm">Google Pay</div>
+                  <div className="text-[10px] text-blue-400 uppercase tracking-wider">Global</div>
+                </div>
+              </div>
+            </div>
+
+             {/* Peach */}
+             <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇿🇦</span>
+                <div>
+                  <div className="font-bold text-sm">Peach Payments</div>
+                  <div className="text-[10px] text-orange-400 uppercase tracking-wider">SA Primary</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Capitec - SELECTED */}
+            <div className="p-4 rounded-xl border-2 border-cyan-500 bg-[#0F172A] flex items-center justify-between shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🇿🇦</span>
+                <div>
+                  <div className="font-bold text-sm text-white">Capitec Bank Transfer</div>
+                  <div className="text-[10px] text-gray-400 uppercase tracking-wider">Manual Transfer</div>
+                </div>
+              </div>
+              <div className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-xs text-white">✓</div>
+            </div>
           </div>
-          <Link href="/products" style={{ backgroundColor: '#06b6d4', color: 'white', padding: '8px 16px', borderRadius: '10px', textDecoration: 'none', fontWeight: 'bold' }}>Shop Now</Link>
-        </div>
-      </nav>
 
-      <div style={{ position: 'relative', minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        {/* BRIGHT EARTH: No dark overlay, explicit brightness filter */}
-        <img 
-          src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80" 
-          alt="Earth" 
-          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, filter: 'brightness(1.1) contrast(1.05)' }}
-        />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(5,11,20,0.4), rgba(5,11,20,0.8))', zIndex: 1 }}></div>
+          {/* RIGHT PANEL: THE PAY PANEL (Hard-wired Capitec) */}
+          <div className="lg:col-span-2">
+            <div className="bg-[#0B1120] p-8 rounded-3xl border border-slate-800 shadow-2xl h-full relative overflow-hidden">
+              
+              {/* Header */}
+              <div className="flex items-center justify-between mb-8 border-b border-slate-800 pb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-2xl border border-slate-700">🇿🇦</div>
+                  <div>
+                    <h2 className="text-2xl font-bold">Capitec Bank Transfer</h2>
+                    <p className="text-slate-400 text-sm">South Africa Market • Direct EFT</p>
+                  </div>
+                </div>
+                <div className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold uppercase flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-500 rounded-full"></span> Verified Account
+                </div>
+              </div>
 
-        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: '800px', padding: '20px' }}>
-          <h1 style={{ fontSize: '56px', fontWeight: 'bold', lineHeight: '1.1', marginBottom: '16px', textShadow: '0 4px 12px rgba(0,0,0,0.6)' }}>
-            The World's <span style={{ color: '#22d3ee' }}>Top 30</span><br />
-            Digital Products<br />
-            <span style={{ color: '#facc15' }}>Delivered Instantly.</span>
-          </h1>
-          <p style={{ fontSize: '16px', color: '#e2e8f0', marginBottom: '24px' }}>
-            From AI tools to creative software — shop in USD, pay your way, receive instantly.
-          </p>
-          <Link href="/products" style={{ backgroundColor: '#06b6d4', color: 'white', padding: '12px 32px', borderRadius: '10px', textDecoration: 'none', fontWeight: 'bold', fontSize: '16px', display: 'inline-block' }}>
-            Browse All Products
-          </Link>
+              {/* Payment Details Grid */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                  <span className="text-slate-500 text-xs uppercase font-bold block mb-1">Account Holder</span>
+                  <span className="font-bold text-lg">SUPER DIGITAL</span>
+                </div>
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                  <span className="text-slate-500 text-xs uppercase font-bold block mb-1">Account Number</span>
+                  <span className="font-bold text-lg font-mono">1975933441</span>
+                </div>
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                  <span className="text-slate-500 text-xs uppercase font-bold block mb-1">Branch Code</span>
+                  <span className="font-bold text-lg">470010</span>
+                </div>
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                  <span className="text-slate-500 text-xs uppercase font-bold block mb-1">Reference</span>
+                  <span className="font-bold text-lg text-cyan-400 font-mono">SD-{product.id}</span>
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="bg-blue-900/10 border border-blue-900/50 p-4 rounded-xl mb-8">
+                <p className="text-sm text-blue-200">
+                  <strong>Instructions:</strong> Please transfer the exact amount of <span className="text-white font-bold">${product.price.toFixed(2)}</span>. 
+                  Use your Order ID as reference. Once payment reflects, your product will be delivered instantly to your email.
+                </p>
+              </div>
+
+              {/* Pay Button */}
+              <button 
+                onClick={handleCapitecConfirmation}
+                disabled={processing}
+                className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-bold text-lg transition shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                {processing ? 'Processing...' : 'Pay with Capitec Bank Transfer'}
+              </button>
+              
+              <p className="text-center text-slate-500 text-xs mt-4">
+                Accepted methods: EFT, Internet Banking, Capitec App
+              </p>
+
+            </div>
+          </div>
+
         </div>
       </div>
-
-      <section style={{ padding: '40px 20px', backgroundColor: '#050B14' }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto', backgroundColor: '#0B1120', border: '1px solid #1e293b', borderRadius: '16px', padding: '24px' }}>
-          <h2 style={{ textAlign: 'center', color: '#22d3ee', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '16px' }}>Live Sales Activity</h2>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', textAlign: 'center' }}>
-            <div style={{ padding: '16px', backgroundColor: 'rgba(30, 41, 59, 0.3)', borderRadius: '12px', border: '1px solid #334155' }}>
-              <div style={{ color: '#60a5fa', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px' }}>USA</div>
-              <div style={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'monospace' }}>{stats.usa.toLocaleString()}</div>
-            </div>
-            <div style={{ padding: '16px', backgroundColor: 'rgba(30, 41, 59, 0.3)', borderRadius: '12px', border: '1px solid #334155' }}>
-              <div style={{ color: '#fb923c', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px' }}>INDIA</div>
-              <div style={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'monospace' }}>{stats.india.toLocaleString()}</div>
-            </div>
-            <div style={{ padding: '16px', backgroundColor: 'rgba(30, 41, 59, 0.3)', borderRadius: '12px', border: '1px solid #334155' }}>
-              <div style={{ color: '#f87171', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px' }}>CHINA</div>
-              <div style={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'monospace' }}>{stats.china.toLocaleString()}</div>
-            </div>
-            <div style={{ padding: '16px', backgroundColor: 'rgba(30, 41, 59, 0.3)', borderRadius: '12px', border: '1px solid #22c55e', boxShadow: '0 0 12px rgba(34,197,94,0.2)' }}>
-              <div style={{ color: '#4ade80', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px' }}>SOUTH AFRICA</div>
-              <div style={{ fontSize: '22px', fontWeight: 'bold', fontFamily: 'monospace' }}>{stats.southAfrica.toLocaleString()}</div>
-            </div>
-          </div>
-          
-          <div style={{ marginTop: '16px', borderTop: '1px solid #1e293b', paddingTop: '16px', textAlign: 'center' }}>
-             <span style={{ color: '#64748b' }}>Total Global Volume: </span>
-             <span style={{ marginLeft: '8px', color: '#22d3ee', fontWeight: 'bold', fontSize: '18px' }}>{total.toLocaleString()}</span>
-          </div>
-        </div>
-      </section>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0B1120] text-white flex items-center justify-center">Loading Checkout...</div>}>
+      <CheckoutInner />
+    </Suspense>
   );
 }
