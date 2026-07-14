@@ -4,7 +4,6 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-// Product Data
 const products = [
   { id: 1, name: "ChatGPT Plus", price: 20.00 }, 
   { id: 2, name: "Adobe Creative Cloud", price: 54.99 }, 
@@ -40,245 +39,174 @@ const products = [
 
 function CheckoutInner() {
   const searchParams = useSearchParams();
-  
-  // Get product ID from URL. If missing, default to 1 (ChatGPT) ONLY as a last resort.
-  const productIdParam = searchParams.get('product');
-  const productId = productIdParam ? Number(productIdParam) : 1;
-  const product = products.find(p => p.id === productId);
-
-  // If product is truly not found in our list, show error
-  if (!product) {
-    return (
-      <div className="min-h-screen bg-[#0B1120] text-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
-          <Link href="/products" className="text-cyan-400 hover:underline">Back to Products</Link>
-        </div>
-      </div>
-    );
-  }
-
+  const productId = Number(searchParams.get('product')) || 1;
+  const product = products.find(p => p.id === productId) || products[0];
+  const [selectedMethod, setSelectedMethod] = useState('capitec');
   const [processing, setProcessing] = useState(false);
 
-  const handleCapitecConfirmation = async () => {
+  const handleCapitecConfirm = async () => {
     setProcessing(true);
     try {
-      const customerEmail = prompt('Please enter your email for instant delivery after approval:');
-      if (!customerEmail) { alert('Email is required for delivery.'); return; }
-      
-      const res = await fetch('/api/payment/capitec', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}`, productName: product.name, customerEmail }) 
+      const email = prompt('Enter your email for instant delivery:');
+      if (!email) { alert('Email required.'); return; }
+      const res = await fetch('/api/payment/capitec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}`, productName: product.name, customerEmail: email })
       });
       const data = await res.json();
-      alert(data.success ? '✅ Payment recorded! Admin will verify & deliver instantly.' : `❌ Error: ${data.error}`);
-    } catch (e) { alert('Failed to connect to server.'); }
+      alert(data.success ? '✅ Payment recorded! Admin will verify & deliver instantly.' : `❌ ${data.error}`);
+    } catch (e) { alert('Server error.'); }
     finally { setProcessing(false); }
   };
+
+  const handlePeachPay = async () => {
+    setProcessing(true);
+    try {
+      const res = await fetch('/api/peach-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}` })
+      });
+      const data = await res.json();
+      if (data.success && data.checkoutUrl) window.location.href = data.checkoutUrl;
+      else alert(`❌ ${data.error || 'Payment failed'}`);
+    } catch (e) { alert('Server error.'); }
+    finally { setProcessing(false); }
+  };
+
+  const handleExternal = (name: string) => {
+    alert(`Redirecting to ${name}...\nPlease use Order ID: SD-${product.id} as reference.`);
+  };
+
+  const methods = [
+    { id: 'razorpay', name: 'Razorpay', sub: 'INDIA PRIMARY', flag: '🇮🇳', color: 'text-blue-400' },
+    { id: 'alipay', name: 'Alipay', sub: 'CHINA PRIMARY', flag: '🇨🇳', color: 'text-blue-400' },
+    { id: 'payoneer', name: 'Payoneer', sub: 'USA PRIMARY', flag: '🇺🇸', color: 'text-orange-400' },
+    { id: 'googlepay', name: 'Google Pay', sub: 'GLOBAL', flag: '🌍', color: 'text-blue-400' },
+    { id: 'peach', name: 'Peach Payments', sub: 'SA PRIMARY', flag: '🇿🇦', color: 'text-orange-400' },
+    { id: 'capitec', name: 'Capitec Bank Transfer', sub: 'MANUAL', flag: '🇿', color: 'text-cyan-400' },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0B1120] text-white py-12 px-4 md:px-8 font-sans">
       <div className="max-w-6xl mx-auto">
-        
-        <Link href="/products" className="text-cyan-400 hover:text-white mb-8 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest transition">
+        <Link href="/products" className="text-cyan-400 hover:text-white mb-8 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest">
           &larr; Back to Products
         </Link>
-        
-        <h1 className="text-4xl font-bold mb-8">Secure Checkout</h1>
+        <h1 className="text-4xl font-bold mb-2">Secure Checkout</h1>
+        <p className="text-gray-400 mb-8">Order: <span className="text-white font-bold">{product.name}</span> — Total: <span className="text-cyan-400 font-bold">${product.price.toFixed(2)}</span></p>
 
-        {/* MAIN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* LEFT SIDEBAR: Payment Options */}
+          {/* LEFT: INTERACTIVE BUTTONS */}
           <div className="space-y-3">
-            {/* Razorpay */}
-            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">🇮🇳</span>
-                <div>
-                  <div className="font-bold text-sm">Razorpay</div>
-                  <div className="text-[10px] text-blue-400 uppercase tracking-wider">India Primary</div>
+            {methods.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setSelectedMethod(m.id)}
+                className={`w-full p-4 rounded-xl border transition text-left flex items-center justify-between ${
+                  selectedMethod === m.id 
+                    ? 'border-cyan-500 bg-[#0F172A] shadow-[0_0_15px_rgba(6,182,212,0.15)]' 
+                    : 'border-slate-700 bg-[#0F172A]/50 hover:border-slate-600'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{m.flag}</span>
+                  <div>
+                    <div className="font-bold text-sm">{m.name}</div>
+                    <div className={`text-[10px] uppercase tracking-wider font-bold ${m.color}`}>{m.sub}</div>
+                  </div>
                 </div>
-              </div>
-              <span className="text-gray-500 text-xs">India</span>
-            </div>
-            
-            {/* Alipay */}
-            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">🇨</span>
-                <div>
-                  <div className="font-bold text-sm">Alipay</div>
-                  <div className="text-[10px] text-blue-400 uppercase tracking-wider">China Primary</div>
-                </div>
-              </div>
-              <span className="text-gray-500 text-xs">China</span>
-            </div>
-
-            {/* Payoneer */}
-            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">🇺</span>
-                <div>
-                  <div className="font-bold text-sm">Payoneer</div>
-                  <div className="text-[10px] text-orange-400 uppercase tracking-wider">USA Primary</div>
-                </div>
-              </div>
-              <span className="text-gray-500 text-xs">USA</span>
-            </div>
-
-            {/* Google Pay */}
-            <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">🌍</span>
-                <div>
-                  <div className="font-bold text-sm">Google Pay</div>
-                  <div className="text-[10px] text-blue-400 uppercase tracking-wider">Global</div>
-                </div>
-              </div>
-              <span className="text-gray-500 text-xs">Global</span>
-            </div>
-
-             {/* Peach */}
-             <div className="p-4 rounded-xl border border-slate-700 bg-[#0F172A] opacity-60 flex items-center justify-between cursor-pointer hover:border-slate-500 transition">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">🇿</span>
-                <div>
-                  <div className="font-bold text-sm">Peach Payments</div>
-                  <div className="text-[10px] text-orange-400 uppercase tracking-wider">SA Primary</div>
-                </div>
-              </div>
-              <span className="text-gray-500 text-xs">South Africa</span>
-            </div>
-
-            {/* Capitec - SELECTED */}
-            <div className="p-4 rounded-xl border-2 border-cyan-500 bg-[#0F172A] flex items-center justify-between shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">🇿</span>
-                <div>
-                  <div className="font-bold text-sm text-white">Capitec Bank Transfer</div>
-                  <div className="text-[10px] text-gray-400 uppercase tracking-wider">Manual</div>
-                </div>
-              </div>
-              <div className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-xs text-white">✓</div>
-            </div>
+                {selectedMethod === m.id && <span className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-xs text-white">✓</span>}
+              </button>
+            ))}
           </div>
 
-          {/* RIGHT SIDE: TWO SEPARATE PANELS WITH LARGE GAP */}
+          {/* RIGHT: TWO EXPLICIT PANELS */}
           <div className="lg:col-span-2 flex flex-col gap-10">
             
-            {/* ================= PANEL 1: PAYMENT STEPS ================= */}
-            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 shadow-xl">
-              <h3 className="text-lg font-bold mb-6 text-cyan-400 border-b border-slate-800 pb-4">Payment Steps</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-cyan-400 font-bold">
-                    01
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white mb-1">Choose Your Product</h4>
-                    <p className="text-xs text-gray-400">Browse all 30 digital products and click "Buy Now" on your selection.</p>
-                  </div>
+            {/* PANEL 1: PAYMENT STEPS GUIDE */}
+            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 shadow-lg">
+              <h3 className="text-lg font-bold mb-4 text-cyan-400 border-b border-slate-800 pb-3">📋 Payment Steps</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-900/40 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-sm">01</div>
+                  <div><h4 className="font-bold text-sm">Choose Product</h4><p className="text-xs text-gray-400">You selected: {product.name}</p></div>
                 </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-cyan-400 font-bold">
-                    02
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white mb-1">Select Payment Method</h4>
-                    <p className="text-xs text-gray-400">Choose from Razorpay, Alipay, Payoneer, Google Pay, or direct bank transfer.</p>
-                  </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-900/40 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-sm">02</div>
+                  <div><h4 className="font-bold text-sm">Select Method</h4><p className="text-xs text-gray-400">{methods.find(m => m.id === selectedMethod)?.name}</p></div>
                 </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-cyan-400 font-bold">
-                    03
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white mb-1">Complete Payment</h4>
-                    <p className="text-xs text-gray-400">Use the Capitec details below and email your proof of payment.</p>
-                  </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-900/40 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold text-sm">03</div>
+                  <div><h4 className="font-bold text-sm">Complete Payment</h4><p className="text-xs text-gray-400">Use details below or follow provider flow.</p></div>
                 </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-green-900/30 border border-green-500/30 flex items-center justify-center flex-shrink-0 text-green-400 font-bold">
-                    04
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white mb-1">Instant Delivery</h4>
-                    <p className="text-xs text-gray-400">Your digital product is delivered immediately to your email after payment.</p>
-                  </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-900/40 border border-green-500/40 flex items-center justify-center text-green-400 font-bold text-sm">04</div>
+                  <div><h4 className="font-bold text-sm">Instant Delivery</h4><p className="text-xs text-gray-400">Receive access immediately via email.</p></div>
                 </div>
               </div>
             </div>
 
-            {/* ================= PANEL 2: CAPITEC BANK DETAILS ================= */}
-            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden">
-               {/* Background Glow Effect */}
-               <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-
+            {/* PANEL 2: PAYMENT DETAILS (DYNAMIC) */}
+            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+              
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-2xl border border-slate-700">🇿</div>
-                    <div>
-                      <h2 className="text-xl font-bold">Capitec Bank</h2>
-                      <p className="text-slate-400 text-sm">South Africa • Savings Account</p>
+                {selectedMethod === 'capitec' && (
+                  <>
+                    <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-2xl border border-slate-700">🇿</div>
+                        <div><h2 className="text-xl font-bold">Capitec Bank Transfer</h2><p className="text-slate-400 text-sm">South Africa • Direct EFT</p></div>
+                      </div>
+                      <span className="px-2 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold">✓ Verified</span>
                     </div>
-                  </div>
-                  <div className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
-                    Verified
-                  </div>
-                </div>
+                    <div className="grid grid-cols-2 gap-3 mb-5">
+                      <div className="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                        <span className="text-gray-500 text-[10px] uppercase block">Holder</span>
+                        <span className="font-bold">SUPER DIGITAL</span>
+                      </div>
+                      <div className="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                        <span className="text-gray-500 text-[10px] uppercase block">Account</span>
+                        <span className="font-bold font-mono">1975933441</span>
+                      </div>
+                      <div className="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                        <span className="text-gray-500 text-[10px] uppercase block">SWIFT</span>
+                        <span className="font-bold">CABLZAJJ</span>
+                      </div>
+                      <div className="bg-slate-900 p-3 rounded-lg border border-slate-800">
+                        <span className="text-gray-500 text-[10px] uppercase block">Branch</span>
+                        <span className="font-bold">470010</span>
+                      </div>
+                    </div>
+                    <div className="bg-blue-900/20 border border-blue-800 p-3 rounded-lg mb-5">
+                      <p className="text-xs text-blue-200">Transfer exact amount. Email proof to <a href="mailto:payments@superdigital.store" className="underline">payments@superdigital.store</a> with Order ID.</p>
+                    </div>
+                    <button onClick={handleCapitecConfirm} disabled={processing} className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                      {processing ? 'Processing...' : 'Pay with Capitec Bank Transfer'}
+                    </button>
+                  </>
+                )}
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                    <span className="text-gray-500 text-[10px] uppercase block mb-1">ACCOUNT HOLDER</span>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-lg">SUPER DIGITAL</span>
-                      <button onClick={() => navigator.clipboard.writeText('SUPER DIGITAL')} className="text-gray-500 hover:text-white">📋</button>
-                    </div>
-                  </div>
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                    <span className="text-gray-500 text-[10px] uppercase block mb-1">ACCOUNT NUMBER</span>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-lg font-mono">1975933441</span>
-                      <button onClick={() => navigator.clipboard.writeText('1975933441')} className="text-gray-500 hover:text-white">📋</button>
-                    </div>
-                  </div>
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                    <span className="text-gray-500 text-[10px] uppercase block mb-1">SWIFT CODE</span>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-lg">CABLZAJJ</span>
-                      <button onClick={() => navigator.clipboard.writeText('CABLZAJJ')} className="text-gray-500 hover:text-white">📋</button>
-                    </div>
-                  </div>
-                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                    <span className="text-gray-500 text-[10px] uppercase block mb-1">BRANCH CODE</span>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-lg">470010</span>
-                      <button onClick={() => navigator.clipboard.writeText('470010')} className="text-gray-500 hover:text-white">📋</button>
-                    </div>
-                  </div>
-                </div>
+                {selectedMethod === 'peach' && (
+                  <>
+                    <div className="flex items-center gap-3 mb-5"><span className="text-2xl">💳</span><div><h2 className="text-xl font-bold">Credit / Debit Card</h2><p className="text-slate-400 text-sm">Powered by Peach Payments</p></div></div>
+                    <button onClick={handlePeachPay} disabled={processing} className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold transition">
+                      {processing ? 'Processing...' : `Pay $${product.price.toFixed(2)} Securely`}
+                    </button>
+                  </>
+                )}
 
-                <div className="bg-blue-900/20 border border-blue-800 p-4 rounded-xl mb-6">
-                  <p className="text-xs text-blue-200 leading-relaxed">
-                    <strong className="text-blue-100">After payment:</strong> Email your proof of payment to <a href="mailto:payments@superdigital.store" className="underline hover:text-blue-100">payments@superdigital.store</a> with your order number. Products are delivered within 2 hours of payment confirmation. Reference your order number in the payment description.
-                  </p>
-                </div>
-
-                <button 
-                  onClick={handleCapitecConfirmation}
-                  disabled={processing}
-                  className="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-lg transition shadow-lg shadow-blue-900/20 flex items-center justify-center gap-3"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                  {processing ? 'Processing...' : 'Pay with Capitec Bank Transfer'}
-                </button>
+                {!['capitec', 'peach'].includes(selectedMethod) && (
+                  <>
+                    <div className="flex items-center gap-3 mb-5"><span className="text-2xl">{methods.find(m => m.id === selectedMethod)?.flag}</span><div><h2 className="text-xl font-bold capitalize">{selectedMethod}</h2><p className="text-slate-400 text-sm">International Payment</p></div></div>
+                    <button onClick={() => handleExternal(selectedMethod)} className="w-full py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-bold transition">
+                      Proceed to {selectedMethod.charAt(0).toUpperCase() + selectedMethod.slice(1)}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
