@@ -87,7 +87,7 @@ function CheckoutInner() {
         
         <h1 className="text-4xl font-bold mb-8">Secure Checkout</h1>
 
-        {/* TWO COLUMN LAYOUT */}
+        {/* MAIN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* LEFT SIDEBAR: Payment Options */}
@@ -165,62 +165,62 @@ function CheckoutInner() {
             </div>
           </div>
 
-          {/* RIGHT SIDE: TWO SEPARATE PANELS */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* RIGHT SIDE: TWO SEPARATE PANELS WITH LARGE GAP */}
+          <div className="lg:col-span-2 flex flex-col gap-10">
             
-            {/* PANEL 1: PAYMENT STEPS GUIDE */}
-            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800">
-              <h3 className="text-lg font-bold mb-4 text-cyan-400">Payment Steps</h3>
-              <div className="space-y-4">
+            {/* ================= PANEL 1: PAYMENT STEPS ================= */}
+            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 shadow-xl">
+              <h3 className="text-lg font-bold mb-6 text-cyan-400 border-b border-slate-800 pb-4">Payment Steps</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-cyan-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                  <div className="w-10 h-10 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-cyan-400 font-bold">
+                    01
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-white">01 Choose Your Product</h4>
-                    <p className="text-xs text-gray-400 mt-1">Browse all 30 digital products and click "Buy Now" on your selection.</p>
+                    <h4 className="font-bold text-sm text-white mb-1">Choose Your Product</h4>
+                    <p className="text-xs text-gray-400">Browse all 30 digital products and click "Buy Now" on your selection.</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-cyan-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                  <div className="w-10 h-10 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-cyan-400 font-bold">
+                    02
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-white">02 Select Payment Method</h4>
-                    <p className="text-xs text-gray-400 mt-1">Choose from Razorpay (India), Alipay (China), Payoneer (USA), Google Pay, Peach Payments, or direct bank transfer.</p>
+                    <h4 className="font-bold text-sm text-white mb-1">Select Payment Method</h4>
+                    <p className="text-xs text-gray-400">Choose from Razorpay, Alipay, Payoneer, Google Pay, or direct bank transfer.</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-cyan-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  <div className="w-10 h-10 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center flex-shrink-0 text-cyan-400 font-bold">
+                    03
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-white">03 Complete Payment</h4>
-                    <p className="text-xs text-gray-400 mt-1">Follow the secure checkout flow. For bank transfers, use the Capitec details below and email your proof of payment.</p>
+                    <h4 className="font-bold text-sm text-white mb-1">Complete Payment</h4>
+                    <p className="text-xs text-gray-400">Use the Capitec details below and email your proof of payment.</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-green-900/30 border border-green-500/30 flex items-center justify-center flex-shrink-0 text-green-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  <div className="w-10 h-10 rounded-full bg-green-900/30 border border-green-500/30 flex items-center justify-center flex-shrink-0 text-green-400 font-bold">
+                    04
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-white">04 Instant Delivery</h4>
-                    <p className="text-xs text-gray-400 mt-1">Your digital product is delivered immediately to your email after payment confirmation.</p>
+                    <h4 className="font-bold text-sm text-white mb-1">Instant Delivery</h4>
+                    <p className="text-xs text-gray-400">Your digital product is delivered immediately to your email after payment.</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* PANEL 2: CAPITEC BANK DETAILS */}
-            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 relative overflow-hidden">
+            {/* ================= PANEL 2: CAPITEC BANK DETAILS ================= */}
+            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden">
                {/* Background Glow Effect */}
                <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-2xl border border-slate-700">🇿</div>
                     <div>
@@ -235,31 +235,31 @@ function CheckoutInner() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                    <span className="text-gray-500 text-xs block">ACCOUNT HOLDER</span>
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <span className="text-gray-500 text-[10px] uppercase block mb-1">ACCOUNT HOLDER</span>
                     <div className="flex items-center justify-between">
-                      <span className="font-bold">SUPER DIGITAL</span>
+                      <span className="font-bold text-lg">SUPER DIGITAL</span>
                       <button onClick={() => navigator.clipboard.writeText('SUPER DIGITAL')} className="text-gray-500 hover:text-white">📋</button>
                     </div>
                   </div>
-                  <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                    <span className="text-gray-500 text-xs block">ACCOUNT NUMBER</span>
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <span className="text-gray-500 text-[10px] uppercase block mb-1">ACCOUNT NUMBER</span>
                     <div className="flex items-center justify-between">
-                      <span className="font-bold font-mono">1975933441</span>
+                      <span className="font-bold text-lg font-mono">1975933441</span>
                       <button onClick={() => navigator.clipboard.writeText('1975933441')} className="text-gray-500 hover:text-white">📋</button>
                     </div>
                   </div>
-                  <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                    <span className="text-gray-500 text-xs block">SWIFT CODE</span>
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <span className="text-gray-500 text-[10px] uppercase block mb-1">SWIFT CODE</span>
                     <div className="flex items-center justify-between">
-                      <span className="font-bold">CABLZAJJ</span>
+                      <span className="font-bold text-lg">CABLZAJJ</span>
                       <button onClick={() => navigator.clipboard.writeText('CABLZAJJ')} className="text-gray-500 hover:text-white">📋</button>
                     </div>
                   </div>
-                  <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
-                    <span className="text-gray-500 text-xs block">BRANCH CODE</span>
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <span className="text-gray-500 text-[10px] uppercase block mb-1">BRANCH CODE</span>
                     <div className="flex items-center justify-between">
-                      <span className="font-bold">470010</span>
+                      <span className="font-bold text-lg">470010</span>
                       <button onClick={() => navigator.clipboard.writeText('470010')} className="text-gray-500 hover:text-white">📋</button>
                     </div>
                   </div>
@@ -280,19 +280,6 @@ function CheckoutInner() {
                   {processing ? 'Processing...' : 'Pay with Capitec Bank Transfer'}
                 </button>
               </div>
-            </div>
-
-            {/* ALL ACCEPTED METHODS BAR */}
-            <div className="bg-[#0F172A] p-4 rounded-2xl border border-slate-800">
-               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 text-center">All Accepted Payment Methods</h3>
-               <div className="flex flex-wrap justify-center gap-3">
-                 <div className="px-3 py-1 bg-slate-800 rounded-full text-xs border border-slate-700">Razorpay 🇮🇳</div>
-                 <div className="px-3 py-1 bg-slate-800 rounded-full text-xs border border-slate-700">Alipay 🇨</div>
-                 <div className="px-3 py-1 bg-slate-800 rounded-full text-xs border border-slate-700">Payoneer 🇺🇸</div>
-                 <div className="px-3 py-1 bg-slate-800 rounded-full text-xs border border-slate-700">Google Pay 🌍</div>
-                 <div className="px-3 py-1 bg-slate-800 rounded-full text-xs border border-slate-700">Peach Payments 🇿🇦</div>
-                 <div className="px-3 py-1 bg-slate-800 rounded-full text-xs border border-slate-700">Capitec EFT 🇿</div>
-               </div>
             </div>
 
           </div>
