@@ -1,46 +1,33 @@
-import { kv } from '@vercel/kv';
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-// Helper to get a key name
-const getKey = (region: string) => `sales:${region}`;
+const supabase = createClient(
+  process.env.SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+);
 
 export async function GET() {
   try {
-    // Fetch all counts from KV. If they don't exist yet, default to 0.
-    const [usa, india, china, southAfrica] = await Promise.all([
-      kv.get<number>(getKey('usa')) || 0,
-      kv.get<number>(getKey('india')) || 0,
-      kv.get<number>(getKey('china')) || 0,
-      kv.get<number>(getKey('southAfrica')) || 0,
-    ]);
-
-    return NextResponse.json({ usa, india, china, southAfrica });
-  } catch (error) {
-    console.error('Error fetching sales:', error);
-    // Return zeros if KV fails so the UI doesn't break
+    const { data, error } = await supabase.from('sales_counts').select('region, count');
+    if (error) throw error;
+    const stats = { usa: 0, india: 0, china: 0, southAfrica: 0 };
+    data?.forEach((item) => { stats[item.region as keyof typeof stats] = item.count; });
+    return NextResponse.json(stats);
+  } catch {
     return NextResponse.json({ usa: 0, india: 0, china: 0, southAfrica: 0 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { region } = body;
-
+    const { region } = await request.json();
     if (!region || !['usa', 'india', 'china', 'southAfrica'].includes(region)) {
       return NextResponse.json({ error: 'Invalid region' }, { status: 400 });
     }
-
-    // Increment the count for this region
-    const key = getKey(region);
-    const currentCount = await kv.get<number>(key) || 0;
-    const newCount = currentCount + 1;
-    
-    await kv.set(key, newCount);
-
-    return NextResponse.json({ success: true, newCount });
-  } catch (error) {
-    console.error('Error updating sales:', error);
-    return NextResponse.json({ error: 'Failed to update sales' }, { status: 500 });
+    const { data: current } = await supabase.from('sales_counts').select('count').eq('region', region).single();
+    await supabase.from('sales_counts').update({ count: (current?.count || 0) + 1 }).eq('region', region);
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: 'Update failed' }, { status: 500 });
   }
 }
