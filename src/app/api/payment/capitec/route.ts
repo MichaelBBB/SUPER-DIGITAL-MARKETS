@@ -1,23 +1,29 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'nodejs';
-
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    // Read the data sent from the checkout page
-    const body = await req.json();
-    
-    console.log('Payment received:', body.orderId);
+    const body = await request.json();
+    const { amount, orderId, productName, customerEmail } = body;
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Capitec payment recorded' 
+    // ✅ YOUR EXISTING EMAIL/WEBHOOK LOGIC GOES HERE IF NEEDED
+    // (This route now safely triggers the sales counter regardless)
+
+    // 🔢 INCREMENT SALES COUNTER FOR SOUTH AFRICA
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
+    await fetch(`${baseUrl}/api/sales`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ region: 'southAfrica' })
     });
 
+    return NextResponse.json({
+      success: true,
+      message: '✅ Payment recorded! Admin will verify & deliver instantly.',
+      orderId,
+      amount
+    });
   } catch (error) {
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Something went wrong' 
-    }, { status: 500 });
+    console.error('Capitec payment error:', error);
+    return NextResponse.json({ success: false, error: 'Payment processing failed' }, { status: 500 });
   }
 }
