@@ -1,36 +1,43 @@
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const { amount, orderId, productName } = await request.json();
+    const body = await request.text();
+    const signature = request.headers.get('x-peach-signature') || '';
+    const peachSecret = process.env.PEACH_WEBHOOK_SECRET || '';
+
+    // Verify webhook signature
+    const hmac = crypto.createHmac('sha256', peachSecret).update(body).digest('hex');
+    if (signature !== hmac) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
+    const payload = JSON.parse(body);
     
-    // Peach Payments API endpoint (replace with your actual API URL from Peach dashboard)
-    const PEACH_API_URL = process.env.PEACH_API_URL || 'https://api.peachpayments.co.za/v1/sessions';
-    const PEACH_API_KEY = process.env.PEACH_API_KEY || '';
+    // Only process successful payments
+    if (payload.status !== 'SUCCESS' && payload.status !== 'COMPLETED') {
+      return NextResponse.json({ success: true });
+    }
 
-    const res = await fetch(PEACH_API_URL, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${PEACH_API_KEY}`
-      },
-      body: JSON.stringify({
-        amount: amount * 100, // Peach expects cents
-        currency: 'ZAR',
-        orderReference: orderId,
-        description: productName,
-        returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?status=success`,
-        cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?status=cancelled`
-      })
-    });
+    // Determine region (you can adjust logic based on card/EFT country if needed)
+    const region = payload.country?.toLowerCase() === 'za' ? 'southAfrica' : 
+                   payload.country?.toLowerCase() === 'us' ? 'usa' : 
+                   payload.country?.toLowerCase() === 'in' ? 'india' : 
+                   payload.country?.toLowerCase() === 'cn' ? 'china' : 'southAfrica';
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Peach API error');
+    // Update Supabase sales counter
+    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+    const { data: current } = await supabase.from('sales_counts').select('count').eq('region', region).single();
+    await supabase.from('sales_counts').update({ count: (current?.count || 0) + 1 }).eq('region', region);
 
-    return NextResponse.json({ success: true, checkoutUrl: data.checkoutUrl });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    // TODO: Add email delivery logic here if needed
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
