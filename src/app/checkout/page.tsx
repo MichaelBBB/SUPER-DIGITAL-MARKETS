@@ -26,10 +26,10 @@ function CheckoutInner() {
 
   const methods = [
     { id: 'razorpay', name: 'Razorpay', sub: 'INDIA PRIMARY', flag: '🇮🇳' },
-    { id: 'alipay', name: 'Alipay', sub: 'CHINA PRIMARY', flag: '🇨🇳' },
+    { id: 'alipay', name: 'Alipay', sub: 'CHINA PRIMARY', flag: '🇨' },
     { id: 'payoneer', name: 'Payoneer', sub: 'USA PRIMARY', flag: '🇺' },
     { id: 'googlepay', name: 'Google Pay', sub: 'GLOBAL', flag: '🌍' },
-    { id: 'peach', name: 'Peach Payments', sub: 'SA PRIMARY', flag: '🇿🇦' },
+    { id: 'peach', name: 'Peach Payments', sub: 'SA PRIMARY', flag: '🇿' },
     { id: 'capitec', name: 'Capitec Bank Transfer', sub: 'MANUAL', flag: '🇿' },
   ];
 
@@ -48,17 +48,17 @@ function CheckoutInner() {
       
       const data = await res.json();
       
-      if (!res.ok) {
-        throw new Error(data.error || 'Payment service temporarily unavailable');
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Payment service unavailable');
       }
       
-      if (data.success && data.checkoutUrl) {
+      if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
-        throw new Error(data.message || 'Failed to initialize checkout');
+        throw new Error('No checkout URL returned');
       }
     } catch (err: any) {
-      alert(`❌ ${err.message || 'Network error. Please check your connection and try again.'}`);
+      alert(`❌ ${err.message || 'Network error. Please try again.'}`);
     } finally {
       setProcessing(false);
     }
@@ -98,7 +98,8 @@ function CheckoutInner() {
                 {selectedMethod === 'peach' && (
                   <><div className="flex items-center gap-3 mb-6"><span className="text-2xl">💳</span><div><h2 className="text-xl font-bold">Credit / Debit Card / Instant EFT</h2><p className="text-slate-400 text-sm">Powered by Peach Payments</p></div></div>
                   <p className="text-gray-400 mb-6">Securely pay using Visa, Mastercard, or Instant EFT. Payment is verified instantly and your product will be delivered immediately to your email.</p>
-                  <button onClick={handlePeachPayment} disabled={processing} className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-lg transition shadow-lg shadow-cyan-900/20">{processing ? 'Redirecting...' : `Pay $${product.price.toFixed(2)} Securely`}</button></>
+                  <button onClick={handlePeachPayment} disabled={processing} className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-lg transition shadow-lg shadow-cyan-900/20">{processing ? 'Redirecting...' : `Pay $${product.price.toFixed(2)} Securely`}</button>
+                  <p className="text-xs text-gray-500 mt-3 text-center">⚠️ Testing: Use Card `4111 1111 1111 1111` | Any future expiry | CVV `123`</p></>
                 )}
                 {selectedMethod === 'capitec' && (
                   <><div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-2xl border border-slate-700">🇿</div><div><h2 className="text-xl font-bold">Capitec Bank Transfer</h2><p className="text-slate-400 text-sm">Direct EFT</p></div></div><span className="px-2 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold">✓ Verified</span></div>
