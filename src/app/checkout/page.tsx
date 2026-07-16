@@ -4,6 +4,8 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
+// VERSION: FINAL_V5 - Message Removed, Error handling improved
+
 const products = [
   { id: 1, name: "ChatGPT Plus", price: 20.00 }, { id: 2, name: "Adobe Creative Cloud", price: 54.99 }, { id: 3, name: "Netflix Premium", price: 22.99 },
   { id: 4, name: "Microsoft 365 Business", price: 12.50 }, { id: 5, name: "Spotify Premium", price: 9.99 }, { id: 6, name: "NordVPN", price: 3.99 },
@@ -27,15 +29,17 @@ function CheckoutInner() {
   const methods = [
     { id: 'razorpay', name: 'Razorpay', sub: 'INDIA PRIMARY', flag: '🇮🇳' },
     { id: 'alipay', name: 'Alipay', sub: 'CHINA PRIMARY', flag: '🇨' },
-    { id: 'payoneer', name: 'Payoneer', sub: 'USA PRIMARY', flag: '🇺' },
+    { id: 'payoneer', name: 'Payoneer', sub: 'USA PRIMARY', flag: '🇺🇸' },
     { id: 'googlepay', name: 'Google Pay', sub: 'GLOBAL', flag: '🌍' },
-    { id: 'peach', name: 'Peach Payments', sub: 'SA PRIMARY', flag: '🇿' },
+    { id: 'peach', name: 'Peach Payments', sub: 'SA PRIMARY', flag: '🇿🇦' },
     { id: 'capitec', name: 'Capitec Bank Transfer', sub: 'MANUAL', flag: '🇿' },
   ];
 
   const handlePeachPayment = async () => {
     setProcessing(true);
     try {
+      console.log("Initiating Peach Payment for product:", product.name);
+      
       const res = await fetch('/api/peach-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,20 +49,22 @@ function CheckoutInner() {
           productName: product.name 
         })
       });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Payment connection failed. Please try again.');
+      }
       
       const data = await res.json();
       
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Payment service unavailable');
+      if (!data.success || !data.checkoutUrl) {
+        throw new Error('Failed to initialize secure checkout.');
       }
       
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
-        throw new Error('No checkout URL returned');
-      }
+      window.location.href = data.checkoutUrl;
     } catch (err: any) {
-      alert(`❌ ${err.message || 'Network error. Please try again.'}`);
+      console.error("Payment Error:", err);
+      alert(`❌ ${err.message || 'Network error. Please check your connection.'}`);
     } finally {
       setProcessing(false);
     }
@@ -82,35 +88,51 @@ function CheckoutInner() {
           </div>
 
           <div className="lg:col-span-2 flex flex-col gap-6">
+            
+            {/* PANEL 1: STEPS */}
             <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800">
               <h3 className="text-lg font-bold mb-4 text-cyan-400">📋 Payment Steps</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-start gap-3"><div className="w-8 h-8 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-sm">01</div><div><h4 className="font-bold text-sm">Choose Product</h4><p className="text-xs text-gray-400">You selected: {product.name}</p></div></div>
                 <div className="flex items-start gap-3"><div className="w-8 h-8 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-sm">02</div><div><h4 className="font-bold text-sm">Select Method</h4><p className="text-xs text-gray-400">{methods.find(m => m.id === selectedMethod)?.name}</p></div></div>
-                <div className="flex items-start gap-3"><div className="w-8 h-8 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-sm">03</div><div><h4 className="font-bold text-sm">Complete Payment</h4><p className="text-xs text-gray-400">Follow the secure flow below.</p></div></div>
+                <div className="flex items-start gap-3"><div className="w-8 h-8 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-sm">03</div><div><h4 className="font-bold text-sm">Complete Payment</h4><p className="text-xs text-gray-400">Click the blue button below.</p></div></div>
                 <div className="flex items-start gap-3"><div className="w-8 h-8 rounded-full bg-green-900/30 border border-green-500/30 flex items-center justify-center text-green-400 font-bold text-sm">04</div><div><h4 className="font-bold text-sm">Instant Delivery</h4><p className="text-xs text-gray-400">Receive access immediately via email.</p></div></div>
               </div>
             </div>
 
+            {/* PANEL 2: PAYMENT DETAILS */}
             <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
               <div className="relative z-10">
                 {selectedMethod === 'peach' && (
-                  <><div className="flex items-center gap-3 mb-6"><span className="text-2xl">💳</span><div><h2 className="text-xl font-bold">Credit / Debit Card / Instant EFT</h2><p className="text-slate-400 text-sm">Powered by Peach Payments</p></div></div>
-                  <p className="text-gray-400 mb-6">Securely pay using Visa, Mastercard, or Instant EFT. Payment is verified instantly and your product will be delivered immediately to your email.</p>
-                  <button onClick={handlePeachPayment} disabled={processing} className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-lg transition shadow-lg shadow-cyan-900/20">{processing ? 'Redirecting...' : `Pay $${product.price.toFixed(2)} Securely`}</button>
-                  <p className="text-xs text-gray-500 mt-3 text-center">⚠️ Testing: Use Card `4111 1111 1111 1111` | Any future expiry | CVV `123`</p></>
+                  <>
+                    <div className="flex items-center gap-3 mb-6"><span className="text-2xl">💳</span><div><h2 className="text-xl font-bold">Credit / Debit Card / Instant EFT</h2><p className="text-slate-400 text-sm">Powered by Peach Payments</p></div></div>
+                    
+                    {/* THIS IS THE FIXED TEXT - NO SETTLEMENT MENTIONED */}
+                    <p className="text-gray-400 mb-6 text-lg font-medium text-center">
+                      SECURE PAYMENT. INSTANT DELIVERY.
+                    </p>
+                    
+                    <button onClick={handlePeachPayment} disabled={processing} className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-lg transition shadow-lg shadow-cyan-900/20">
+                      {processing ? 'Redirecting...' : `Pay $${product.price.toFixed(2)} Securely`}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-3 text-center">⚠️ Testing: Use Card `4111 1111 1111 1111` | Any future expiry | CVV `123`</p>
+                  </>
                 )}
                 {selectedMethod === 'capitec' && (
-                  <><div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-2xl border border-slate-700">🇿</div><div><h2 className="text-xl font-bold">Capitec Bank Transfer</h2><p className="text-slate-400 text-sm">Direct EFT</p></div></div><span className="px-2 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold">✓ Verified</span></div>
-                  <div className="grid grid-cols-2 gap-3 mb-5"><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">HOLDER</span><span className="font-bold">SUPER DIGITAL</span></div><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">ACCOUNT</span><span className="font-bold font-mono">1975933441</span></div><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">SWIFT</span><span className="font-bold">CABLZAJJ</span></div><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">BRANCH</span><span className="font-bold">470010</span></div></div>
-                  <div className="bg-blue-900/20 border border-blue-800 p-3 rounded-lg mb-5"><p className="text-xs text-blue-200">Transfer exact amount. Email proof to <a href="mailto:payments@superdigital.store" className="underline">payments@superdigital.store</a> with Order ID.</p></div>
-                  <button disabled className="w-full py-4 bg-slate-700 rounded-xl font-bold text-lg cursor-not-allowed opacity-70">Manual Transfer Only</button></>
+                  <>
+                    <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-2xl border border-slate-700">🇿</div><div><h2 className="text-xl font-bold">Capitec Bank Transfer</h2><p className="text-slate-400 text-sm">Direct EFT</p></div></div><span className="px-2 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold">✓ Verified</span></div>
+                    <div className="grid grid-cols-2 gap-3 mb-5"><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">HOLDER</span><span className="font-bold">SUPER DIGITAL</span></div><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">ACCOUNT</span><span className="font-bold font-mono">1975933441</span></div><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">SWIFT</span><span className="font-bold">CABLZAJJ</span></div><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">BRANCH</span><span className="font-bold">470010</span></div></div>
+                    <div className="bg-blue-900/20 border border-blue-800 p-3 rounded-lg mb-5"><p className="text-xs text-blue-200">Transfer exact amount. Email proof to <a href="mailto:payments@superdigital.store" className="underline">payments@superdigital.store</a> with Order ID.</p></div>
+                    <button disabled className="w-full py-4 bg-slate-700 rounded-xl font-bold text-lg cursor-not-allowed opacity-70">Manual Transfer Only</button>
+                  </>
                 )}
                 {!['peach', 'capitec'].includes(selectedMethod) && (
-                  <><div className="flex items-center gap-3 mb-6"><span className="text-2xl">{methods.find(m => m.id === selectedMethod)?.flag}</span><div><h2 className="text-xl font-bold capitalize">{selectedMethod}</h2><p className="text-slate-400 text-sm">International Payment</p></div></div>
-                  <p className="text-gray-400 mb-6">Coming soon. Select Peach or Capitec for instant processing.</p>
-                  <button disabled className="w-full py-4 bg-slate-700 rounded-xl font-bold text-lg cursor-not-allowed opacity-70">Unavailable</button></>
+                  <>
+                    <div className="flex items-center gap-3 mb-6"><span className="text-2xl">{methods.find(m => m.id === selectedMethod)?.flag}</span><div><h2 className="text-xl font-bold capitalize">{selectedMethod}</h2><p className="text-slate-400 text-sm">International Payment</p></div></div>
+                    <p className="text-gray-400 mb-6">Coming soon. Select Peach or Capitec for instant processing.</p>
+                    <button disabled className="w-full py-4 bg-slate-700 rounded-xl font-bold text-lg cursor-not-allowed opacity-70">Unavailable</button>
+                  </>
                 )}
               </div>
             </div>
