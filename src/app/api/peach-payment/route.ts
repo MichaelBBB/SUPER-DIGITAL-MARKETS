@@ -5,24 +5,28 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
     const { amount, orderId, productName } = await request.json();
-    
-    // Peach Payments API endpoint (replace with your actual API URL from Peach dashboard)
-    const PEACH_API_URL = process.env.PEACH_API_URL || 'https://api.peachpayments.co.za/v1/sessions';
-    const PEACH_API_KEY = process.env.PEACH_API_KEY || '';
+    const entityId = process.env.PEACH_ENTITY_ID || '';
+    const clientSecret = process.env.PEACH_CLIENT_SECRET || '';
 
-    const res = await fetch(PEACH_API_URL, {
+    // Peach uses Basic Auth with Entity ID + Client Secret
+    const auth = Buffer.from(`${entityId}:${clientSecret}`).toString('base64');
+
+    const res = await fetch('https://secure.checkout.peachpayments.co.za/api/v1/sessions', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${PEACH_API_KEY}`
+        'Accept': 'application/json',
+        'Authorization': `Basic ${auth}`
       },
       body: JSON.stringify({
-        amount: amount * 100, // Peach expects cents
+        amount: Math.round(amount * 100), // Peach expects cents
         currency: 'ZAR',
         orderReference: orderId,
         description: productName,
         returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?status=success`,
-        cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?status=cancelled`
+        cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?status=cancelled`,
+        // This automatically registers your webhook URL with Peach for this transaction
+        webhook: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/peach`
       })
     });
 
