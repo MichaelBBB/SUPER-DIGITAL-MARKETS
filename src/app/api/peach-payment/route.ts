@@ -1,91 +1,36 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const { amount, orderId } = await request.json();
+    const { amount, orderId, productName } = await request.json();
+    
+    // Peach Payments API endpoint (replace with your actual API URL from Peach dashboard)
+    const PEACH_API_URL = process.env.PEACH_API_URL || 'https://api.peachpayments.co.za/v1/sessions';
+    const PEACH_API_KEY = process.env.PEACH_API_KEY || '';
 
-    // ✅ Verified Credentials
-    const clientId = '8bbf74df6fc2d54792923a42a1ec28';
-    const clientSecret = 'gmaIOZ4kaovr4Xu8juDaJ6L8WLb408xLox+GpIdsKzSKjG433T62hnXE2X3xAYgSLMyM5wUDVwT8ByeUhCHN5w==';
-    const entityId = '8ac7a4c89d6f2185019d70e1ee0501f3';
-    const secretToken = 'dd81d4af792c47148e06ad389cd653f1';
-    const merchantId = process.env.PEACH_MERCHANT_ID;
-
-    if (!merchantId) {
-      throw new Error('Missing merchantId');
-    }
-
-    // Step 1: Get Access Token
-    const tokenRes = await fetch('https://sandbox-dashboard.peachpayments.com/api/oauth/token', {
+    const res = await fetch(PEACH_API_URL, {
       method: 'POST',
-      headers: {
+      headers: { 
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ clientId, clientSecret, merchantId })
-    });
-
-    const tokenText = await tokenRes.text();
-    if (!tokenRes.ok) throw new Error(`Token failed: ${tokenText}`);
-
-    const tokenData = JSON.parse(tokenText);
-    const token = tokenData.access_token || tokenData.jwt;
-    if (!token) throw new Error('No token received');
-
-    // ✅ Generate unique NONCE and Transaction ID
-    const nonce = crypto.randomUUID();
-    const merchantTransactionId = `SD-${orderId}-${Date.now()}`;
-
-    // ✅ Configuration
-    const peachSecurityOrigin = 'https://famous.ai'; // Allowlisted domain for headers
-    const siteUrl = 'https://super-digital-markets-co9n.vercel.app'; // Your Vercel site
-
-    // Step 2: Create Hosted Checkout Session
-    const checkoutRes = await fetch('https://testsecure.peachpayments.com/v2/checkout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'X-Merchant-ID': merchantId,
-        'X-Secret-Token': secretToken,
-        'Referer': peachSecurityOrigin,
-        'Origin': peachSecurityOrigin
+        'Authorization': `Bearer ${PEACH_API_KEY}`
       },
       body: JSON.stringify({
-        entityId: entityId,
-        amount: parseFloat(amount).toFixed(2),
+        amount: amount * 100, // Peach expects cents
         currency: 'ZAR',
-        paymentType: 'DB',
-        merchantTransactionId: merchantTransactionId,
-        nonce: nonce,
-        shopperResultUrl: `${siteUrl}/checkout/success`,
-        notificationUrl: `${siteUrl}/api/webhooks/peach`
+        orderReference: orderId,
+        description: productName,
+        returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?status=success`,
+        cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?status=cancelled`
       })
     });
 
-    const checkoutText = await checkoutRes.text();
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Peach API error');
 
-    if (!checkoutRes.ok) {
-      throw new Error(`Checkout failed (${checkoutRes.status}): ${checkoutText}`);
-    }
-
-    const checkoutData = JSON.parse(checkoutText);
-    const redirectUrl = checkoutData.redirectUrl || checkoutData.checkoutUrl;
-
-    if (!redirectUrl) {
-      throw new Error(`No redirect URL. Response: ${JSON.stringify(checkoutData)}`);
-    }
-
-    return NextResponse.json({ success: true, checkoutUrl: redirectUrl });
-
+    return NextResponse.json({ success: true, checkoutUrl: data.checkoutUrl });
   } catch (error: any) {
-    console.error('💥 Error:', error.message);
-    return NextResponse.json({
-      step: 'error',
-      error: error.message
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
