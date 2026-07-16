@@ -7,8 +7,12 @@ export default function Home() {
 
   const fetchSales = async () => {
     try {
-      const res = await fetch('/api/sales');
-      if (res.ok) setStats(await res.json());
+      // Cache-busting query param + no-store fetch option forces real-time data
+      const res = await fetch(`/api/sales?t=${Date.now()}`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
     } catch (e) { console.error('Tracker fetch failed', e); }
   };
 
