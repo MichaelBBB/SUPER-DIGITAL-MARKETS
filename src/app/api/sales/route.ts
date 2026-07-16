@@ -10,9 +10,14 @@ export async function GET() {
   try {
     const { data, error } = await supabase.from('sales_counts').select('region, count');
     if (error) throw error;
+    
     const stats = { usa: 0, india: 0, china: 0, southAfrica: 0 };
     data?.forEach((item) => { stats[item.region as keyof typeof stats] = item.count; });
-    return NextResponse.json(stats);
+    
+    // Forces Vercel/CDN to never cache this response
+    return NextResponse.json(stats, {
+      headers: { 'Cache-Control': 'no-store, max-age=0, must-revalidate' }
+    });
   } catch {
     return NextResponse.json({ usa: 0, india: 0, china: 0, southAfrica: 0 });
   }
