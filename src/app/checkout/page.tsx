@@ -1,4 +1,5 @@
 'use client';
+
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -26,7 +27,7 @@ function CheckoutInner() {
   const methods = [
     { id: 'razorpay', name: 'Razorpay', sub: 'INDIA PRIMARY', flag: '🇮🇳' },
     { id: 'alipay', name: 'Alipay', sub: 'CHINA PRIMARY', flag: '🇨🇳' },
-    { id: 'payoneer', name: 'Payoneer', sub: 'USA PRIMARY', flag: '🇺🇸' },
+    { id: 'payoneer', name: 'Payoneer', sub: 'USA PRIMARY', flag: '🇺' },
     { id: 'googlepay', name: 'Google Pay', sub: 'GLOBAL', flag: '🌍' },
     { id: 'peach', name: 'Peach Payments', sub: 'SA PRIMARY', flag: '🇿🇦' },
     { id: 'capitec', name: 'Capitec Bank Transfer', sub: 'MANUAL', flag: '🇿' },
@@ -38,16 +39,29 @@ function CheckoutInner() {
       const res = await fetch('/api/peach-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: product.price, orderId: `SD-${product.id}`, productName: product.name })
+        body: JSON.stringify({ 
+          amount: product.price, 
+          orderId: `SD-${product.id}`, 
+          productName: product.name 
+        })
       });
+      
       const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Payment service temporarily unavailable');
+      }
+      
       if (data.success && data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
-        alert(`❌ Payment Error: ${data.error || 'Server unavailable'}`);
+        throw new Error(data.message || 'Failed to initialize checkout');
       }
-    } catch { alert('Network error. Please try again.'); }
-    finally { setProcessing(false); }
+    } catch (err: any) {
+      alert(`❌ ${err.message || 'Network error. Please check your connection and try again.'}`);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (
@@ -83,7 +97,7 @@ function CheckoutInner() {
               <div className="relative z-10">
                 {selectedMethod === 'peach' && (
                   <><div className="flex items-center gap-3 mb-6"><span className="text-2xl">💳</span><div><h2 className="text-xl font-bold">Credit / Debit Card / Instant EFT</h2><p className="text-slate-400 text-sm">Powered by Peach Payments</p></div></div>
-                  <p className="text-gray-400 mb-6">Securely pay using cards or Instant EFT. Verification is instant. Funds settle to Capitec within 1-2 business days.</p>
+                  <p className="text-gray-400 mb-6">Securely pay using Visa, Mastercard, or Instant EFT. Payment is verified instantly and your product will be delivered immediately to your email.</p>
                   <button onClick={handlePeachPayment} disabled={processing} className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-lg transition shadow-lg shadow-cyan-900/20">{processing ? 'Redirecting...' : `Pay $${product.price.toFixed(2)} Securely`}</button></>
                 )}
                 {selectedMethod === 'capitec' && (
