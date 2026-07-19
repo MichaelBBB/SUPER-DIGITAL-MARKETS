@@ -13,6 +13,7 @@ export async function POST(request: Request) {
     const contentType = request.headers.get('content-type') || '';
 
     // 2. Parse Body based on Content-Type
+    // THIS IS THE FIX: Peach sends URL-encoded data, not JSON
     if (contentType.includes('application/json')) {
       try {
         payload = JSON.parse(rawBody);
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
       }
     } else {
-      // FIX: Handle URL-encoded form data (e.g., "amount=22.99&status=success")
+      // Handle URL-encoded form data (e.g., "amount=22.99&status=success")
       // This fixes the "Unexpected token 'a'" error seen in your logs
       const params = new URLSearchParams(rawBody);
       payload = {};
