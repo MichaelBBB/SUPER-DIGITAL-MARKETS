@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    // Check credentials
     const entityId = process.env.PEACH_ENTITY_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
 
@@ -15,17 +14,15 @@ export async function POST(request: Request) {
       });
     }
 
-    // Get form data (NOT JSON)
+    // READ AS FORM DATA (not JSON!)
     const formData = await request.formData();
     const amount = parseFloat(formData.get('amount') as string);
     const orderId = formData.get('orderId') as string;
     const productName = formData.get('productName') as string;
 
-    // Create auth header
     const auth = Buffer.from(`${entityId}:${clientSecret}`).toString('base64');
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // Call Peach API
     const res = await fetch('https://secure.checkout.peachpayments.co.za/api/v1/sessions', {
       method: 'POST',
       headers: { 
@@ -52,7 +49,6 @@ export async function POST(request: Request) {
       });
     }
 
-    // Redirect to Peach checkout
     return NextResponse.redirect(data.checkoutUrl);
 
   } catch (error: any) {
