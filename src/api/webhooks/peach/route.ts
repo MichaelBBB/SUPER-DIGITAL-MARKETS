@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    // 1. Get the raw body
+    // 1. Get raw body text
     const rawBody = await request.text();
     
     let payload;
@@ -14,16 +14,14 @@ export async function POST(request: Request) {
 
     // 2. Parse Body based on Content-Type
     if (contentType.includes('application/json')) {
-      // Standard JSON parsing
       try {
         payload = JSON.parse(rawBody);
       } catch (e) {
-        console.error("Invalid JSON in webhook:", e);
+        console.error("Invalid JSON:", e);
         return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
       }
     } else {
-      // Handle URL-encoded form data (e.g., "amount=22.99&status=success")
-      // This fixes the "Unexpected token 'a'" error
+      // FIX: Handle URL-encoded form data (e.g., "amount=22.99&status=success")
       const params = new URLSearchParams(rawBody);
       payload = {};
       for (const [key, value] of params.entries()) {
@@ -31,25 +29,21 @@ export async function POST(request: Request) {
       }
     }
 
-    // 3. Verify Signature (Optional but recommended for security)
-    // We skip strict verification in Sandbox mode if signature is missing
+    // 3. Verify Signature (Optional but recommended)
     const signature = request.headers.get('x-peach-signature') || '';
     const clientSecret = process.env.PEACH_CLIENT_SECRET || '';
     
     if (signature && clientSecret) {
       const hmac = crypto.createHmac('sha256', clientSecret).update(rawBody).digest('hex');
       if (signature !== hmac) {
-        console.warn("Webhook signature mismatch");
-        // In production, you might want to reject this. For now, we proceed.
+        console.warn("Signature mismatch");
       }
     }
 
     // 4. Check Payment Status
-    // Peach may send status as 'SUCCESS', 'COMPLETED', or sometimes just 'paid'
     const status = (payload.status || payload.payment_status || '').toString().toUpperCase();
     
     if (!['SUCCESS', 'COMPLETED', 'PAID'].includes(status)) {
-      // Ignore non-successful payments
       return NextResponse.json({ success: true, message: 'Ignored non-successful payment' });
     }
 
@@ -66,7 +60,6 @@ export async function POST(request: Request) {
     // 6. Update Supabase Sales Counter
     const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
     
-    // Increment count
     const { data: current } = await supabase
       .from('sales_counts')
       .select('count')
