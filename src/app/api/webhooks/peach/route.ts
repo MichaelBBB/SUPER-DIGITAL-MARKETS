@@ -5,47 +5,29 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    // 1. Get raw body text
     const rawBody = await request.text();
-    
-    let payload;
+    let payload: any = {};
 
-    // 2. FORCE Form Data Parsing First (This fixes the "Unexpected token 'a'" error)
-    // Peach sends data like: amount=22.99&status=success
+    // ALWAYS parse as form data first (Peach sends this format)
     if (rawBody.includes('=')) {
       const params = new URLSearchParams(rawBody);
-      payload = {};
-      for (const [key, value] of params.entries()) {
+      params.forEach((value, key) => {
         payload[key] = value;
-      }
-    } else {
-      // Fallback to JSON if no '=' signs are found
-      try {
-        payload = JSON.parse(rawBody);
-      } catch (e) {
-        return NextResponse.json({ error: 'Invalid Data Format' }, { status: 400 });
-      }
+      });
     }
 
-    // 3. Check Payment Status
-    const status = (payload.status || payload.payment_status || '').toString().toUpperCase();
+    const status = (payload.status || '').toUpperCase();
     
     if (!['SUCCESS', 'COMPLETED', 'PAID'].includes(status)) {
-      return NextResponse.json({ success: true, message: 'Ignored non-successful payment' });
+      return NextResponse.json({ success: true });
     }
 
-    // 4. Determine Region
-    const country = (payload.country || payload.source?.country || 'ZA').toString().toUpperCase();
-    const regionMap: Record<string, string> = { 
-      'US': 'usa', 
-      'IN': 'india', 
-      'CN': 'china', 
-      'ZA': 'southAfrica' 
-    };
-    const region = regionMap[country] || 'southAfrica';
-
-    // 5. Update Supabase Sales Counter
-    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+    const region = 'southAfrica'; // Default for Peach SA
+    
+    const supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     
     const { data: current } = await supabase
       .from('sales_counts')
@@ -58,12 +40,9 @@ export async function POST(request: Request) {
       .update({ count: (current?.count || 0) + 1 })
       .eq('region', region);
 
-    console.log(`Sales updated for ${region}. New count: ${(current?.count || 0) + 1}`);
-
     return NextResponse.json({ success: true });
-    
   } catch (error) {
-    console.error('Webhook processing error:', error);
-    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
+    console.error('Webhook error:', error);
+    return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }
