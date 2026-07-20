@@ -1,31 +1,32 @@
 import { NextResponse } from 'next/server';
 
+// Force dynamic rendering so this doesn't cache
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const entityId = process.env.PEACH_ENTITY_ID;
-    const clientSecret = process.env.PEACH_CLIENT_SECRET;
-
-    if (!entityId || !clientSecret) {
-      throw new Error("Missing Peach credentials");
+    // CHECK CREDENTIALS FIRST
+    if (!process.env.PEACH_ENTITY_ID || !process.env.PEACH_CLIENT_SECRET) {
+      throw new Error("Missing Credentials");
     }
 
-    // Parse form data manually from raw body
+    // READ RAW TEXT (Bypasses all JSON/Form-data crashes)
     const rawBody = await request.text();
+    
+    // MANUALLY SPLIT THE STRING INTO VARIABLES
+    // Example input: "amount=22.99&orderId=SD-3&productName=Netflix"
     const params = new URLSearchParams(rawBody);
     
     const amount = parseFloat(params.get('amount') || '0');
     const orderId = params.get('orderId') || '';
     const productName = params.get('productName') || '';
 
-    console.log('Payment request:', { amount, orderId, productName });
-
-    const auth = Buffer.from(`${entityId}:${clientSecret}`).toString('base64');
+    // PREPARE AUTH HEADER
+    const auth = Buffer.from(`${process.env.PEACH_ENTITY_ID}:${process.env.PEACH_CLIENT_SECRET}`).toString('base64');
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // Call Peach API
-    const peachRes = await fetch('https://secure.checkout.peachpayments.co.za/api/v1/sessions', {
+    // CALL PEACH PAYMENTS
+    const res = await fetch('https://secure.checkout.peachpayments.co.za/api/v1/sessions', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -42,21 +43,18 @@ export async function POST(request: Request) {
       })
     });
 
-    const data = await peachRes.json();
-    console.log('Peach response:', data);
+    const data = await res.json();
 
-    if (!peachRes.ok || !data.checkoutUrl) {
-      throw new Error(data.message || 'Failed to create checkout session');
+    // IF SUCCESSFUL, REDIRECT TO PEACH
+    if (res.ok && data.checkoutUrl) {
+      return NextResponse.redirect(data.checkoutUrl);
     }
 
-    // Redirect to Peach checkout
-    return NextResponse.redirect(data.checkoutUrl);
+    // OTHERWISE, SHOW ERROR
+    return NextResponse.json({ error: data.message || 'Payment Failed' }, { status: 500 });
 
   } catch (error: any) {
-    console.error("Payment error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error("CRITICAL ERROR:", error);
+    return NextResponse.json({ error: error.message || "Server Crash" }, { status: 500 });
   }
 }
