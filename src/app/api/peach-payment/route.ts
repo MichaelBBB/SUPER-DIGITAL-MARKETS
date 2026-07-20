@@ -29,10 +29,11 @@ export async function POST(request: Request) {
     const productName = formData.get('productName')?.toString() || 'Product';
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // ⚠️ CRITICAL FIX: Use the SANDBOX URL (notice .com not .co.za)
+    // ⚠️ CRITICAL FIX: Use SANDBOX URL (.com not .co.za)
+    // We explicitly define this to avoid the timeout
     const peachApiUrl = 'https://sandbox.checkout.peachpayments.com/api/v1/sessions';
     
-    // LOGGING: This will appear in Vercel logs so you can see exactly what URL we are hitting
+    // LOGGING: This appears in your Vercel logs to prove we are using Sandbox
     console.log("✅ Using Peach Sandbox URL:", peachApiUrl);
 
     // 4. Call Peach
