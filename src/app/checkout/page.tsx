@@ -2,22 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
-  const handlePeachPayment = () => {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/api/peach-payment';
-    
-    // These names MUST match the variable names in the Route above
-    const i1 = document.createElement('input'); i1.type='hidden'; i1.name='amount'; i1.value=product.price.toString();
-    const i2 = document.createElement('input'); i2.type='hidden'; i2.name='orderId'; i2.value=`SD-${product.id}`;
-    const i3 = document.createElement('input'); i3.type='hidden'; i3.name='productName'; i3.value=product.name;
-    
-    form.appendChild(i1);
-    form.appendChild(i2);
-    form.appendChild(i3);
-    document.body.appendChild(form);
-    form.submit();
-  };mport { useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 const products = [
   { id: 1, name: "ChatGPT Plus", price: 20.00 }, { id: 2, name: "Adobe Creative Cloud", price: 54.99 }, { id: 3, name: "Netflix Premium", price: 22.99 },
@@ -44,7 +29,7 @@ function CheckoutInner() {
     { id: 'alipay', name: 'Alipay', sub: 'CHINA PRIMARY', flag: '' },
     { id: 'payoneer', name: 'Payoneer', sub: 'USA PRIMARY', flag: '🇺' },
     { id: 'googlepay', name: 'Google Pay', sub: 'GLOBAL', flag: '🌍' },
-    { id: 'peach', name: 'Peach Payments', sub: 'SA PRIMARY', flag: '🇿🇦' },
+    { id: 'peach', name: 'Peach Payments', sub: 'SA PRIMARY', flag: '🇿' },
     { id: 'capitec', name: 'Capitec Bank Transfer', sub: 'MANUAL', flag: '' },
   ];
 
