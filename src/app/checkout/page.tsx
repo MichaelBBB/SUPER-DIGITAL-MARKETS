@@ -1,5 +1,4 @@
 'use client';
-
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -33,33 +32,19 @@ function CheckoutInner() {
     { id: 'capitec', name: 'Capitec Bank Transfer', sub: 'MANUAL', flag: '' },
   ];
 
-  // Simple Form Submission Handler
   const handlePeachPayment = () => {
     setProcessing(true);
-    // Create a hidden form to submit data to our API
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = '/api/peach-payment';
     
-    const amountInput = document.createElement('input');
-    amountInput.type = 'hidden';
-    amountInput.name = 'amount';
-    amountInput.value = product.price.toString();
+    const i1 = document.createElement('input'); i1.type='hidden'; i1.name='amount'; i1.value=product.price.toString();
+    const i2 = document.createElement('input'); i2.type='hidden'; i2.name='orderId'; i2.value=`SD-${product.id}`;
+    const i3 = document.createElement('input'); i3.type='hidden'; i3.name='productName'; i3.value=product.name;
     
-    const orderIdInput = document.createElement('input');
-    orderIdInput.type = 'hidden';
-    orderIdInput.name = 'orderId';
-    orderIdInput.value = `SD-${product.id}`;
-    
-    const nameInput = document.createElement('input');
-    nameInput.type = 'hidden';
-    nameInput.name = 'productName';
-    nameInput.value = product.name;
-
-    form.appendChild(amountInput);
-    form.appendChild(orderIdInput);
-    form.appendChild(nameInput);
-    
+    form.appendChild(i1);
+    form.appendChild(i2);
+    form.appendChild(i3);
     document.body.appendChild(form);
     form.submit();
   };
@@ -101,11 +86,7 @@ function CheckoutInner() {
                 {selectedMethod === 'peach' && (
                   <>
                     <div className="flex items-center gap-3 mb-6"><span className="text-2xl">💳</span><div><h2 className="text-xl font-bold">Credit / Debit Card / Instant EFT</h2><p className="text-slate-400 text-sm">Powered by Peach Payments</p></div></div>
-                    
-                    <p className="text-gray-400 mb-6 text-lg font-medium text-center">
-                      SECURE PAYMENT. INSTANT DELIVERY.
-                    </p>
-                    
+                    <p className="text-gray-400 mb-6 text-lg font-medium text-center">SECURE PAYMENT. INSTANT DELIVERY.</p>
                     <button onClick={handlePeachPayment} disabled={processing} className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-lg transition shadow-lg shadow-cyan-900/20">
                       {processing ? 'Redirecting...' : `Pay $${product.price.toFixed(2)} Securely`}
                     </button>
