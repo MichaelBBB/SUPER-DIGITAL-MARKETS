@@ -4,26 +4,28 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    // 1. Check Credentials
     const entityId = process.env.PEACH_ENTITY_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
 
     if (!entityId || !clientSecret) {
-      console.error("MISSING CREDENTIALS");
-      return new Response(JSON.stringify({ error: "Missing PEACH credentials" }), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
+      throw new Error("Missing Peach credentials");
     }
 
-    // 2. Get Data
-    const { amount, orderId, productName } = await request.json();
+    // Parse form data manually from raw body
+    const rawBody = await request.text();
+    const params = new URLSearchParams(rawBody);
     
-    // 3. Create Auth Header
-    const auth = Buffer.from(`${entityId}:${clientSecret}`).toString('base64');
+    const amount = parseFloat(params.get('amount') || '0');
+    const orderId = params.get('orderId') || '';
+    const productName = params.get('productName') || '';
 
-    // 4. Call Peach API
-    const res = await fetch('https://secure.checkout.peachpayments.co.za/api/v1/sessions', {
+    console.log('Payment request:', { amount, orderId, productName });
+
+    const auth = Buffer.from(`${entityId}:${clientSecret}`).toString('base64');
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
+
+    // Call Peach API
+    const peachRes = await fetch('https://secure.checkout.peachpayments.co.za/api/v1/sessions', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -34,30 +36,27 @@ export async function POST(request: Request) {
         currency: 'ZAR',
         orderReference: orderId,
         description: productName,
-        returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?status=success`,
-        cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout?status=cancelled`,
-        webhook: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/peach`
+        returnUrl: `${baseUrl}/checkout?status=success`,
+        cancelUrl: `${baseUrl}/checkout?status=cancelled`,
+        webhook: `${baseUrl}/api/webhooks/peach`
       })
     });
 
-    const data = await res.json();
+    const data = await peachRes.json();
+    console.log('Peach response:', data);
 
-    if (!res.ok) {
-      console.error("Peach Error:", data);
-      return new Response(JSON.stringify({ error: data.message || 'Payment Failed' }), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
+    if (!peachRes.ok || !data.checkoutUrl) {
+      throw new Error(data.message || 'Failed to create checkout session');
     }
 
-    // 5. Return Success
-    return NextResponse.json({ success: true, checkoutUrl: data.checkoutUrl });
+    // Redirect to Peach checkout
+    return NextResponse.redirect(data.checkoutUrl);
 
   } catch (error: any) {
-    console.error("Route Crash:", error);
+    console.error("Payment error:", error);
     return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500, 
-      headers: { 'Content-Type': 'application/json' } 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
     });
   }
 }
