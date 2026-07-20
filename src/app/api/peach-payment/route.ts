@@ -4,9 +4,11 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  console.log("👉 Payment Request Received");
+
   try {
     // 1. CHECK CREDENTIALS
-    // We trim() to remove any hidden spaces that break connections
+    // We trim() to remove hidden spaces that break connections
     const rawEntity = process.env.PEACH_ENTITY_ID?.trim();
     const rawSecret = process.env.PEACH_CLIENT_SECRET?.trim();
 
@@ -18,12 +20,11 @@ export async function POST(request: Request) {
     const authString = `${rawEntity}:${rawSecret}`;
     const auth = Buffer.from(authString).toString('base64');
 
-    // 3. READ INPUT DATA SAFELY
-    // This works regardless of how the browser sends the data
+    // 3. READ INPUT DATA SAFELY (Handles Form Data correctly)
     const formData = await request.formData();
     const amountInput = formData.get('amount')?.toString() || '0';
     
-    // Calculate amount in cents (integer)
+    // Calculate amount in cents safely
     const amountCents = Math.round(parseFloat(amountInput) * 100);
     
     if (amountCents <= 0) {
@@ -33,16 +34,15 @@ export async function POST(request: Request) {
     const orderId = formData.get('orderId')?.toString() || 'ORD-' + Date.now();
     const productName = formData.get('productName')?.toString() || 'Product';
 
-    // 4. CHANGE URL TO SANDBOX
-    // Because your dashboard shows "Sandbox", you MUST use this specific domain
+    // ⚠️ CRITICAL FIX: Point to the SANDBOX URL
+    // Because your dashboard shows Sandbox, you MUST use this specific URL
     const peachApiUrl = 'https://sandbox.checkout.peachpayments.com/api/v1/sessions';
     
-    console.log(`🚀 Connecting to Peach Sandbox...`);
+    console.log("🚀 Connecting to Peach Sandbox...");
 
-    // 5. BASE URL FOR RETURN
+    // 4. CALL PEACH PAYMENTS
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // 6. CALL PECH PAYMENTS
     const res = await fetch(peachApiUrl, {
       method: 'POST',
       headers: { 
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       })
     });
 
-    // 7. PROCESS RESPONSE
+    // 5. PROCESS RESPONSE
     const data = await res.json();
 
     if (!res.ok || !data.checkoutUrl) {
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 8. SUCCESS: REDIRECT TO PEACH
+    // 6. SUCCESS: REDIRECT TO PEACH
     return NextResponse.redirect(data.checkoutUrl);
 
   } catch (error: any) {
