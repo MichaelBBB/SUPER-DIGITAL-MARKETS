@@ -1,37 +1,30 @@
 import { NextResponse } from 'next/server';
 
-// Run Node.js runtime for stable fetching
-export const runtime = 'nodejs';
+// Force Node.js runtime for stability
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  console.log("👉 Payment Request Received");
-
   try {
-    // 1. STRICTLY CLEAN CREDENTIALS
-    // This removes any hidden spaces/newlines that cause connection failures
+    // 1. CHECK CREDENTIALS
+    // We trim() to remove any hidden spaces that break connections
     const rawEntity = process.env.PEACH_ENTITY_ID?.trim();
     const rawSecret = process.env.PEACH_CLIENT_SECRET?.trim();
 
     if (!rawEntity || !rawSecret) {
-      console.error("❌ MISSING KEYS");
-      return new Response(JSON.stringify({ error: "Missing Credentials" }), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
+      throw new Error("Missing Credentials");
     }
 
-    // 2. VERIFY CREDENTIALS FORMAT
+    // 2. PREPARE AUTH HEADER
     const authString = `${rawEntity}:${rawSecret}`;
-    console.log("✅ Auth String Validated (Length:", authString.length, ")");
+    const auth = Buffer.from(authString).toString('base64');
 
-    const base64Auth = Buffer.from(authString).toString('base64');
-
-    // 3. ROBUST INPUT PARSING (Handles Standard HTML Forms)
+    // 3. READ INPUT DATA SAFELY
+    // This works regardless of how the browser sends the data
     const formData = await request.formData();
-    const amountInput = formData.get('amount')?.toString();
+    const amountInput = formData.get('amount')?.toString() || '0';
     
-    // Convert amount to cents safely
-    const amountCents = Math.round(parseFloat(amountInput || '0') * 100);
+    // Calculate amount in cents (integer)
+    const amountCents = Math.round(parseFloat(amountInput) * 100);
     
     if (amountCents <= 0) {
         return NextResponse.json({ error: "Invalid Amount" }, { status: 400 });
@@ -40,36 +33,35 @@ export async function POST(request: Request) {
     const orderId = formData.get('orderId')?.toString() || 'ORD-' + Date.now();
     const productName = formData.get('productName')?.toString() || 'Product';
 
-    // 4. CONFIGURE PEACH PAYMENT
-    // Note: Using .co.za domain for South African transactions
-    const peachApiUrl = 'https://secure.checkout.peachpayments.co.za/api/v1/sessions';
+    // 4. CHANGE URL TO SANDBOX
+    // Because your dashboard shows "Sandbox", you MUST use this specific domain
+    const peachApiUrl = 'https://sandbox.checkout.peachpayments.com/api/v1/sessions';
+    
+    console.log(`🚀 Connecting to Peach Sandbox...`);
+
+    // 5. BASE URL FOR RETURN
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    const payload = {
-      amount: amountCents,
-      currency: 'ZAR',
-      orderReference: orderId,
-      description: productName,
-      returnUrl: `${baseUrl}/checkout?status=success`,
-      cancelUrl: `${baseUrl}/checkout?status=cancelled`,
-      webhook: `${baseUrl}/api/webhooks/peach`
-    };
-
-    console.log("🚀 Fetching Peach...");
-
-    // 5. THE ACTUAL REQUEST
+    // 6. CALL PECH PAYMENTS
     const res = await fetch(peachApiUrl, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Basic ${base64Auth}`,
-        'X-PayByBank-Enabled': 'true' 
+        'Authorization': `Basic ${auth}`,
+        'Accept': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        amount: amountCents,
+        currency: 'ZAR',
+        orderReference: orderId,
+        description: productName,
+        returnUrl: `${baseUrl}/checkout?status=success`,
+        cancelUrl: `${baseUrl}/checkout?status=cancelled`,
+        webhook: `${baseUrl}/api/webhooks/peach`
+      })
     });
 
-    // 6. HANDLE RESPONSE
+    // 7. PROCESS RESPONSE
     const data = await res.json();
 
     if (!res.ok || !data.checkoutUrl) {
@@ -80,11 +72,11 @@ export async function POST(request: Request) {
       });
     }
 
-    console.log("✅ Success! Redirecting to Peach Checkout");
+    // 8. SUCCESS: REDIRECT TO PEACH
     return NextResponse.redirect(data.checkoutUrl);
 
   } catch (error: any) {
-    console.error("💥 CRITICAL FAILURE:", error.message);
+    console.error("💥 CRITICAL ERROR:", error.message);
     return new Response(JSON.stringify({ error: error.message }), { 
       status: 500, 
       headers: { 'Content-Type': 'application/json' } 
