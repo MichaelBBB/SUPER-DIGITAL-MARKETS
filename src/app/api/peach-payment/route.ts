@@ -1,50 +1,43 @@
 import { NextResponse } from 'next/server';
 
-// Force Node.js runtime (prevents edge-runtime compatibility issues)
+// Run on Node.js to ensure stable fetching capabilities
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  console.log("👉 Starting Payment Request");
-
   try {
-    // 1. CHECK CREDENTIALS
-    if (!process.env.PEACH_ENTITY_ID || !process.env.PEACH_CLIENT_SECRET) {
-      console.log("❌ MISSING CREDENTIALS");
-      throw new Error("Missing PEACH_ENTITY_ID or PEACH_CLIENT_SECRET");
+    console.log("👉 Payment attempt started.");
+
+    // 1. CLEAN AND GET CREDENTIALS
+    // We trim() to remove hidden spaces that break Base64 encoding
+    const rawEntity = process.env.PEACH_ENTITY_ID?.trim();
+    const rawSecret = process.env.PEACH_CLIENT_SECRET?.trim();
+
+    if (!rawEntity || !rawSecret) {
+      console.error("❌ CREDENTIALS MISSING OR EMPTY");
+      return new Response(JSON.stringify({ error: "Configuration Error: Missing Keys" }), { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' } 
+      });
     }
 
-    // 2. READ RAW BODY (Handles Form Data correctly)
-    const rawBody = await request.text();
-    
-    // Parse into an object safely
-    const params = new URLSearchParams(rawBody);
-    const amountInput = params.get('amount');
-    const orderId = params.get('orderId') || 'ORDER-' + Date.now();
-    const productName = params.get('productName') || 'Product';
+    // 2. PREPARE AUTH HEADER
+    // Combine ID + : + Secret -> Encode to Base64
+    const authString = `${rawEntity}:${rawSecret}`;
+    const auth = Buffer.from(authString).toString('base64');
 
-    // Validate Amount
-    const amount = parseFloat(amountInput || '0');
-    if (isNaN(amount) || amount <= 0) {
-      console.log("❌ INVALID AMOUNT:", amountInput);
-      throw new Error(`Invalid Amount: ${amountInput}`);
-    }
+    // 3. READ INPUT DATA SAFELY
+    const formData = await request.formData();
+    const amount = parseFloat(formData.get('amount') as string);
+    const orderId = formData.get('orderId') as string;
+    const productName = formData.get('productName') as string;
 
-    console.log("✅ Parsed Data:", { amount, orderId, productName });
+    console.log("✅ Credentials Validated. Attempting request...");
 
-    // 3. AUTH HEADER
-    const auth = Buffer.from(`${process.env.PEACH_ENTITY_ID}:${process.env.PEACH_CLIENT_SECRET}`).toString('base64');
-    console.log("✅ Auth String Created (Length:", auth.length, ")");
-
-    // 4. BASE URL
+    // 4. CALL PEACH PAYMENTS
+    const peachUrl = 'https://secure.checkout.peachpayments.co.za/api/v1/sessions';
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // 5. CALL PEACH
-    console.log("🚀 Calling Peach API...");
-    
-    const peachUrl = 'https://secure.checkout.peachpayments.co.za/api/v1/sessions';
-    console.log("Target URL:", peachUrl);
-
-    const res = await fetch(peachUrl, {
+    const response = await fetch(peachUrl, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -52,33 +45,35 @@ export async function POST(request: Request) {
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        amount: Math.round(amount * 100), // Must be integer cents
+        amount: Math.round(amount * 100),
         currency: 'ZAR',
-        orderReference: orderId,
-        description: `SD - ${productName}`,
+        orderReference: orderId || 'ORDER-' + Date.now(),
+        description: productName || 'Test Product',
         returnUrl: `${baseUrl}/checkout?status=success`,
         cancelUrl: `${baseUrl}/checkout?status=cancelled`,
         webhook: `${baseUrl}/api/webhooks/peach`
-      }),
-      signal: AbortSignal.timeout(10000) // 10 second timeout
+      })
     });
 
-    console.log(" Peach Response Status:", res.status);
-    const data = await res.json();
+    // 5. PROCESS RESPONSE
+    const data = await response.json();
 
-    // 6. HANDLE RESPONSE
-    if (!res.ok) {
-      console.log("❌ Peach API Error:", data);
-      throw new Error(data.message || `Peach API returned ${res.status}`);
+    if (!response.ok) {
+      console.error("❌ Peach Rejected Request:", data.message);
+      return new Response(JSON.stringify({ error: data.message || "Peach API Error" }), { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' } 
+      });
     }
 
-    // 7. REDIRECT
-    console.log("✅ Success! Redirecting to:", data.checkoutUrl);
+    // 6. SUCCESS: REDIRECT TO PEACH CHECKOUT
     return NextResponse.redirect(data.checkoutUrl);
 
   } catch (error: any) {
-    console.error("💥 CRITICAL FAIL:", error);
-    // Return a plain text error so Vercel shows it clearly
-    return new Response("Error: " + error.message, { status: 500 });
+    console.error("💥 CRITICAL FETCH ERROR:", error.message);
+    return new Response(JSON.stringify({ error: "Connection failed: " + error.message }), { 
+      status: 500, 
+      headers: { 'Content-Type': 'application/json' } 
+    });
   }
 }
