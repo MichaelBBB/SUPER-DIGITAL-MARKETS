@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 
+// Force Node.js runtime for better stability
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  console.log("👉 Starting Payment Request");
+
   try {
     // 1. Get Credentials
     const rawEntity = process.env.PEACH_ENTITY_ID?.trim();
@@ -16,9 +19,11 @@ export async function POST(request: Request) {
     const authString = `${rawEntity}:${rawSecret}`;
     const auth = Buffer.from(authString).toString('base64');
 
-    // 3. Read Input Data (Handles Form Submit)
+    // 3. Read Input Data (Handles Form Submit correctly)
     const formData = await request.formData();
     const amountInput = formData.get('amount')?.toString() || '0';
+    
+    // Calculate amount in cents safely
     const amountCents = Math.round(parseFloat(amountInput) * 100);
     
     if (amountCents <= 0) {
@@ -29,14 +34,13 @@ export async function POST(request: Request) {
     const productName = formData.get('productName')?.toString() || 'Product';
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // ⚠️ CRITICAL FIX: Use SANDBOX URL (.com not .co.za)
-    // We explicitly define this to avoid the timeout
+    // ⚠️ CRITICAL FIX: Changed to SANDBOX URL (.com instead of .co.za)
+    // Because your Peach Dashboard is in Sandbox mode
     const peachApiUrl = 'https://sandbox.checkout.peachpayments.com/api/v1/sessions';
     
-    // LOGGING: This appears in your Vercel logs to prove we are using Sandbox
-    console.log("✅ Using Peach Sandbox URL:", peachApiUrl);
+    console.log("🚀 Connecting to Peach Sandbox:", peachApiUrl);
 
-    // 4. Call Peach
+    // 4. Call Peach Payments
     const res = await fetch(peachApiUrl, {
       method: 'POST',
       headers: { 
@@ -55,22 +59,27 @@ export async function POST(request: Request) {
       })
     });
 
-    // 5. Handle Response
+    // 5. Process Response
     const data = await res.json();
 
-    if (!res.ok || !data.checkoutUrl) {
-      console.error("❌ Peach Error:", data.message);
-      return new Response(JSON.stringify({ error: data.message || "Payment Failed" }), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
+    // If Peach sends back a checkoutUrl, we redirect the user there (Status 200 logic)
+    if (res.ok && data.checkoutUrl) {
+      return NextResponse.redirect(data.checkoutUrl);
     }
 
-    // 6. Redirect
-    return NextResponse.redirect(data.checkoutUrl);
+    // If there was an error from Peach, return 500
+    console.error("❌ Peach API Error:", data.message);
+    return new Response(JSON.stringify({ error: data.message || "Payment Failed" }), { 
+      status: 500, 
+      headers: { 'Content-Type': 'application/json' } 
+    });
 
   } catch (error: any) {
-    console.error("💥 ERROR:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    console.error("💥 CRITICAL ERROR:", error.message);
+    // Return 500 if the server crashes
+    return new Response(JSON.stringify({ error: error.message }), { 
+      status: 500, 
+      headers: { 'Content-Type': 'application/json' } 
+    });
   }
 }
