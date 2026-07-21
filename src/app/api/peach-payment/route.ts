@@ -43,13 +43,16 @@ export async function POST(request: Request) {
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
-    const peachApiUrl = 'https://sandbox.checkout.peachpayments.com/api/v1/sessions';
+    
+    // ⚠️ CRITICAL FIX: Use South African Sandbox Endpoint
+    // This endpoint accepts connections from African regions
+    const peachApiUrl = 'https://sandbox.secure.checkout.peachpayments.co.za/api/v1/sessions';
 
     log(`📍 Calling: ${peachApiUrl}`);
 
     // Add timeout to prevent hanging
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     let response;
     try {
@@ -74,9 +77,11 @@ export async function POST(request: Request) {
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
       log(`💥 Fetch Error: ${fetchError.message}`);
+      log(`💥 Error Code: ${fetchError.code}`);
       return new Response(JSON.stringify({ 
         error: "Network Error", 
         message: fetchError.message,
+        code: fetchError.code,
         logs 
       }), { 
         status: 500, 
@@ -105,6 +110,7 @@ export async function POST(request: Request) {
     log(`✅ Response: ${JSON.stringify(data).substring(0, 100)}`);
     
     if (data.checkoutUrl) {
+      log(`✅ Redirecting to: ${data.checkoutUrl}`);
       return NextResponse.redirect(data.checkoutUrl);
     }
 
