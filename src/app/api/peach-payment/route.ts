@@ -1,73 +1,55 @@
 import { NextResponse } from 'next/server';
 
-// Force Node.js runtime to ensure stability and access to standard networking
+// Force Node.js runtime to ensure stable connections to external APIs
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  console.log("🚀 Payment Request Received");
-
   try {
-    // 1. Get Credentials
-    const rawEntity = process.env.PEACH_ENTITY_ID?.trim();
-    const rawSecret = process.env.PEACH_CLIENT_SECRET?.trim();
+    // 1. Retrieve and clean credentials
+    const entityId = process.env.PEACH_ENTITY_ID?.trim();
+    const secret = process.env.PEACH_CLIENT_SECRET?.trim();
 
-    if (!rawEntity || !rawSecret) {
-      console.error("❌ Missing Credentials");
-      return new Response(JSON.stringify({ error: "Configuration Error: Missing Credentials" }), { 
+    if (!entityId || !secret) {
+      return new Response(JSON.stringify({ error: "Missing Credentials in Vercel Settings" }), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
       });
     }
 
-    // 2. Prepare Authorization Header
-    // We use Buffer to ensure the Base64 encoding is perfectly formatted
-    const authString = `${rawEntity}:${rawSecret}`;
+    // 2. Create Basic Auth header (Encoding ID:SECRET to Base64)
+    const authString = `${entityId}:${secret}`;
     const auth = Buffer.from(authString).toString('base64');
 
-    // 3. Intelligent Data Reader (Handles JSON or Form Data automatically)
-    let bodyData: Record<string, any> = {};
-    const contentType = request.headers.get('content-type') || '';
-
-    if (contentType.includes('application/json')) {
-      // Case A: Frontend sent JSON
-      bodyData = await request.json();
-    } else {
-      // Case B: Frontend sent Form Data
-      const formData = await request.formData();
-      for (const [key, value] of formData.entries()) {
-        bodyData[key] = value;
-      }
-    }
-
-    const amountInput = bodyData.amount || '0';
-    const amountCents = Math.round(parseFloat(amountInput) * 100);
+    // 3. Read form data
+    const formData = await request.formData();
+    const amountInput = formData.get('amount');
     
-    if (amountCents <= 0) {
+    // Calculate cents safely
+    const amountCents = Math.round(parseFloat(amountInput || '0') * 100);
+    
+    if (!amountCents || amountCents <= 0) {
       return new Response(JSON.stringify({ error: "Invalid Amount" }), { 
-        status: 400, headers: { 'Content-Type': 'application/json' } 
+        status: 400, 
+        headers: { 'Content-Type': 'application/json' } 
       });
     }
 
-    const orderId = bodyData.orderId || `SD-${Date.now()}`;
-    const productName = bodyData.productName || 'Digital Product';
-    // Fallback Base URL if env var is missing
+    const orderId = formData.get('orderId') || `SD-${Date.now()}`;
+    const productName = formData.get('productName') || 'Digital Product';
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // 4. Configure Sandbox Endpoint
-    // Using the specific Sandbox domain (.co.za) for testing
-    const peachApiUrl = 'https://sandbox.secure.checkout.peachpayments.co.za/api/v1/sessions';
+    // 4. Call Peach Sandbox API
+    // Using the standard Sandbox .com domain
+    const peachApiUrl = 'https://sandbox.checkout.peachpayments.com/api/v1/sessions';
     
-    console.log("📍 Connecting to Sandbox:", peachApiUrl);
-    console.log("🔑 Auth Status:", auth ? 'Created' : 'Failed');
+    console.log("🚀 Connecting to Peach Sandbox...");
 
-    // 5. Call Peach Payments API
     const res = await fetch(peachApiUrl, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Basic ${auth}`,
-        'Accept': 'application/json',
-        'User-Agent': 'SuperDigitalMarket-API-V1'
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
         amount: amountCents,
@@ -80,20 +62,12 @@ export async function POST(request: Request) {
       })
     });
 
-    // 6. Handle Response
+    // 5. Handle Response
     if (!res.ok) {
-      // Try to read the error message from Peach
-      let errorMsg = "Unknown Gateway Error";
-      try {
-        const errorData = await res.json();
-        errorMsg = errorData.message || errorMsg;
-      } catch {
-        const errorText = await res.text();
-        errorMsg = errorText.substring(0, 100);
-      }
-      
-      console.error("❌ Peach Returned Error:", res.status, errorMsg);
-      return new Response(JSON.stringify({ error: errorMsg }), { 
+      // Try to read the specific error message from Peach
+      const errorText = await res.text();
+      console.error("❌ Peach Rejected Request:", errorText);
+      return new Response(JSON.stringify({ error: `Gateway Error (${res.status})` }), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
       });
@@ -101,21 +75,21 @@ export async function POST(request: Request) {
 
     const data = await res.json();
 
+    // Success: Redirect to the checkout page hosted by Peach
     if (data.checkoutUrl) {
-      console.log("✅ Success! Redirecting to:", data.checkoutUrl);
       return NextResponse.redirect(data.checkoutUrl);
     }
 
     console.error("❌ Response missing checkoutUrl");
-    return new Response(JSON.stringify({ error: "Invalid response from payment gateway" }), { 
+    return new Response(JSON.stringify({ error: "Peach did not provide a checkout link." }), { 
       status: 500, 
       headers: { 'Content-Type': 'application/json' } 
     });
 
   } catch (error: any) {
-    // Catch-all for system-level failures (DNS, Network, etc.)
-    console.error("💥 System Failure:", error.message);
-    return new Response(JSON.stringify({ error: "Service unavailable" }), { 
+    // This catches system/network errors (like DNS failure or Connection Refused)
+    console.error("💥 System Network Error:", error.message);
+    return new Response(JSON.stringify({ error: `Connection Failed: ${error.message}` }), { 
       status: 500, 
       headers: { 'Content-Type': 'application/json' } 
     });
