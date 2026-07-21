@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+// Force Node.js runtime
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
@@ -8,7 +9,7 @@ export async function POST(request: Request) {
     const rawSecret = process.env.PEACH_CLIENT_SECRET?.trim();
 
     if (!rawEntity || !rawSecret) {
-      throw new Error("Missing Credentials");
+      throw new Error("Configuration Error: Missing PEACH_API_KEY or SECRET");
     }
 
     const authString = `${rawEntity}:${rawSecret}`;
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     const productName = formData.get('productName')?.toString() || 'Product';
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // ⚠️ CHANGE HERE: Using the Standard Gateway (.com) which supports Sandbox keys
+    // ⚠️ CHANGE HERE: Standard Gateway (.com)
     const peachApiUrl = 'https://checkout.peachpayments.com/api/v1/sessions';
     
     console.log("🚀 Connecting to Peach:", peachApiUrl);
@@ -49,12 +50,25 @@ export async function POST(request: Request) {
       })
     });
 
-    const data = await res.json();
+    // ✅ FIX: Inspect the response BEFORE parsing to prevent "Not Valid JSON" crashes
+    const contentType = res.headers.get('content-type') || '';
+    let data;
 
+    if (contentType.includes('application/json')) {
+      data = await res.json();
+    } else {
+      // Peach sent back HTML (an error page) instead of JSON. Read it as text.
+      const htmlText = await res.text();
+      console.log("❌ HTML REPLY RECEIVED (Status:", res.status, "):", htmlText.substring(0, 200));
+      throw new Error(`Peach rejected request (Status ${res.status}). ${htmlText.substring(0, 100)}... Check your credentials.`);
+    }
+
+    // If successful, redirect
     if (res.ok && data.checkoutUrl) {
       return NextResponse.redirect(data.checkoutUrl);
     }
 
+    // If it was JSON but an error (e.g. 401 Unauthorized)
     console.error("❌ Peach API Error:", data.message);
     return new Response(JSON.stringify({ error: data.message || "Payment Failed" }), { 
       status: 500, 
@@ -62,7 +76,7 @@ export async function POST(request: Request) {
     });
 
   } catch (error: any) {
-    console.error("💥 ERROR:", error.message);
+    console.error("💥 CRITICAL ERROR:", error.message);
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 }
