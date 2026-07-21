@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 
-// Force Node.js runtime for better stability
+// Ensure this runs on Node.js for stable API fetching
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  console.log("🚀 Starting Peach Payment Request");
+
   try {
-    // 1. Get Credentials
+    // 1. Check Credentials
     const rawEntity = process.env.PEACH_ENTITY_ID?.trim();
     const rawSecret = process.env.PEACH_CLIENT_SECRET?.trim();
 
@@ -13,35 +15,38 @@ export async function POST(request: Request) {
       throw new Error("Configuration Error: Missing PEACH_API_KEY or SECRET");
     }
 
-    // 2. Prepare Auth Header (Basic Auth)
+    // 2. Prepare Auth Header
     const authString = `${rawEntity}:${rawSecret}`;
     const auth = Buffer.from(authString).toString('base64');
 
-    // 3. Read Input Data (Handles Form Submit)
+    // 3. Read Input Data (Fix: Use formData because the HTML Form sends it this way)
     const formData = await request.formData();
     const amountInput = formData.get('amount')?.toString() || '0';
+    
+    // Calculate amount in cents safely
     const amountCents = Math.round(parseFloat(amountInput) * 100);
     
     if (amountCents <= 0) {
-        return NextResponse.json({ error: "Invalid Amount" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid Amount" }, { status: 400 });
     }
 
     const orderId = formData.get('orderId')?.toString() || 'ORD-' + Date.now();
     const productName = formData.get('productName')?.toString() || 'Product';
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // ⚠️ CHANGE HERE: Using SANDBOX URL with .CO.ZA domain
-    const peachApiUrl = 'https://sandbox.secure.checkout.peachpayments.co.za/api/v1/sessions';
+    // ⚠️ CRITICAL FIX: Point to the SANDBOX URL (.com)
+    // This resolves the "Fetch Failed" timeout because we are now talking to the Test Server
+    const peachApiUrl = 'https://sandbox.checkout.peachpayments.com/api/v1/sessions';
     
-    console.log("🚀 Connecting to Peach Sandbox:", peachApiUrl);
+    console.log("📍 Targeting Sandbox Server:", peachApiUrl);
 
+    // 4. Call Peach Payments API
     const res = await fetch(peachApiUrl, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Basic ${auth}`,
-        'Accept': 'application/json',
-        'User-Agent': 'SuperDigitalMarket-V1'
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
         amount: amountCents,
@@ -54,39 +59,26 @@ export async function POST(request: Request) {
       })
     });
 
-    // ✅ FIX: Handle errors gracefully
-    if (!res.ok) {
-      const contentType = res.headers.get('content-type') || '';
-      let errorMessage = "Unknown Error";
-      
-      if (contentType.includes('application/json')) {
-        const errData = await res.json();
-        errorMessage = errData.message || errData.error || JSON.stringify(errData);
-      } else {
-        errorMessage = `Server Rejected Request (${res.status}). Sandbox connection issue.`;
-      }
+    // 5. Handle Response
+    const data = await res.json();
 
-      console.error("❌ Peach API Failure:", errorMessage);
-      return new Response(JSON.stringify({ error: errorMessage }), { 
+    if (!res.ok || !data.checkoutUrl) {
+      console.error("❌ Peach API Error:", data.message);
+      return new Response(JSON.stringify({ error: data.message || "Payment Failed" }), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
       });
     }
 
-    const data = await res.json();
-
-    if (data.checkoutUrl) {
-      return NextResponse.redirect(data.checkoutUrl);
-    }
-
-    console.error("❌ Peach API Error:", data.message);
-    return new Response(JSON.stringify({ error: data.message || "Payment Failed" }), { 
-      status: 500, 
-      headers: { 'Content-Type': 'application/json' } 
-    });
+    // 6. SUCCESS: Redirect to Peach Checkout
+    console.log("✅ Success! Redirecting to checkout...");
+    return NextResponse.redirect(data.checkoutUrl);
 
   } catch (error: any) {
     console.error("💥 CRITICAL ERROR:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: error.message }), { 
+      status: 500, 
+      headers: { 'Content-Type': 'application/json' } 
+    });
   }
 }
