@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
+    // 1. Get Credentials
     const rawEntity = process.env.PEACH_ENTITY_ID?.trim();
     const rawSecret = process.env.PEACH_CLIENT_SECRET?.trim();
 
@@ -12,9 +13,11 @@ export async function POST(request: Request) {
       throw new Error("Configuration Error: Missing PEACH_API_KEY or SECRET");
     }
 
+    // 2. Prepare Auth Header (Basic Auth)
     const authString = `${rawEntity}:${rawSecret}`;
     const auth = Buffer.from(authString).toString('base64');
 
+    // 3. Read Input Data
     const formData = await request.formData();
     const amountInput = formData.get('amount')?.toString() || '0';
     const amountCents = Math.round(parseFloat(amountInput) * 100);
@@ -27,17 +30,19 @@ export async function POST(request: Request) {
     const productName = formData.get('productName')?.toString() || 'Product';
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // ⚠️ CHANGE HERE: Standard Gateway (.com)
-    const peachApiUrl = 'https://checkout.peachpayments.com/api/v1/sessions';
+    // ⚠️ CHANGE HERE: Using SANDBOX URL with .CO.ZA domain
+    // This fixes the 403 Forbidden error by matching your Testing Keys
+    const peachApiUrl = 'https://sandbox.secure.checkout.peachpayments.co.za/api/v1/sessions';
     
-    console.log("🚀 Connecting to Peach:", peachApiUrl);
+    console.log("🚀 Connecting to Peach Sandbox:", peachApiUrl);
 
     const res = await fetch(peachApiUrl, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Basic ${auth}`,
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'User-Agent': 'SuperDigitalMarket-V1'
       },
       body: JSON.stringify({
         amount: amountCents,
@@ -50,25 +55,31 @@ export async function POST(request: Request) {
       })
     });
 
-    // ✅ FIX: Inspect the response BEFORE parsing to prevent "Not Valid JSON" crashes
-    const contentType = res.headers.get('content-type') || '';
-    let data;
+    // ✅ FIX: Handle errors gracefully
+    if (!res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      let errorMessage = "Unknown Error";
+      
+      if (contentType.includes('application/json')) {
+        const errData = await res.json();
+        errorMessage = errData.message || errData.error || JSON.stringify(errData);
+      } else {
+        errorMessage = `Server Rejected Request (${res.status}). Sandbox connection issue.`;
+      }
 
-    if (contentType.includes('application/json')) {
-      data = await res.json();
-    } else {
-      // Peach sent back HTML (an error page) instead of JSON. Read it as text.
-      const htmlText = await res.text();
-      console.log("❌ HTML REPLY RECEIVED (Status:", res.status, "):", htmlText.substring(0, 200));
-      throw new Error(`Peach rejected request (Status ${res.status}). ${htmlText.substring(0, 100)}... Check your credentials.`);
+      console.error("❌ Peach API Failure:", errorMessage);
+      return new Response(JSON.stringify({ error: errorMessage }), { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' } 
+      });
     }
 
-    // If successful, redirect
-    if (res.ok && data.checkoutUrl) {
+    const data = await res.json();
+
+    if (data.checkoutUrl) {
       return NextResponse.redirect(data.checkoutUrl);
     }
 
-    // If it was JSON but an error (e.g. 401 Unauthorized)
     console.error("❌ Peach API Error:", data.message);
     return new Response(JSON.stringify({ error: data.message || "Payment Failed" }), { 
       status: 500, 
