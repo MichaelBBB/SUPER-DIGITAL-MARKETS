@@ -49,12 +49,10 @@ function CheckoutInner() {
     e.preventDefault();
     setProcessing(true);
     
-    // Auto-send email notification
     const formData = new FormData(e.target as HTMLFormElement);
     const customerEmail = formData.get('email') as string;
     const customerName = formData.get('name') as string;
     
-    // Create mailto link with pre-filled details
     const subject = encodeURIComponent(`Payment Proof - Order SD-${product.id}`);
     const body = encodeURIComponent(
       `Hello,\n\nI have made payment for:\n\n` +
@@ -70,7 +68,6 @@ function CheckoutInner() {
       `Thank you!`
     );
     
-    // Open email client
     window.location.href = `mailto:payments@superdigital.store?subject=${subject}&body=${body}`;
     
     setCapitecSubmitted(true);
@@ -129,7 +126,7 @@ function CheckoutInner() {
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-sm">03</div>
-                  <div><h4 className="font-bold text-sm">Complete Payment</h4><p className="text-xs text-gray-400">Transfer & email proof</p></div>
+                  <div><h4 className="font-bold text-sm">Complete Payment</h4><p className="text-xs text-gray-400">Transfer and email proof</p></div>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-green-900/30 border border-green-500/30 flex items-center justify-center text-green-400 font-bold text-sm">04</div>
@@ -206,7 +203,7 @@ function CheckoutInner() {
                         disabled={processing}
                         className="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-lg transition shadow-lg shadow-blue-900/20 disabled:opacity-50"
                       >
-                        {processing ? 'Processing...' : 'I've Made Payment - Send Proof'}
+                        {processing ? 'Processing...' : 'I Have Made Payment - Send Proof'}
                       </button>
                     </form>
 
@@ -231,7 +228,7 @@ function CheckoutInner() {
                       </p>
                     </div>
                     <p className="text-xs text-gray-500 mt-4">
-                      We'll activate your account within 1 hour of receiving proof.
+                      We will activate your account within 1 hour of receiving proof.
                     </p>
                   </div>
                 )}
@@ -239,7 +236,7 @@ function CheckoutInner() {
                 {selectedMethod === 'peach' && (
                   <>
                     <div className="flex items-center gap-3 mb-6">
-                      <span className="text-2xl">🇿🇦</span>
+                      <span className="text-2xl">🇿</span>
                       <div>
                         <h2 className="text-xl font-bold">Peach Payments</h2>
                         <p className="text-slate-400 text-sm">Card / Instant EFT</p>
@@ -248,7 +245,7 @@ function CheckoutInner() {
                     <div className="bg-orange-900/20 border border-orange-800 p-4 rounded-lg mb-5">
                       <p className="text-sm text-orange-300">
                         ⚠️ <strong>Temporarily Unavailable</strong><br/>
-                        We're upgrading our payment system. Please use Capitec Transfer for instant processing.
+                        We are upgrading our payment system. Please use Capitec Transfer for instant processing.
                       </p>
                     </div>
                     <button disabled className="w-full py-4 bg-slate-700 rounded-xl font-bold text-lg cursor-not-allowed opacity-50">
