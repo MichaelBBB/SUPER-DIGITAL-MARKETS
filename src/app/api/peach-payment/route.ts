@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-// Force Node.js runtime
+// Force Node.js runtime for better stability
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const authString = `${rawEntity}:${rawSecret}`;
     const auth = Buffer.from(authString).toString('base64');
 
-    // 3. Read Input Data
+    // 3. Read Input Data (Handles Form Submit)
     const formData = await request.formData();
     const amountInput = formData.get('amount')?.toString() || '0';
     const amountCents = Math.round(parseFloat(amountInput) * 100);
@@ -31,7 +31,6 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
     // ⚠️ CHANGE HERE: Using SANDBOX URL with .CO.ZA domain
-    // This fixes the 403 Forbidden error by matching your Testing Keys
     const peachApiUrl = 'https://sandbox.secure.checkout.peachpayments.co.za/api/v1/sessions';
     
     console.log("🚀 Connecting to Peach Sandbox:", peachApiUrl);
