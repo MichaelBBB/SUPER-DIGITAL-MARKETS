@@ -1,49 +1,44 @@
 import { NextResponse } from 'next/server';
 
-// Force Node.js runtime to ensure stable connections to external APIs
+// Force Node.js runtime to prevent Edge Runtime networking restrictions
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    // 1. Retrieve and clean credentials
-    const entityId = process.env.PEACH_ENTITY_ID?.trim();
-    const secret = process.env.PEACH_CLIENT_SECRET?.trim();
+    // 1. Check Credentials (Trimming removes invisible spaces)
+    const rawEntity = process.env.PEACH_ENTITY_ID?.trim();
+    const rawSecret = process.env.PEACH_CLIENT_SECRET?.trim();
 
-    if (!entityId || !secret) {
-      return new Response(JSON.stringify({ error: "Missing Credentials in Vercel Settings" }), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
+    if (!rawEntity || !rawSecret) {
+      throw new Error("Configuration Error: Missing Credentials");
     }
 
-    // 2. Create Basic Auth header (Encoding ID:SECRET to Base64)
-    const authString = `${entityId}:${secret}`;
+    // 2. Prepare Authorization Header (Basic Auth)
+    const authString = `${rawEntity}:${rawSecret}`;
     const auth = Buffer.from(authString).toString('base64');
 
-    // 3. Read form data
+    // 3. Read Input Data
     const formData = await request.formData();
-    const amountInput = formData.get('amount');
+    const amountInput = formData.get('amount')?.toString() || '0';
     
-    // Calculate cents safely
-    const amountCents = Math.round(parseFloat(amountInput || '0') * 100);
+    // Calculate amount in cents safely
+    const amountCents = Math.round(parseFloat(amountInput) * 100);
     
-    if (!amountCents || amountCents <= 0) {
-      return new Response(JSON.stringify({ error: "Invalid Amount" }), { 
-        status: 400, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
+    if (amountCents <= 0) {
+        return NextResponse.json({ error: "Invalid Amount" }, { status: 400 });
     }
 
-    const orderId = formData.get('orderId') || `SD-${Date.now()}`;
-    const productName = formData.get('productName') || 'Digital Product';
+    const orderId = formData.get('orderId')?.toString() || 'ORD-' + Date.now();
+    const productName = formData.get('productName')?.toString() || 'Product';
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // 4. Call Peach Sandbox API
-    // Using the standard Sandbox .com domain
-    const peachApiUrl = 'https://sandbox.checkout.peachpayments.com/api/v1/sessions';
+    // ⚠️ CRITICAL FIX: Using the SOUTH AFRICAN SANDBOX URL
+    // This matches your currency setting (ZAR) and location
+    const peachApiUrl = 'https://sandbox.secure.checkout.peachpayments.co.za/api/v1/sessions';
     
-    console.log("🚀 Connecting to Peach Sandbox...");
+    console.log("🚀 Connecting to Peach Sandbox:", peachApiUrl);
 
+    // 4. Call Peach Payments
     const res = await fetch(peachApiUrl, {
       method: 'POST',
       headers: { 
@@ -64,10 +59,11 @@ export async function POST(request: Request) {
 
     // 5. Handle Response
     if (!res.ok) {
-      // Try to read the specific error message from Peach
+      // Try to get the specific error message from Peach
       const errorText = await res.text();
-      console.error("❌ Peach Rejected Request:", errorText);
-      return new Response(JSON.stringify({ error: `Gateway Error (${res.status})` }), { 
+      console.error("❌ Peach Returned Error:", errorText);
+      
+      return new Response(JSON.stringify({ error: `Payment Gateway Error (${res.status})` }), { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 
       });
@@ -75,21 +71,21 @@ export async function POST(request: Request) {
 
     const data = await res.json();
 
-    // Success: Redirect to the checkout page hosted by Peach
+    // Success: Redirect the user to the checkout page
     if (data.checkoutUrl) {
       return NextResponse.redirect(data.checkoutUrl);
     }
 
-    console.error("❌ Response missing checkoutUrl");
-    return new Response(JSON.stringify({ error: "Peach did not provide a checkout link." }), { 
+    console.error("❌ Missing Checkout URL in response");
+    return new Response(JSON.stringify({ error: "Gateway did not provide a checkout link." }), { 
       status: 500, 
       headers: { 'Content-Type': 'application/json' } 
     });
 
   } catch (error: any) {
-    // This catches system/network errors (like DNS failure or Connection Refused)
-    console.error("💥 System Network Error:", error.message);
-    return new Response(JSON.stringify({ error: `Connection Failed: ${error.message}` }), { 
+    // Catch-all for system failures (DNS errors, Network timeouts, etc.)
+    console.error("💥 System Failure:", error.message);
+    return new Response(JSON.stringify({ error: `System Error: ${error.message}` }), { 
       status: 500, 
       headers: { 'Content-Type': 'application/json' } 
     });
