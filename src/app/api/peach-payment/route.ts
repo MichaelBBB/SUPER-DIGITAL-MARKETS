@@ -1,52 +1,58 @@
 import { NextResponse } from 'next/server';
 
-// Ensure this runs on Node.js for stable API fetching
+// Force Node.js runtime to prevent Edge Runtime connection issues
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  console.log("🚀 Starting Peach Payment Request");
+  console.log("🚀 Payment request received");
 
   try {
-    // 1. Check Credentials
+    // 1. Get Credentials
     const rawEntity = process.env.PEACH_ENTITY_ID?.trim();
     const rawSecret = process.env.PEACH_CLIENT_SECRET?.trim();
 
+    // Check for empty keys first to avoid sending broken requests
     if (!rawEntity || !rawSecret) {
-      throw new Error("Configuration Error: Missing PEACH_API_KEY or SECRET");
+      return new Response(JSON.stringify({ error: "Missing Environment Variables" }), { 
+        status: 500, 
+        headers: { 'Content-Type': 'application/json' } 
+      });
     }
 
-    // 2. Prepare Auth Header
+    // 2. Prepare Authorization (Basic Auth)
     const authString = `${rawEntity}:${rawSecret}`;
     const auth = Buffer.from(authString).toString('base64');
 
-    // 3. Read Input Data (Fix: Use formData because the HTML Form sends it this way)
+    // 3. Read Input Data (Handles Form Submission safely)
     const formData = await request.formData();
     const amountInput = formData.get('amount')?.toString() || '0';
-    
-    // Calculate amount in cents safely
     const amountCents = Math.round(parseFloat(amountInput) * 100);
     
     if (amountCents <= 0) {
-      return NextResponse.json({ error: "Invalid Amount" }, { status: 400 });
+      return new Response(JSON.stringify({ error: "Invalid Amount" }), { 
+        status: 400, headers: { 'Content-Type': 'application/json' } 
+      });
     }
 
-    const orderId = formData.get('orderId')?.toString() || 'ORD-' + Date.now();
-    const productName = formData.get('productName')?.toString() || 'Product';
+    const orderId = formData.get('orderId')?.toString() || `ORD-${Date.now()}`;
+    const productName = formData.get('productName')?.toString() || 'Digital Product';
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-    // ⚠️ CRITICAL FIX: Point to the SANDBOX URL (.com)
-    // This resolves the "Fetch Failed" timeout because we are now talking to the Test Server
+    // ⚠️ CORRECTED SANDBOX URL
+    // Using the standard .com sandbox domain which is generally more accessible
     const peachApiUrl = 'https://sandbox.checkout.peachpayments.com/api/v1/sessions';
     
-    console.log("📍 Targeting Sandbox Server:", peachApiUrl);
+    console.log("📍 Connecting to:", peachApiUrl);
 
-    // 4. Call Peach Payments API
+    // 4. Call Peach Payments
     const res = await fetch(peachApiUrl, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Basic ${auth}`,
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        // Some gateways require a User-Agent to accept the request
+        'User-Agent': 'SuperDigital-Marketplace-V1'
       },
       body: JSON.stringify({
         amount: amountCents,
@@ -59,24 +65,25 @@ export async function POST(request: Request) {
       })
     });
 
-    // 5. Handle Response
+    // 5. Handle the Response
     const data = await res.json();
 
-    if (!res.ok || !data.checkoutUrl) {
-      console.error("❌ Peach API Error:", data.message);
-      return new Response(JSON.stringify({ error: data.message || "Payment Failed" }), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
+    // Success: Redirect the user to Peach's hosted checkout
+    if (res.ok && data.checkoutUrl) {
+      return NextResponse.redirect(data.checkoutUrl);
     }
 
-    // 6. SUCCESS: Redirect to Peach Checkout
-    console.log("✅ Success! Redirecting to checkout...");
-    return NextResponse.redirect(data.checkoutUrl);
+    // Failure: Return the specific error message from Peach
+    console.error("❌ Peach API returned error:", data.message);
+    return new Response(JSON.stringify({ error: data.message || "Payment Session Failed" }), { 
+      status: 500, 
+      headers: { 'Content-Type': 'application/json' } 
+    });
 
   } catch (error: any) {
-    console.error("💥 CRITICAL ERROR:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), { 
+    // Catch all other errors (including "fetch failed")
+    console.error("💥 System Error:", error.message);
+    return new Response(JSON.stringify({ error: "Service unavailable" }), { 
       status: 500, 
       headers: { 'Content-Type': 'application/json' } 
     });
