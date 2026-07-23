@@ -1,99 +1,72 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  console.log("🔔 WEBHOOK RECEIVED!");
-  console.log("📍 Method:", request.method);
-  console.log("📍 URL:", request.url);
-  console.log("📍 Headers:", Object.fromEntries(request.headers));
-
   try {
-    // 1. Read raw body
+    // Log everything
+    console.log("🔔 WEBHOOK RECEIVED");
+    console.log("📍 Method:", request.method);
+    
+    // Read body
     const rawBody = await request.text();
-    console.log("📦 Raw Body:", rawBody);
-
-    // 2. Parse body (handle both JSON and form data)
+    console.log("📦 Body:", rawBody);
+    
+    // Parse body
     let payload;
     const contentType = request.headers.get('content-type') || '';
-
+    
     if (contentType.includes('application/json')) {
       payload = JSON.parse(rawBody);
-      console.log("📄 Parsed as JSON");
     } else {
       const params = new URLSearchParams(rawBody);
       payload = {};
       for (const [key, value] of params.entries()) {
         payload[key] = value;
       }
-      console.log("📄 Parsed as Form Data");
     }
-
-    console.log("📊 Payload:", JSON.stringify(payload, null, 2));
-
-    // 3. Check payment status
-    const status = (payload.status || payload.payment_status || '').toString().toUpperCase();
-    console.log("💳 Payment Status:", status);
-
+    
+    console.log("📊 Payload:", JSON.stringify(payload));
+    
+    // Check status
+    const status = (payload.status || payload.payment_status || '').toUpperCase();
+    console.log("💳 Status:", status);
+    
     if (!['SUCCESS', 'COMPLETED', 'PAID'].includes(status)) {
-      console.log("⚠️ Ignoring non-successful payment");
-      return NextResponse.json({ success: true, message: 'Ignored' });
+      return NextResponse.json({ success: true, message: 'Ignored non-success' });
     }
-
-    // 4. Determine region
-    const country = (payload.country || 'ZA').toString().toUpperCase();
+    
+    // Get region
+    const country = (payload.country || 'ZA').toUpperCase();
     const regionMap: Record<string, string> = {
-      'US': 'usa',
-      'IN': 'india',
-      'CN': 'china',
-      'ZA': 'southAfrica'
+      'US': 'usa', 'IN': 'india', 'CN': 'china', 'ZA': 'southAfrica'
     };
     const region = regionMap[country] || 'southAfrica';
-    console.log("🌍 Region:", region);
-
-    // 5. Update Supabase
-    const { createClient } = await import('@supabase/supabase-js');
+    
+    // Update Supabase
     const supabase = createClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-
+    
     const { data: current } = await supabase
       .from('sales_counts')
       .select('count')
       .eq('region', region)
       .single();
-
-    console.log("📈 Current Count:", current?.count || 0);
-
+    
     await supabase
       .from('sales_counts')
       .update({ count: (current?.count || 0) + 1 })
       .eq('region', region);
-
-    console.log("✅ Sales Updated! New Count:", (current?.count || 0) + 1);
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Sales updated',
-      region,
-      newCount: (current?.count || 0) + 1
-    });
-
+    
+    console.log("✅ Sales Updated:", region, "New Count:", (current?.count || 0) + 1);
+    
+    return NextResponse.json({ success: true });
+    
   } catch (error: any) {
-    console.error("💥 WEBHOOK ERROR:", error.message);
-    console.error("💥 Stack:", error.stack);
-    return NextResponse.json({ 
-      error: error.message,
-      success: false 
-    }, { status: 500 });
+    console.error("💥 ERROR:", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}
-
-// Also handle GET requests for testing
-export async function GET() {
-  return NextResponse.json({ 
-    message: 'Webhook endpoint is alive!',
-    timestamp: new Date().toISOString()
-  });
 }
