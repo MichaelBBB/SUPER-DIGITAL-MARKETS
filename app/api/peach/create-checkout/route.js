@@ -5,22 +5,30 @@ export async function POST(request) {
     const body = await request.json();
     const { amount, currency, orderId } = body;
 
+    // Get Peach Credentials from Environment Variables
     const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
     const secretToken = process.env.PEACH_SECRET_TOKEN;
 
     if (!entityId || !secretToken) {
-      return NextResponse.json({ error: 'Missing Peach credentials' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Missing Peach credentials' },
+        { status: 500 }
+      );
     }
 
+    // Prepare Basic Auth Header
     const authHeader = 'Basic ' + Buffer.from(`${entityId}:${secretToken}`).toString('base64');
+
+    // Peach Payments Live URL
     const peachUrl = 'https://eu-prod.oppwa.com/v1/checkouts';
 
+    // Prepare Payment Data
     const payload = new URLSearchParams({
       entity_id: entityId,
       amount: amount.toString(),
-      currency: currency,
+      currency: currency || 'ZAR',
       paymentType: 'DB',
-      merchant_transaction_id: orderId,
+      merchant_transaction_id: orderId || `ORDER-${Date.now()}`,
       customer_givenName: 'Guest',
       customer_surname: 'User',
       customer_email: 'guest@example.com',
@@ -31,6 +39,7 @@ export async function POST(request) {
       billing_country: 'ZA',
     });
 
+    // Send Request to Peach Payments
     const response = await fetch(peachUrl, {
       method: 'POST',
       headers: {
@@ -42,12 +51,24 @@ export async function POST(request) {
 
     const data = await response.json();
 
+    // Check for Success
     if (data.result.code === '000.000.000' || data.result.code === '000.100.110') {
-      return NextResponse.json({ success: true, checkoutUrl: data.buildUrl });
+      return NextResponse.json({
+        success: true,
+        checkoutUrl: data.buildUrl,
+      });
     } else {
-      return NextResponse.json({ success: false, error: data.result.description }, { status: 400 });
+      console.error('Peach Error:', data);
+      return NextResponse.json(
+        { success: false, error: data.result.description },
+        { status: 400 }
+      );
     }
   } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Server Error:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }
