@@ -1,40 +1,67 @@
-import Stripe from 'stripe';
+import { NextResponse } from 'next/server';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2022-11-15' });
-
-/**
- * POST /app/api/peach/create-checkout
- * Expected JSON body: { priceId: string, quantity?: number, successUrl?: string, cancelUrl?: string }
- * Returns: { url: string, id: string }
- */
-export async function POST({ request }) {
+export async function POST(request) {
   try {
-    const { priceId, quantity = 1, successUrl, cancelUrl } = await request.json();
+    const body = await request.json();
+    const { amount, currency, orderId } = body;
 
-    if (!priceId) {
-      return new Response(JSON.stringify({ error: 'Missing priceId' }), {
-        status: 400,
-        headers: { 'content-type': 'application/json' },
-      });
+    // 1. Get your Live Peach Credentials from Environment Variables
+    const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
+    const secretToken = process.env.PEACH_SECRET_TOKEN;
+
+    if (!entityId || !secretToken) {
+      return NextResponse.json({ error: 'Missing Peach credentials' }, { status: 500 });
     }
 
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      line_items: [{ price: priceId, quantity }],
-      success_url:
-        successUrl || `${process.env.BASE_URL || 'https://your-site.example'}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || `${process.env.BASE_URL || 'https://your-site.example'}/cancel`,
+    // 2. Prepare the Authorization Header (Basic Auth)
+    const authHeader = 'Basic ' + Buffer.from(`${entityId}:${secretToken}`).toString('base64');
+
+    // 3. Prepare the Data for Peach Payments (Live URL)
+    const peachUrl = 'https://eu-prod.oppwa.com/v1/checkouts';
+
+    const payload = new URLSearchParams({
+      entity_id: entityId,
+      amount: amount.toString(), 
+      currency: currency,        
+      paymentType: 'DB',         
+      merchant_transaction_id: orderId,
+      customer_givenName: 'Guest',
+      customer_surname: 'User',
+      customer_email: 'guest@example.com', 
+      billing_street1: '123 Main St',
+      billing_city: 'Johannesburg',
+      billing_state: 'GP',
+      billing_postcode: '2000',
+      billing_country: 'ZA',
     });
 
-    return new Response(JSON.stringify({ url: session.url, id: session.id }), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
+    // 4. Send Request to Peach
+    const response = await fetch(peachUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: payload.toString(),
     });
-  } catch (err) {
-    console.error('app/api/peach/create-checkout error', err);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'content-type': 'application/json' },
-    });
+
+    const data = await response.json();
+
+    if (data.result.code === '000.000.000' || data.result.code === '000.100.110') {
+      return NextResponse.json({ 
+        success: true, 
+        checkoutUrl: data.buildUrl 
+      });
+    } else {
+      console.error('Peach Error:', data);
+      return NextResponse.json({ 
+        success: false, 
+        error: data.result.description 
+      }, { status: 400 });
+    }
+
+  } catch (error) {
+    console.error('Server Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
