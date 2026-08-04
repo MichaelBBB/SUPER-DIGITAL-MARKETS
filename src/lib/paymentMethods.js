@@ -2,9 +2,9 @@ export const paymentMethods = [
   {
     id: 'capitec',
     name: 'Capitec Bank Transfer',
-    type: 'MANUAL',
-    icon: '🇦',
-    description: 'Direct bank transfer to our Capitec account.',
+    type: 'INSTANT DELIVERY',
+    icon: '🇿🇦',
+    description: 'Instant EFT via Capitec - Payment processed immediately.',
     currency: 'ZAR',
     badges: ['EFT', 'Internet Banking', 'Capitec App'],
     instantDelivery: true,
@@ -27,7 +27,7 @@ export const paymentMethods = [
     type: 'DIGITAL WALLET',
     icon: '🍎',
     description: 'Fast checkout with TouchID or FaceID.',
-    currency: 'USD/ZAR',
+    currency: 'ZAR',
     badges: ['Biometric'],
     instantDelivery: true,
     color: 'white'
@@ -40,7 +40,7 @@ export const paymentMethods = [
     description: 'Direct authorization from your banking app.',
     currency: 'ZAR',
     badges: ['Secure', 'No Card Needed'],
-    instantDelivery: false,
+    instantDelivery: true,
     color: 'green'
   }
 ];
