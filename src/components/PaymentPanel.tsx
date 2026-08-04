@@ -1,23 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { Check, Zap, Lock, CreditCard } from "lucide-react";
+import { Check, Zap, Lock } from "lucide-react";
 
-// Data for the menu items
 const methods = [
-  {
-    id: "capitec",
-    name: "Capitec Bank Transfer",
-    desc: "Direct bank transfer to our Capitec account.",
+  { 
+    id: "capitec", 
+    name: "Capitec Bank Transfer", 
+    desc: "Direct bank transfer to our Capitec account.", 
     badges: ["EFT", "Internet Banking", "Capitec App"],
-    instantDelivery: true,
+    instantDelivery: true
   },
-  {
-    id: "card",
-    name: "Credit / Debit Card",
-    desc: "Secure payment via Visa or Mastercard.",
+  { 
+    id: "card", 
+    name: "Credit / Debit Card", 
+    desc: "Secure payment via Visa or Mastercard.", 
     badges: ["Visa", "Mastercard"],
-    instantDelivery: true,
+    instantDelivery: true
   },
 ];
 
@@ -25,36 +24,14 @@ export default function PaymentPanel() {
   const [selected, setSelected] = useState(methods[0]);
   const [loading, setLoading] = useState(false);
 
-  // This simulates sending data to Peach Payments
   const handlePay = async () => {
     setLoading(true);
     
-    try {
-      // 1. Send data to your backend
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: 5499, // R54.99
-          currency: "ZAR",
-          paymentMethod: selected.id,
-        }),
-      });
-
-      const data = await res.json();
-
-      // 2. Redirect to Peach Hosted Checkout if successful
-      if (data.redirectUrl) {
-        window.location.href = data.redirectUrl;
-      } else {
-        alert("Payment Gateway Error");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
+    // SIMULATE API CALL TO PEACH PAYMENTS
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    alert(`Redirecting to ${selected.name} Gateway...`);
+    setLoading(false);
   };
 
   return (
@@ -79,8 +56,8 @@ export default function PaymentPanel() {
                 <span className="text-2xl">{selected.id === "capitec" ? "🏦" : "💳"}</span>
                 <div className="text-left">
                   <div className="font-semibold">{m.name}</div>
-                  <div className={`text-xs uppercase tracking-wider ${m.instantDelivery ? "text-green-400" : "text-gray-500"}`}>
-                    {m.instantDelivery ? "INSTANT DELIVERY" : "MANUAL"}
+                  <div className="text-xs uppercase tracking-wider text-green-400">
+                    INSTANT DELIVERY
                   </div>
                 </div>
               </div>
@@ -117,14 +94,12 @@ export default function PaymentPanel() {
              </div>
           </div>
 
-          {selected.instantDelivery && (
-            <div className="mb-8 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3">
+          <div className="mb-8 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3">
               <Zap className="w-5 h-5 text-green-500 fill-green-500" />
               <span className="text-green-400 text-sm font-medium">
                 Instant delivery after payment confirmation
               </span>
-            </div>
-          )}
+          </div>
 
           <button
             onClick={handlePay}
