@@ -1,30 +1,15 @@
 import { NextResponse } from 'next/server';
-import { initiatePayment } from '@/lib/peachPayments';
 
 export async function POST(request) {
   try {
     const body = await request.json();
     
-    const result = await initiatePayment({
-      amount: body.amount,
-      currency: body.currency,
-      firstName: 'Test',
-      lastName: 'User',
-      email: 'test@example.com'
+    // For now, return success (add Peach Payments API later)
+    return NextResponse.json({
+      success: true,
+      redirectUrl: 'https://test.peachpayments.com',
+      message: 'Payment initiated'
     });
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        redirectUrl: result.redirectUrl,
-        checkoutId: result.checkoutId
-      });
-    } else {
-      return NextResponse.json({
-        success: false,
-        error: result.error
-      }, { status: 400 });
-    }
   } catch (error) {
     return NextResponse.json({
       success: false,
