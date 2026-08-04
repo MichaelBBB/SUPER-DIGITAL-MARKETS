@@ -2,8 +2,7 @@ import PaymentPanel from "@/components/PaymentPanel";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
-      {/* This loads the full dashboard */}
+    <div className="w-full h-screen">
       <PaymentPanel />
     </div>
   );
