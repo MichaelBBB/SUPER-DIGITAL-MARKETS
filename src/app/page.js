@@ -1,9 +1,10 @@
+// This minimal code forces the page to load without complex imports
 export default function Home() {
   return (
-    <div style={{ color: 'white', backgroundColor: '#0f1115', padding: '50px' }}>
-      <h1>SYSTEM ONLINE</h1>
-      <p>If you see this text, the homepage is working.</p>
-      <a href="/products" style={{ color: 'blue', textDecoration: 'underline' }}>Go to Products</a>
+    <div style={{ padding: '100px', textAlign: 'center' }}>
+      <h1>SYSTEM RELOADED</h1>
+      <p>If you see this, the update worked.</p>
+      <a href="/products">Go to Products</a>
     </div>
   );
 }
