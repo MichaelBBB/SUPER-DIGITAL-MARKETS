@@ -1,126 +1,104 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
+import axios from 'axios';
 
-export const dynamic = 'force-dynamic';
+const PEACH_AUTH_SERVICE = process.env.NODE_ENV === 'production' 
+  ? 'https://auth-service.peachpayments.com'
+  : process.env.PEACH_AUTH_SERVICE;
 
-export async function POST(request: Request) {
-  const logs: string[] = [];
-  const log = (msg: string) => {
-    console.log(msg);
-    logs.push(msg);
-  };
+const PEACH_API_BASE = process.env.NODE_ENV === 'production'
+  ? process.env.PEACH_API_BASE
+  : process.env.PEACH_SANDBOX_BASE;
 
+export async function POST(request) {
   try {
-    log("🚀 Payment Request Started");
+    const body = await request.json();
+    const { amount, currency = 'ZAR', reference, customerName, phoneNumber, paymentMethod = 'card' } = body;
 
-    const entityId = process.env.PEACH_ENTITY_ID?.trim();
-    const clientSecret = process.env.PEACH_CLIENT_SECRET?.trim();
-
-    log(`🔑 Entity ID: ${entityId ? 'Present' : 'MISSING'}`);
-    log(`🔑 Secret: ${clientSecret ? 'Present' : 'MISSING'}`);
-
-    if (!entityId || !clientSecret) {
-      return new Response(JSON.stringify({ error: "Missing Credentials", logs }), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
-    }
-
-    const authString = `${entityId}:${clientSecret}`;
-    const auth = Buffer.from(authString).toString('base64');
-    log(`🔐 Auth Created: ${auth.substring(0, 20)}...`);
-
-    const formData = await request.formData();
-    const amount = parseFloat(formData.get('amount')?.toString() || '0');
-    const amountCents = Math.round(amount * 100);
-    const orderId = formData.get('orderId')?.toString() || `SD-${Date.now()}`;
-    const productName = formData.get('productName')?.toString() || 'Product';
-
-    log(`💰 Amount: ${amountCents} cents`);
-    log(`📦 Order: ${orderId}`);
-
-    if (amountCents <= 0) {
-      return new Response(JSON.stringify({ error: "Invalid Amount", logs }), { status: 400 });
-    }
-
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
-    
-    // ⚠️ CRITICAL FIX: Use South African Sandbox Endpoint
-    // This endpoint accepts connections from African regions
-    const peachApiUrl = 'https://sandbox.secure.checkout.peachpayments.co.za/api/v1/sessions';
-
-    log(`📍 Calling: ${peachApiUrl}`);
-
-    // Add timeout to prevent hanging
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-    let response;
-    try {
-      response = await fetch(peachApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${auth}`,
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          amount: amountCents,
-          currency: 'ZAR',
-          orderReference: orderId,
-          description: productName,
-          returnUrl: `${baseUrl}/checkout?status=success`,
-          cancelUrl: `${baseUrl}/checkout?status=cancelled`,
-          webhook: `${baseUrl}/api/webhooks/peach`
-        }),
-        signal: controller.signal
-      });
-    } catch (fetchError: any) {
-      clearTimeout(timeoutId);
-      log(`💥 Fetch Error: ${fetchError.message}`);
-      log(`💥 Error Code: ${fetchError.code}`);
-      return new Response(JSON.stringify({ 
-        error: "Network Error", 
-        message: fetchError.message,
-        code: fetchError.code,
-        logs 
-      }), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
-    }
-
-    clearTimeout(timeoutId);
-    log(`📡 Status: ${response.status}`);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      log(`❌ Peach Error: ${errorText}`);
-      
-      return new Response(JSON.stringify({ 
-        error: `Gateway Rejected (${response.status})`,
-        message: errorText.substring(0, 500),
-        logs 
-      }), { 
-        status: 500, 
-        headers: { 'Content-Type': 'application/json' } 
-      });
-    }
-
-    const data = await response.json();
-    log(`✅ Response: ${JSON.stringify(data).substring(0, 100)}`);
-    
-    if (data.checkoutUrl) {
-      log(`✅ Redirecting to: ${data.checkoutUrl}`);
-      return NextResponse.redirect(data.checkoutUrl);
-    }
-
-    return new Response(JSON.stringify({ error: "No checkout URL", logs }), { status: 500 });
-
-  } catch (error: any) {
-    log(`💥 System Error: ${error.message}`);
-    return new Response(JSON.stringify({ error: error.message, logs }), { 
-      status: 500, 
-      headers: { 'Content-Type': 'application/json' } 
+    // ✅ Step 1: Generate Access Token (Fixes 404 - Missing Auth) [[13]]
+    const tokenResponse = await axios.post(`${PEACH_AUTH_SERVICE}/api/oauth/token`, {
+      clientId: process.env.PEACH_CLIENT_ID,
+      clientSecret: process.env.PEACH_CLIENT_SECRET,
+      merchantId: process.env.PEACH_ENTITY_ID
     });
+    
+    const { access_token } = tokenResponse.data;
+
+    // ✅ Step 2: Create Checkout Instance
+    const checkoutResponse = await axios.post(
+      `${PEACH_API_BASE}/v2/checkout`,
+      {
+        entity_id: process.env.PEACH_ENTITY_ID,
+        amount: parseInt(amount),
+        currency: currency,
+        reference: reference,
+        // ✅ Skip Email Collection - Use Phone Instead [[17]]
+        contact_method: {
+          type: 'phone',
+          value: phoneNumber
+        },
+        payment_methods: [paymentMethod],
+        redirect_url: `${process.env.NEXT_PUBLIC_VERCEL_URL}/payment/success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_VERCEL_URL}/payment/cancel`,
+        // Custom success messages
+        return_message: `Thank you ${customerName}! Payment successful.`
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${access_token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    // ✅ Step 3: Generate Signature (HMAC SHA256) [[9]]
+    const paramsToSign = Object.keys(checkoutResponse.data)
+      .sort()
+      .map(key => `${key}${checkoutResponse.data[key]}`)
+      .join('');
+    
+    const signature = crypto.createHmac('sha256', process.env.PEACH_SECRET_TOKEN)
+      .update(paramsToSign)
+      .digest('base64');
+
+    // Return checkout data to frontend
+    return NextResponse.json({
+      success: true,
+      checkoutId: checkoutResponse.data.checkoutId,
+      checkoutUrl: checkoutResponse.data.redirect_url,
+      signature: signature,
+      nonce: Date.now().toString() // Unique nonce for duplicate prevention [[9]]
+    });
+
+  } catch (error) {
+    console.error('Peach Payment Error:', error.response?.data || error.message);
+    
+    // Handle common 404 scenarios
+    if (error.response?.status === 404) {
+      return NextResponse.json(
+        { 
+          error: 'API Endpoint Not Found', 
+          message: 'Verify your PEACH_API_BASE URL matches your environment (sandbox vs production)'
+        }, 
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { 
+        error: 'Payment initialization failed', 
+        details: error.message 
+      }, 
+      { status: 500 }
+    );
   }
+}
+
+// GET method for health check
+export async function GET() {
+  return NextResponse.json({ 
+    status: 'ok', 
+    endpoint: '/api/peach-payment',
+    supported_payment_methods: ['card', 'capitec_transfer', 'eft', 'internet_banking']
+  });
 }
