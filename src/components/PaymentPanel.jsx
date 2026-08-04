@@ -17,7 +17,7 @@ const PaymentPanel = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           paymentMethod: selectedMethod.id,
-          amount: 10000, // R100.00 in cents
+          amount: 5499, // R54.99 in cents
           currency: 'ZAR'
         })
       });
@@ -25,9 +25,12 @@ const PaymentPanel = () => {
       const data = await response.json();
       
       if (data.redirectUrl) {
+        // Redirect to Peach Payments hosted checkout
         window.location.href = data.redirectUrl;
+      } else if (data.success) {
+        alert('Payment successful!');
       } else {
-        alert('Payment initiated successfully!');
+        alert('Payment failed: ' + data.error);
       }
     } catch (error) {
       console.error('Payment failed', error);
@@ -39,7 +42,7 @@ const PaymentPanel = () => {
 
   return (
     <div className="flex h-screen bg-[#0f1115] text-white font-sans">
-      {/* LEFT SIDE */}
+      {/* LEFT SIDE - Payment Method Selection */}
       <div className="w-1/3 border-r border-gray-800 p-6 flex flex-col">
         <h2 className="text-2xl font-bold mb-2">Secure Checkout</h2>
         <p className="text-gray-400 mb-8 text-sm">Select Payment Method</p>
@@ -74,7 +77,7 @@ const PaymentPanel = () => {
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
+      {/* RIGHT SIDE - Payment Details */}
       <div className="flex-1 p-10 flex flex-col justify-center max-w-2xl mx-auto">
         <div className="bg-[#16191f] border border-gray-800 rounded-2xl p-8 shadow-2xl">
           <div className="flex justify-between items-start mb-6">
@@ -113,6 +116,7 @@ const PaymentPanel = () => {
             </div>
           </div>
 
+          {/* INSTANT DELIVERY BADGE */}
           {selectedMethod.instantDelivery && (
             <div className="mb-6 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3">
               <Zap className="w-5 h-5 text-green-500 fill-green-500" />
@@ -122,6 +126,7 @@ const PaymentPanel = () => {
             </div>
           )}
 
+          {/* PAY BUTTON */}
           <button
             onClick={handlePayment}
             disabled={isProcessing}
@@ -136,7 +141,7 @@ const PaymentPanel = () => {
             ) : (
               <>
                 <Lock className="w-5 h-5" />
-                Pay with {selectedMethod.name}
+                Pay R54.99 with {selectedMethod.name}
               </>
             )}
           </button>
