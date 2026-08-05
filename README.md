@@ -1,5 +1,3 @@
-# Super Digital Markets
+# Super Digital Markets v2
 
 Build updated: 2026-08-05
-
-From AI tools to creative software — shop globally.
