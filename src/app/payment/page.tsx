@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import Link from "next/link";
+import { useState } from "react";
 import { Check, Zap, Lock } from "lucide-react";
 
 const methods = [
@@ -10,7 +11,7 @@ const methods = [
     desc: "Instant EFT via Capitec - Payment processed immediately.", 
     badges: ["EFT", "Internet Banking", "Capitec App"],
     icon: "🏦",
-    color: "blue"
+    instantDelivery: true
   },
   { 
     id: "card", 
@@ -18,7 +19,7 @@ const methods = [
     desc: "Secure payment via Visa or Mastercard.", 
     badges: ["Visa", "Mastercard"],
     icon: "💳",
-    color: "orange"
+    instantDelivery: true
   },
 ];
 
@@ -34,7 +35,7 @@ export default function PaymentPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: 5499, // R54.99 in cents
+          amount: 5499,
           currency: "ZAR",
           paymentMethod: selected.id,
         }),
@@ -43,7 +44,7 @@ export default function PaymentPage() {
       const data = await response.json();
       
       if (data.redirectUrl) {
-        window.location.href = `${data.redirectUrl}?next=/success`;
+        window.location.href = data.redirectUrl;
       } else {
         alert("Payment failed");
       }
@@ -56,80 +57,102 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0f1115] text-white font-sans">
-      
-      {/* LEFT PANEL */}
-      <div className="w-full md:w-1/3 border-r border-gray-800 p-6 flex flex-col justify-center">
-        <h2 className="text-2xl font-bold mb-8">Select Payment</h2>
-        
-        <div className="space-y-3">
-          {methods.map((m) => (
-            <button
-              key={m.id}
-              onClick={() => setSelected(m)}
-              className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${
-                selected.id === m.id
-                  ? "border-blue-500 bg-blue-500/10"
-                  : "border-gray-800 hover:bg-gray-900"
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <span className="text-2xl">{m.icon}</span>
-                <div className="text-left">
-                  <div className="font-semibold">{m.name}</div>
-                  <div className="text-xs uppercase tracking-wider text-green-400">
-                    INSTANT DELIVERY
-                  </div>
-                </div>
-              </div>
-              {selected.id === m.id && <Check className="w-5 h-5 text-blue-500" />}
-            </button>
-          ))}
+    <div className="min-h-screen bg-[#0f1115] text-white font-sans flex items-center justify-center p-6">
+      <div className="w-full max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">Secure Checkout</h1>
+          <p className="text-gray-400">Select your payment method below</p>
+          <Link href="/" className="inline-block mt-4 text-blue-400 hover:text-blue-300">
+            ← Back to Home
+          </Link>
         </div>
-      </div>
 
-      {/* RIGHT PANEL */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-lg bg-[#16191f] border border-gray-800 rounded-2xl shadow-2xl p-8">
+        <div className="flex flex-col md:flex-row gap-8">
           
-          <div className="flex items-center gap-4 mb-6">
-             <div className="w-12 h-12 rounded-lg bg-blue-600/20 flex items-center justify-center text-2xl">
-               {selected.icon}
-             </div>
-             <div>
-              <h3 className="text-xl font-bold">{selected.name}</h3>
-              <p className="text-gray-400 text-sm">South Africa Market</p>
-             </div>
+          {/* LEFT PANEL */}
+          <div className="w-full md:w-1/3 border-r border-gray-800 pr-6">
+            <h2 className="text-xl font-bold mb-6">Payment Methods</h2>
+            
+            <div className="space-y-3">
+              {methods.map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setSelected(m)}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${
+                    selected.id === m.id
+                      ? "border-blue-500 bg-blue-500/10"
+                      : "border-gray-800 hover:bg-gray-900"
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl">{m.icon}</span>
+                    <div className="text-left">
+                      <div className="font-semibold">{m.name}</div>
+                      <div className="text-xs uppercase tracking-wider text-green-400">
+                        INSTANT DELIVERY
+                      </div>
+                    </div>
+                  </div>
+                  {selected.id === m.id && (
+                    <Check className="w-5 h-5 text-blue-500" />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <p className="text-gray-300 mb-6">{selected.desc}</p>
+          {/* RIGHT PANEL */}
+          <div className="w-full md:w-2/3">
+            <div className="bg-[#16191f] border border-gray-800 rounded-2xl shadow-2xl p-8">
+              
+              <div className="flex items-center gap-4 mb-6">
+                 <div className="w-12 h-12 rounded-lg bg-blue-600/20 flex items-center justify-center text-2xl">
+                   {selected.icon}
+                 </div>
+                 <div>
+                  <h3 className="text-xl font-bold">{selected.name}</h3>
+                  <p className="text-gray-400 text-sm">South Africa Market</p>
+                 </div>
+              </div>
 
-          <div className="mb-6">
-             <span className="text-xs text-gray-500 uppercase block mb-2">Accepted Methods</span>
-             <div className="flex flex-wrap gap-2">
-               {selected.badges.map((b) => (
-                 <span key={b} className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300 border border-gray-700">
-                   {b}
-                 </span>
-               ))}
-             </div>
+              <p className="text-gray-300 mb-6">{selected.desc}</p>
+
+              <div className="mb-6">
+                 <span className="text-xs text-gray-500 uppercase block mb-2">Accepted Methods</span>
+                 <div className="flex flex-wrap gap-2">
+                   {selected.badges.map((b) => (
+                     <span key={b} className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300 border border-gray-700">
+                       {b}
+                     </span>
+                   ))}
+                 </div>
+              </div>
+
+              {selected.instantDelivery && (
+                <div className="mb-8 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3">
+                    <Zap className="w-5 h-5 text-green-500 fill-green-500" />
+                    <span className="text-green-400 text-sm font-medium">
+                      Instant delivery after payment confirmation
+                    </span>
+                </div>
+              )}
+
+              <div className="text-xl font-bold mb-4 text-center">
+                Total: R54.99
+              </div>
+
+              <button
+                onClick={handlePay}
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white py-4 rounded-xl font-bold text-lg flex justify-center items-center gap-2 transition-colors"
+              >
+                <Lock className="w-5 h-5" />
+                {loading ? "Processing..." : "Pay R54.99"}
+              </button>
+
+            </div>
           </div>
-
-          <div className="mb-8 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3">
-              <Zap className="w-5 h-5 text-green-500 fill-green-500" />
-              <span className="text-green-400 text-sm font-medium">
-                Instant delivery after payment confirmation
-              </span>
-          </div>
-
-          <button
-            onClick={handlePay}
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white py-4 rounded-xl font-bold text-lg flex justify-center items-center gap-2 transition-colors"
-          >
-            <Lock className="w-5 h-5" />
-            {loading ? "Processing..." : "Pay R54.99"}
-          </button>
 
         </div>
       </div>
