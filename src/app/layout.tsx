@@ -1,3 +1,5 @@
+import "./globals.css";
+
 export const metadata = {
   title: "Super Digital Markets",
   description: "From AI tools to creative software — shop globally.",
@@ -10,7 +12,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[#0f1115] text-white">{children}</body>
+      <body className="antialiased min-h-screen bg-[#0f1115] text-white">{children}</body>
     </html>
   );
 }
