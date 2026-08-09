@@ -1,99 +1,138 @@
-'use client';
-import { useState } from 'react';
-import Link from 'next/link';
+"use client";
+
+import React, { useState } from "react";
+import { Check, Zap, Lock } from "lucide-react";
+
+const methods = [
+  { 
+    id: "capitec", 
+    name: "Capitec Bank Transfer", 
+    desc: "Instant EFT via Capitec - Payment processed immediately.", 
+    badges: ["EFT", "Internet Banking", "Capitec App"],
+    icon: "🏦",
+    color: "blue"
+  },
+  { 
+    id: "card", 
+    name: "Credit / Debit Card", 
+    desc: "Secure payment via Visa or Mastercard.", 
+    badges: ["Visa", "Mastercard"],
+    icon: "💳",
+    color: "orange"
+  },
+];
 
 export default function PaymentPage() {
+  const [selected, setSelected] = useState(methods[0]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
+  const handlePay = async () => {
     setLoading(true);
-    setError(null);
-
+    
     try {
-      const formData = new FormData(e.currentTarget);
-      
-      const response = await fetch('/api/peach-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.fromEntries(formData)),
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: 5499, // R54.99 in cents
+          currency: "ZAR",
+          paymentMethod: selected.id,
+        }),
       });
-
-      if (!response.ok) throw new Error('Failed to initialize payment');
 
       const data = await response.json();
       
-      if (data.success && data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+      if (data.redirectUrl) {
+        window.location.href = `${data.redirectUrl}?next=/success`;
       } else {
-        throw new Error(data.message || 'Invalid response');
+        alert("Payment failed");
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+    } catch (error) {
+      console.error(error);
+      alert("Network error");
     } finally {
       setLoading(false);
     }
   };
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-900 flex items-center justify-center p-4">
-        <div className="bg-red-900/80 border border-red-700 p-8 rounded-2xl max-w-md text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Payment Error</h2>
-          <p className="text-gray-300 mb-6">{error}</p>
-          <Link href="/" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg inline-block">
-            Return Home
-          </Link>
+  return (
+    <div className="flex h-screen bg-[#0f1115] text-white font-sans">
+      
+      {/* LEFT PANEL */}
+      <div className="w-full md:w-1/3 border-r border-gray-800 p-6 flex flex-col justify-center">
+        <h2 className="text-2xl font-bold mb-8">Select Payment</h2>
+        
+        <div className="space-y-3">
+          {methods.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setSelected(m)}
+              className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${
+                selected.id === m.id
+                  ? "border-blue-500 bg-blue-500/10"
+                  : "border-gray-800 hover:bg-gray-900"
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-2xl">{m.icon}</span>
+                <div className="text-left">
+                  <div className="font-semibold">{m.name}</div>
+                  <div className="text-xs uppercase tracking-wider text-green-400">
+                    INSTANT DELIVERY
+                  </div>
+                </div>
+              </div>
+              {selected.id === m.id && <Check className="w-5 h-5 text-blue-500" />}
+            </button>
+          ))}
         </div>
       </div>
-    );
-  }
 
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-900 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🔐 Secure Checkout</h1>
-          <p className="text-gray-400">Pay securely via Capitec Bank Transfer</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="bg-gray-800/80 rounded-2xl shadow-2xl p-8 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">Full Name *</label>
-              <input name="customerName" required type="text" placeholder="John Doe" 
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">Phone Number *</label>
-              <input name="phoneNumber" required type="tel" placeholder="+27 82 123 4567" 
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500" />
-            </div>
+      {/* RIGHT PANEL */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-lg bg-[#16191f] border border-gray-800 rounded-2xl shadow-2xl p-8">
+          
+          <div className="flex items-center gap-4 mb-6">
+             <div className="w-12 h-12 rounded-lg bg-blue-600/20 flex items-center justify-center text-2xl">
+               {selected.icon}
+             </div>
+             <div>
+              <h3 className="text-xl font-bold">{selected.name}</h3>
+              <p className="text-gray-400 text-sm">South Africa Market</p>
+             </div>
           </div>
 
-          <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Amount (ZAR) *</label>
-            <input name="amount" required type="number" min="10" step="0.01" defaultValue="1000" 
-              className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-2xl font-bold focus:outline-none focus:border-blue-500" />
+          <p className="text-gray-300 mb-6">{selected.desc}</p>
+
+          <div className="mb-6">
+             <span className="text-xs text-gray-500 uppercase block mb-2">Accepted Methods</span>
+             <div className="flex flex-wrap gap-2">
+               {selected.badges.map((b) => (
+                 <span key={b} className="px-3 py-1 bg-gray-800 rounded text-xs text-gray-300 border border-gray-700">
+                   {b}
+                 </span>
+               ))}
+             </div>
           </div>
 
-          <button disabled={loading} type="submit"
-            className={`w-full py-4 font-bold rounded-lg transition-all ${
-              loading ? 'bg-gray-600 cursor-not-allowed text-gray-400' : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg'
-            }`}>
-            {loading ? 'Processing...' : 'Proceed to Pay Securely'}
+          <div className="mb-8 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3">
+              <Zap className="w-5 h-5 text-green-500 fill-green-500" />
+              <span className="text-green-400 text-sm font-medium">
+                Instant delivery after payment confirmation
+              </span>
+          </div>
+
+          <button
+            onClick={handlePay}
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white py-4 rounded-xl font-bold text-lg flex justify-center items-center gap-2 transition-colors"
+          >
+            <Lock className="w-5 h-5" />
+            {loading ? "Processing..." : "Pay R54.99"}
           </button>
 
-          <Link href="/" className="block text-center text-gray-400 hover:text-gray-300 text-sm mt-4">
-            ← Cancel and Return Home
-          </Link>
-
-          <div className="text-center text-gray-500 text-xs mt-4">
-            🔒 Powered by Peach Payments | SECURE SSL ENCRYPTED
-          </div>
-        </form>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
