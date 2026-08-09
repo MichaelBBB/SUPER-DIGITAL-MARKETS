@@ -5,16 +5,10 @@ export const metadata = {
   description: "From AI tools to creative software — shop globally.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="antialiased bg-[#0f1115] text-white">
-        {children}
-      </body>
+      <body className="antialiased bg-[#0f1115] text-white">{children}</body>
     </html>
   );
 }
