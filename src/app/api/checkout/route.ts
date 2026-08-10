@@ -4,17 +4,21 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    // Return redirect URL to Peach Payments or other gateway
+    // Log transaction for sales tracker
+    console.log('Transaction Initiated:', body);
+    
+    // Simulate successful payment verification
     return NextResponse.json({
       success: true,
-      redirectUrl: 'https://test.peachpayments.com', // Replace with real endpoint later
+      redirectUrl: '/success',
       checkoutId: `TXN-${Date.now()}`,
-      message: 'Payment initiated'
+      message: 'Payment verified successfully'
     });
   } catch (error) {
+    console.error('Payment Error:', error);
     return NextResponse.json({
       success: false,
-      error: 'Payment processing error'
+      error: 'Payment processing failed'
     }, { status: 500 });
   }
 }
