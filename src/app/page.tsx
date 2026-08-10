@@ -14,7 +14,7 @@ export default function Home() {
         }}
       />
       
-      {/* DARK OVERLAY - LIGHTER TO Keep Background BRIGHT */}
+      {/* DARK OVERLAY - Lighter for Bright Background */}
       <div className="absolute inset-0 z-0 bg-black opacity-50"></div>
 
       {/* CONTENT LAYER (above background) */}
@@ -23,43 +23,54 @@ export default function Home() {
         {/* NAVIGATION BAR */}
         <nav className="border-b border-gray-800 sticky top-0 bg-[#0b0f14]/95 backdrop-blur-md z-50">
           <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-            <Link href="/" className="font-bold text-xl text-cyan-400 flex items-center gap-2">
-              <div className="w-8 h-8 bg-cyan-400 rounded-full flex items-center justify-center">
-                <span className="text-[#0b0f14] font-bold text-xs">S</span>
+            
+            {/* LEFT - BRAND LOGO */}
+            <Link href="/" className="font-bold text-xl text-white flex items-center gap-2">
+              <div className="w-7 h-7 bg-cyan-400 rounded-full flex items-center justify-center shadow-lg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#0b0f14]">
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+                  <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" />
+                </svg>
               </div>
               SUPER DIGITAL
             </Link>
             
-            <div className="hidden md:flex space-x-8">
-              <Link href="/" className="hover:text-cyan-400 transition font-medium">Home</Link>
-              <Link href="/products" className="hover:text-cyan-400 transition font-medium">Products</Link>
-              <Link href="/checkout" className="hover:text-cyan-400 transition font-medium">Checkout</Link>
+            {/* CENTER - NAV LINKS */}
+            <div className="hidden md:flex space-x-10">
+              <Link href="/" className="text-white hover:text-cyan-400 transition font-medium">Home</Link>
+              <Link href="/products" className="text-white hover:text-cyan-400 transition font-medium">Products</Link>
+              <Link href="/checkout" className="text-white hover:text-cyan-400 transition font-medium">Checkout</Link>
             </div>
             
-            <div className="flex items-center gap-4">
-              <span className="bg-green-500/20 text-green-400 text-xs px-3 py-1 rounded-full border border-green-500/30 font-semibold">
-                ● LIVE
+            {/* RIGHT - LIVE BADGE + SHOP NOW BUTTON */}
+            <div className="flex items-center gap-3">
+              <span className="bg-green-500/20 text-green-400 text-xs px-4 py-2 rounded-full border border-green-500/40 font-semibold flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                LIVE
               </span>
               <Link 
                 href="/products" 
-                className="bg-cyan-500 hover:bg-cyan-400 text-white px-6 py-2 rounded-lg text-sm font-semibold transition shadow-lg"
+                className="bg-cyan-500 hover:bg-cyan-400 text-white px-6 py-2.5 rounded-full text-sm font-semibold transition shadow-lg shadow-cyan-500/40"
               >
                 Shop Now
               </Link>
             </div>
+            
           </div>
           
           {/* COUNTRY BANNER UNDER NAV */}
-          <div className="container mx-auto px-6 py-2 text-xs text-center">
-            <span className="text-green-400 font-bold">●</span> 
-            <span className="text-green-400">LIVE GLOBAL MARKETPLACE</span> 
-            <span className="mx-2 text-gray-600">•</span> 
-            <span className="text-gray-400">USA • India • China • South Africa</span>
+          <div className="container mx-auto px-6 py-3 text-xs text-center">
+            <div className="inline-flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full border border-gray-700">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              <span className="text-cyan-400 font-semibold">LIVE GLOBAL MARKETPLACE</span> 
+              <span className="mx-2 text-gray-600">•</span> 
+              <span className="text-gray-400">USA • India • China • South Africa</span>
+            </div>
           </div>
         </nav>
 
         {/* MAIN HERO CONTENT */}
-        <main className="container mx-auto px-4 py-16 text-center flex-grow">
+        <main className="container mx-auto px-4 py-20 text-center flex-grow">
           <h1 className="text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight">
             <span className="text-white">The World&apos;s</span><br />
             <span className="text-cyan-400">Top 30</span><br />
