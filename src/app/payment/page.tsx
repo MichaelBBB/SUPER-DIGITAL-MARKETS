@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Check, Zap, Lock } from "lucide-react";
-import LiveSalesTracker from "@/components/LiveSalesTracker";
+import LiveSalesTracker from "../components/LiveSalesTracker";
 
 const methods = [
   { id: "capitec", name: "Capitec Bank Transfer", desc: "Instant EFT via Capitec - Payment processed immediately.", badges: ["EFT", "Internet Banking", "Capitec App"], icon: "🏦", instantDelivery: true },
