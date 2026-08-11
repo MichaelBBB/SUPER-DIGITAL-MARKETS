@@ -33,7 +33,18 @@ const allProducts: Product[] = [
   { id: "microsoft365", name: "Microsoft 365 Business", description: "Word, Excel, PowerPoint, Teams.", priceUsd: "$12.50", category: "Business", image: "/images/microsoft365.jpg", badge: "POPULAR" },
   { id: "midjourney", name: "Midjourney Standard", description: "AI image generation.", priceUsd: "$24.00", category: "AI Tools", image: "/images/midjourney.jpg", badge: "HOT" },
   { id: "monday", name: "Monday.com Pro", description: "Visual work OS.", priceUsd: "$9.00", category: "Business", image: "/images/monday.jpg", badge: "NEW" },
-  { id: "netflix-premium", name: "Netflix Premium", description: "4K streaming, 4 simultaneous screens.", priceUsd: "$22.99", category: "Entertainment", image: "/images/netflix-premium.jpg", badge: "HOT" },
+  
+  // ✅ REPLACED NETFLIX WITH DISNEY+ (Uses reliable external image)
+  { 
+    id: "disney-plus", 
+    name: "Disney+ Premium", 
+    description: "Marvel, Star Wars, Pixar & National Geographic. 4K streaming, 4 screens.", 
+    priceUsd: "$13.99", 
+    category: "Entertainment", 
+    image: "https://images.unsplash.com/photo-1626245595304-8f5e9a11287d?q=80&w=800&auto=format&fit=crop", 
+    badge: "HOT" 
+  },
+  
   { id: "nordvpn", name: "NordVPN", description: "Military-grade encryption.", priceUsd: "$3.99", category: "Security", image: "/images/nordvpn.jpg", badge: "HOT" },
   { id: "notion", name: "Notion Plus", description: "All-in-one workspace.", priceUsd: "$8.00", category: "Productivity", image: "/images/notion.jpg", badge: "POPULAR" },
   { id: "perplexity", name: "Perplexity Pro", description: "AI-powered search engine.", priceUsd: "$20.00", category: "AI Tools", image: "/images/perplexity.jpg", badge: "NEW" },
