@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, Zap, Lock, MessageCircle, Copy, Banknote } from "lucide-react";
+import { Check, Zap, MessageCircle, Copy, Banknote } from "lucide-react";
 
 const methods = [
   { id: "capitec", name: "Capitec Bank Transfer", desc: "Instant EFT via Capitec.", badges: ["EFT", "Instant"], icon: "🏦", instantDelivery: true },
@@ -19,7 +19,7 @@ function PaymentFormContent() {
   const [amount, setAmount] = useState(initialAmount);
   const [itemName, setItemName] = useState(initialItem);
   const [selected, setSelected] = useState(methods[0]);
-  const [copied, setCopied] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
 
   // Update state if URL changes
   useEffect(() => {
@@ -31,24 +31,26 @@ function PaymentFormContent() {
 
   // ✅ WHATSAPP INTEGRATION LOGIC (Works on iPhone & Android)
   const handleWhatsAppOrder = () => {
-    // ️ REPLACE THIS WITH YOUR ACTUAL WHATSAPP NUMBER
-    // Format: Country Code + Number (No '+', no spaces)
-    // Example South Africa: 27821234567
+    // ⚠️ REPLACE THIS WITH YOUR ACTUAL WHATSAPP NUMBER
     const phoneNumber = "27821234567"; 
     
     const message = `Hello Super Digital!%0A%0AI would like to purchase:%0A *${itemName}*%0A💰 Price: *$${amount} USD*%0A%0AI am ready to transfer to your Capitec account.%0APlease confirm receipt so I can send Proof of Payment.`;
     
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
-    
     window.open(whatsappUrl, '_blank');
   };
 
-  // ✅ COPY BANK DETAILS TO CLIPBOARD (Desktop Fallback)
-  const copyBankDetails = () => {
-    const text = `SUPER DIGITAL\nAccount: 1975933441\nBranch: 470010\nRef: ${itemName}`;
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+  // ✅ FIXED: COPY BANK DETAILS LOGIC
+  const handleCopyDetails = () => {
+    const bankText = `Account Name: SUPER DIGITAL\nAccount No: 1975933441\nBranch Code: 470010\nReference: ${itemName}\nAmount: $${amount} USD`;
+    
+    navigator.clipboard.writeText(bankText).then(() => {
+      setCopyStatus("copied");
+      // Reset back to "Copy" after 3 seconds
+      setTimeout(() => setCopyStatus("idle"), 3000);
+    }).catch((err) => {
+      console.error('Failed to copy: ', err);
+      alert("Could not auto-copy. Please manually select and copy the details below.");
     });
   };
 
@@ -71,7 +73,7 @@ function PaymentFormContent() {
                 <MessageCircle className="w-6 h-6 text-green-500" />
                 <span className="font-bold text-green-400">Option 1: WhatsApp (Fastest)</span>
               </div>
-              <p className="text-sm text-gray-300">Click the green button to open WhatsApp, confirm your order, and send proof of payment instantly.</p>
+              <p className="text-sm text-gray-300">Click the big green button to open WhatsApp, confirm your order, and send proof of payment instantly.</p>
               <p className="text-xs text-gray-500 mt-2">✅ Works on iPhone & Android</p>
             </div>
 
@@ -80,7 +82,7 @@ function PaymentFormContent() {
                 <Banknote className="w-6 h-6 text-gray-400" />
                 <span className="font-bold text-gray-300">Option 2: Manual Transfer</span>
               </div>
-              <p className="text-sm text-gray-400">Copy our bank details below and transfer directly via your banking app.</p>
+              <p className="text-sm text-gray-400">Use the "Copy Details" button on the right to copy our bank info, then paste it into your banking app.</p>
             </div>
           </div>
         </div>
@@ -111,39 +113,53 @@ function PaymentFormContent() {
               <div className="flex-grow border-t border-gray-700"></div>
             </div>
 
-            {/* CAPITEC DETAILS CARD */}
-            <div className="bg-[#0b0f14] border border-cyan-500/30 rounded-xl p-6 mb-6">
+            {/* CAPITEC DETAILS CARD WITH WORKING COPY BUTTON */}
+            <div className="bg-[#0b0f14] border border-cyan-500/30 rounded-xl p-6 mb-6 relative">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="font-semibold text-cyan-400">CAPITEC BANK DETAILS</h4>
+                
+                {/* ✅ RESPONSIVE COPY BUTTON */}
                 <button 
-                  onClick={copyBankDetails}
-                  className="flex items-center gap-2 text-xs bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded transition"
+                  onClick={handleCopyDetails}
+                  className={`flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 ${
+                    copyStatus === "copied" 
+                      ? "bg-green-500/20 text-green-400 border border-green-500/50" 
+                      : "bg-gray-800 hover:bg-gray-700 text-white border border-gray-600"
+                  }`}
                 >
-                  {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-                  {copied ? "Copied!" : "Copy Details"}
+                  {copyStatus === "copied" ? (
+                    <>
+                      <Check className="w-4 h-4" /> Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" /> Copy Details
+                    </>
+                  )}
                 </button>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="text-gray-500 text-xs">Account Holder</div>
-                  <div className="text-white font-medium">SUPER DIGITAL</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="bg-gray-900/50 p-3 rounded border border-gray-800">
+                  <div className="text-gray-500 text-xs mb-1">Account Holder</div>
+                  <div className="text-white font-medium select-all">SUPER DIGITAL</div>
                 </div>
-                <div>
-                  <div className="text-gray-500 text-xs">Account Number</div>
-                  <div className="text-white font-medium">1975933441</div>
+                <div className="bg-gray-900/50 p-3 rounded border border-gray-800">
+                  <div className="text-gray-500 text-xs mb-1">Account Number</div>
+                  <div className="text-white font-medium select-all">1975933441</div>
                 </div>
-                <div>
-                  <div className="text-gray-500 text-xs">Branch Code</div>
-                  <div className="text-white font-medium">470010</div>
+                <div className="bg-gray-900/50 p-3 rounded border border-gray-800">
+                  <div className="text-gray-500 text-xs mb-1">Branch Code</div>
+                  <div className="text-white font-medium select-all">470010</div>
                 </div>
-                <div>
-                  <div className="text-gray-500 text-xs">Reference</div>
-                  <div className="text-white font-medium truncate">{itemName}</div>
+                <div className="bg-gray-900/50 p-3 rounded border border-gray-800">
+                  <div className="text-gray-500 text-xs mb-1">Reference</div>
+                  <div className="text-white font-medium truncate select-all">{itemName}</div>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-800 text-xs text-gray-500">
-                Please email POP to payments@superdigital.store if paying manually without WhatsApp.
+              
+              <div className="mt-4 pt-4 border-t border-gray-800 text-xs text-gray-500 text-center">
+                After transferring, email POP to <span className="text-cyan-400">payments@superdigital.store</span> if you didn't use WhatsApp.
               </div>
             </div>
 
