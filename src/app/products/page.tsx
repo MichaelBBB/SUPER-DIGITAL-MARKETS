@@ -8,7 +8,7 @@ interface Product {
   id: string;
   name: string;
   description: string;
-  priceUsd: string;
+  priceUsd: string; // Keep as string for URL safety
   category: string;
   image: string;
   badge?: string;
@@ -109,7 +109,7 @@ export default function ProductsPage() {
                 <p className="text-sm text-gray-400 mb-3 line-clamp-2">{product.description}</p>
                 <div className="text-cyan-400 font-bold text-xl mb-4">${product.priceUsd}</div>
                 
-                {/* ✅ FIXED: Button now passes price and name to URL */}
+                {/* ✅ LINK PASSES AMOUNT AND ITEM NAME */}
                 <Link 
                   href={`/payment?amount=${product.priceUsd}&item=${encodeURIComponent(product.name)}`} 
                   className="w-full bg-cyan-500 hover:bg-cyan-400 text-white py-3 rounded-full font-bold flex items-center justify-center gap-2 transition"
