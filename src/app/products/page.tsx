@@ -19,364 +19,364 @@ interface Product {
 
 const allProducts: Product[] = [
   {
-    id: "chatgpt-plus",
+    id: "chatgpt",
     name: "ChatGPT Plus",
-    description: "OpenAI's GPT-4 powered assistant. Advanced reasoning, image analysis & priority access.",
+    description: "OpenAI's GPT-4 powered assistant. Advanced reasoning, image generation, and browsing included.",
     priceZar: "$54.99",
     priceUsd: "$20.00",
     priceInr: "₹1,700",
     icon: "🤖",
     badge: "HOT",
     category: "AI Tools",
-    image: "https://images.unsplash.com/photo-1681580910373-b7e2a7e1c9b4?w=500&h=300&fit=crop"
-  },
-  {
-    id: "midjourney-premium",
-    name: "Midjourney Premium",
-    description: "Generate unlimited stunning images with our most powerful AI art generator.",
-    priceZar: "$54.99",
-    priceUsd: "$20.00",
-    priceInr: "₹1,700",
-    icon: "🎨",
-    badge: "POPULAR",
-    category: "AI Tools",
-    image: "https://images.unsplash.com/photo-1618331835155-5e782857fd49?w=500&h=300&fit=crop"
-  },
-  {
-    id: "claude-pro",
-    name: "Claude Pro",
-    description: "Anthropic's advanced AI for writing, research & analysis.",
-    priceZar: "$35.00",
-    priceUsd: "$15.00",
-    priceInr: "₹1,275",
-    icon: "💬",
-    badge: undefined,
-    category: "AI Tools",
-    image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&h=300&fit=crop"
-  },
-  {
-    id: "perplexity-pro",
-    name: "Perplexity Pro",
-    description: "AI-powered search engine with real-time web browsing.",
-    priceZar: "$40.00",
-    priceUsd: "$20.00",
-    priceInr: "₹1,700",
-    icon: "🔍",
-    badge: undefined,
-    category: "AI Tools",
-    image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&h=300&fit=crop"
-  },
-  {
-    id: "canva-pro",
-    name: "Canva Pro Lifetime",
-    description: "Unlimited design assets, templates & brand kit access.",
-    priceZar: "$89.99",
-    priceUsd: "$12.99",
-    priceInr: "₹1,100",
-    icon: "✨",
-    badge: "POPULAR",
-    category: "Creative",
-    image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500&h=300&fit=crop"
+    image: "/images/chatgpt.jpg"
   },
   {
     id: "adobe-creative-cloud",
     name: "Adobe Creative Cloud",
-    description: "Full suite of Adobe apps — Photoshop, Illustrator, Premiere Pro.",
+    description: "Full suite of Adobe apps — Photoshop, Illustrator, Premiere Pro, and 20+ more.",
     priceZar: "$54.99",
     priceUsd: "$54.99",
     priceInr: "₹4,700",
     icon: "🎨",
     badge: "POPULAR",
     category: "Creative",
-    image: "https://images.unsplash.com/photo-1626785774573-4b799312afc2?w=500&h=300&fit=crop"
-  },
-  {
-    id: "procreate-ipad",
-    name: "Procreate iPad",
-    description: "Professional digital painting app for iPad.",
-    priceZar: "$150.00",
-    priceUsd: "$12.99",
-    priceInr: "₹1,100",
-    icon: "🖌️",
-    badge: undefined,
-    category: "Creative",
-    image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500&h=300&fit=crop"
-  },
-  {
-    id: "sketch-lifetime",
-    name: "Sketch Lifetime",
-    description: "Vector design tool for Mac. Industry-standard UI/UX platform.",
-    priceZar: "$199.00",
-    priceUsd: "$99.00",
-    priceInr: "₹8,400",
-    icon: "",
-    badge: "HOT",
-    category: "Creative",
-    image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500&h=300&fit=crop"
+    image: "/images/adobe-cc.jpg"
   },
   {
     id: "netflix-premium",
     name: "Netflix Premium",
-    description: "4K streaming, 4 simultaneous screens, offline downloads.",
+    description: "4K streaming, 4 simultaneous screens, offline downloads. 10,000+ titles worldwide.",
     priceZar: "$22.99",
     priceUsd: "$22.99",
     priceInr: "₹1,950",
     icon: "",
     badge: "HOT",
     category: "Entertainment",
-    image: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=500&h=300&fit=crop"
-  },
-  {
-    id: "spotify-premium",
-    name: "Spotify Premium",
-    description: "Ad-free music streaming, high quality audio, offline listening.",
-    priceZar: "$35.00",
-    priceUsd: "$9.99",
-    priceInr: "₹850",
-    icon: "🎵",
-    badge: undefined,
-    category: "Entertainment",
-    image: "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=500&h=300&fit=crop"
-  },
-  {
-    id: "premier-league-pass",
-    name: "Premier League Pass",
-    description: "Watch every live match, highlights, exclusive content.",
-    priceZar: "$40.00",
-    priceUsd: "$11.00",
-    priceInr: "₹935",
-    icon: "⚽",
-    badge: "HOT",
-    category: "Entertainment",
-    image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=500&h=300&fit=crop"
-  },
-  {
-    id: "disney-plus",
-    name: "Disney+ Premium",
-    description: "All Disney content including Marvel, Star Wars & National Geographic.",
-    priceZar: "$28.00",
-    priceUsd: "$9.99",
-    priceInr: "₹850",
-    icon: "🏰",
-    badge: undefined,
-    category: "Entertainment",
-    image: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=500&h=300&fit=crop"
+    image: "/images/netflix.jpg"
   },
   {
     id: "microsoft-365-business",
     name: "Microsoft 365 Business",
-    description: "Word, Excel, PowerPoint, Teams, OneDrive, Outlook for business use.",
+    description: "Word, Excel, PowerPoint, Teams, and 1TB OneDrive. For business and personal use.",
     priceZar: "$12.50",
     priceUsd: "$12.50",
     priceInr: "₹1,060",
     icon: "💼",
     badge: "POPULAR",
     category: "Business",
-    image: "https://images.unsplash.com/photo-1668645812236-89c0e7c8e3dc?w=500&h=300&fit=crop"
+    image: "/images/microsoft-365.jpg"
+  },
+  {
+    id: "spotify-premium",
+    name: "Spotify Premium",
+    description: "Ad-free music, offline listening, unlimited skips. 100M+ songs and podcasts.",
+    priceZar: "$9.99",
+    priceUsd: "$9.99",
+    priceInr: "₹850",
+    icon: "🎵",
+    badge: "POPULAR",
+    category: "Entertainment",
+    image: "/images/spotify.jpg"
+  },
+  {
+    id: "nordvpn",
+    name: "NordVPN",
+    description: "Military-grade encryption, 5,500+ servers in 60 countries. No-logs policy.",
+    priceZar: "$3.99",
+    priceUsd: "$3.99",
+    priceInr: "₹340",
+    icon: "🔒",
+    badge: "HOT",
+    category: "Security",
+    image: "/images/nordvpn.jpg"
+  },
+  {
+    id: "canva-pro",
+    name: "Canva Pro",
+    description: "Premium design templates, Brand Kit, background remover, and 100M+ stock assets.",
+    priceZar: "$12.99",
+    priceUsd: "$12.99",
+    priceInr: "₹1,100",
+    icon: "✨",
+    badge: "NEW",
+    category: "Creative",
+    image: "/images/canva.jpg"
   },
   {
     id: "grammarly-premium",
     name: "Grammarly Premium",
-    description: "Advanced grammar checking, plagiarism detection, tone adjustments.",
-    priceZar: "$45.00",
+    description: "AI writing assistant with advanced grammar, clarity, and plagiarism detection.",
+    priceZar: "$12.00",
     priceUsd: "$12.00",
     priceInr: "₹1,020",
     icon: "✍️",
-    badge: undefined,
-    category: "Business",
-    image: "https://images.unsplash.com/photo-1516321318423-f06f05eaa740?w=500&h=300&fit=crop"
+    badge: "POPULAR",
+    category: "Productivity",
+    image: "/images/grammarly.jpg"
   },
   {
-    id: "dropbox-pro",
-    name: "Dropbox Professional",
-    description: "2TB cloud storage, file sharing, collaboration tools.",
-    priceZar: "$59.99",
-    priceUsd: "$16.99",
-    priceInr: "₹1,440",
-    icon: "☁️",
-    badge: undefined,
-    category: "Business",
-    image: "https://images.unsplash.com/photo-1669255911061-7bb3e4f1a8a0?w=500&h=300&fit=crop"
-  },
-  {
-    id: "zoom-subsidiary",
-    name: "Zoom Subscriber",
-    description: "HD video conferencing, screen sharing, recording.",
-    priceZar: "$65.00",
-    priceUsd: "$15.00",
+    id: "zoom-pro",
+    name: "Zoom Pro",
+    description: "Unlimited meetings up to 30 hours, 100 participants, cloud recording, admin controls.",
+    priceZar: "$14.99",
+    priceUsd: "$14.99",
     priceInr: "₹1,275",
     icon: "📹",
-    badge: undefined,
+    badge: "HOT",
     category: "Business",
-    image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500&h=300&fit=crop"
+    image: "/images/zoom.jpg"
   },
   {
-    id: "notion-team",
-    name: "Notion Team License",
-    description: "Collaborate seamlessly with your team using enterprise-grade features.",
-    priceZar: "$129.99",
-    priceUsd: "$7.00",
-    priceInr: "₹600",
+    id: "notion-plus",
+    name: "Notion Plus",
+    description: "All-in-one workspace for notes, wikis, databases, and project management.",
+    priceZar: "$8.00",
+    priceUsd: "$8.00",
+    priceInr: "₹680",
     icon: "📝",
-    badge: undefined,
+    badge: "POPULAR",
     category: "Productivity",
-    image: "https://images.unsplash.com/photo-1506784983877-45594efa4f8e?w=500&h=300&fit=crop"
+    image: "/images/notion.jpg"
   },
   {
-    id: "evernote-business",
-    name: "Evernote Business",
-    description: "Team workspace, shared notebooks, advanced search.",
-    priceZar: "$42.00",
-    priceUsd: "$8.99",
-    priceInr: "₹765",
-    icon: "📋",
-    badge: undefined,
-    category: "Productivity",
-    image: "https://images.unsplash.com/photo-1506784983877-45594efa4f8e?w=500&h=300&fit=crop"
-  },
-  {
-    id: "trello-business-class",
-    name: "Trello Business Class",
-    description: "Visual project management with boards, cards, lists.",
-    priceZar: "$48.00",
+    id: "figma-professional",
+    name: "Figma Professional",
+    description: "Collaborative UI/UX design tool. Real-time multiplayer, unlimited projects, dev mode.",
+    priceZar: "$12.00",
     priceUsd: "$12.00",
     priceInr: "₹1,020",
-    icon: "🗂️",
-    badge: undefined,
+    icon: "",
+    badge: "HOT",
+    category: "Creative",
+    image: "/images/figma.jpg"
+  },
+  {
+    id: "dropbox-plus",
+    name: "Dropbox Plus",
+    description: "2TB cloud storage, Smart Sync, version history, and secure file sharing.",
+    priceZar: "$9.99",
+    priceUsd: "$9.99",
+    priceInr: "₹850",
+    icon: "☁️",
+    badge: "POPULAR",
     category: "Productivity",
-    image: "https://images.unsplash.com/photo-1506784983877-45594efa4f8e?w=500&h=300&fit=crop"
+    image: "/images/dropbox.jpg"
+  },
+  {
+    id: "lastpass-premium",
+    name: "LastPass Premium",
+    description: "Secure password manager with dark web monitoring, 1GB encrypted storage.",
+    priceZar: "$3.00",
+    priceUsd: "$3.00",
+    priceInr: "₹255",
+    icon: "🔐",
+    badge: "POPULAR",
+    category: "Security",
+    image: "/images/lastpass.jpg"
+  },
+  {
+    id: "cursor-ai-pro",
+    name: "Cursor AI Pro",
+    description: "AI-first code editor built on VS Code. Write, edit, and debug with GPT-4 natively.",
+    priceZar: "$20.00",
+    priceUsd: "$20.00",
+    priceInr: "₹1,700",
+    icon: "👨‍💻",
+    badge: "NEW",
+    category: "AI Tools",
+    image: "/images/cursor.jpg"
+  },
+  {
+    id: "midjourney-standard",
+    name: "Midjourney Standard",
+    description: "AI image generation. 15 GPU hours/month, unlimited relaxed generations.",
+    priceZar: "$24.00",
+    priceUsd: "$24.00",
+    priceInr: "₹2,040",
+    icon: "🎨",
+    badge: "HOT",
+    category: "AI Tools",
+    image: "/images/midjourney.jpg"
   },
   {
     id: "asana-premium",
     name: "Asana Premium",
-    description: "Project management with timeline view, dependencies.",
-    priceZar: "$56.00",
-    priceUsd: "$13.99",
-    priceInr: "₹1,190",
+    description: "Project management with Gantt charts, workflow automation, and advanced reporting.",
+    priceZar: "$10.99",
+    priceUsd: "$10.99",
+    priceInr: "₹935",
     icon: "✅",
-    badge: undefined,
-    category: "Productivity",
-    image: "https://images.unsplash.com/photo-1506784983877-45594efa4f8e?w=500&h=300&fit=crop"
-  },
-  {
-    id: "nordvpn-premium",
-    name: "NordVPN Premium",
-    description: "Top-rated VPN with military-grade encryption, no-logs policy.",
-    priceZar: "$30.00",
-    priceUsd: "$11.99",
-    priceInr: "₹1,020",
-    icon: "🔒",
     badge: "POPULAR",
-    category: "Security",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500&h=300&fit=crop"
+    category: "Business",
+    image: "/images/asana.jpg"
   },
   {
-    id: "expressvpn-premium",
-    name: "ExpressVPN Premium",
-    description: "Ultra-fast VPN with server in 94 countries, split tunneling.",
-    priceZar: "$40.00",
-    priceUsd: "$16.67",
-    priceInr: "₹1,420",
-    icon: "",
-    badge: undefined,
-    category: "Security",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500&h=300&fit=crop"
-  },
-  {
-    id: "malwarebytes-premium",
-    name: "Malwarebytes Premium",
-    description: "Advanced malware protection, ransomware defense.",
-    priceZar: "$50.00",
-    priceUsd: "$39.99",
-    priceInr: "₹3,400",
-    icon: "🛡️",
+    id: "express-vpn",
+    name: "ExpressVPN",
+    description: "Ultra-fast VPN with 3,000+ servers, split tunneling, and 24/7 support.",
+    priceZar: "$6.67",
+    priceUsd: "$6.67",
+    priceInr: "₹570",
+    icon: "️",
     badge: "HOT",
     category: "Security",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500&h=300&fit=crop"
+    image: "/images/express-vpn.jpg"
   },
   {
-    id: "lastpass-family",
-    name: "LastPass Family",
-    description: "Password manager for up to 6 family members.",
-    priceZar: "$35.00",
-    priceUsd: "$12.00",
-    priceInr: "₹1,020",
-    icon: "🔐",
-    badge: undefined,
-    category: "Security",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500&h=300&fit=crop"
-  },
-  {
-    id: "youtube-studio-premium",
-    name: "YouTube Studio Premium",
-    description: "Advanced analytics, custom thumbnails, audience insights.",
-    priceZar: "$45.00",
+    id: "youtube-premium",
+    name: "YouTube Premium",
+    description: "Ad-free YouTube, background play, offline downloads, and YouTube Music included.",
+    priceZar: "$13.99",
     priceUsd: "$13.99",
     priceInr: "₹1,190",
     icon: "▶️",
     badge: "POPULAR",
+    category: "Entertainment",
+    image: "/images/youtube.jpg"
+  },
+  {
+    id: "1password",
+    name: "1Password",
+    description: "Password manager with Travel Mode, Watchtower security alerts, and family sharing.",
+    priceZar: "$2.99",
+    priceUsd: "$2.99",
+    priceInr: "₹255",
+    icon: "🔐",
+    badge: "POPULAR",
+    category: "Security",
+    image: "/images/1password.jpg"
+  },
+  {
+    id: "monday-com-pro",
+    name: "Monday.com Pro",
+    description: "Visual work OS with automations, integrations, and real-time collaboration dashboards.",
+    priceZar: "$9.00",
+    priceUsd: "$9.00",
+    priceInr: "₹765",
+    icon: "📊",
+    badge: "NEW",
+    category: "Business",
+    image: "/images/monday.jpg"
+  },
+  {
+    id: "perplexity-pro",
+    name: "Perplexity Pro",
+    description: "AI-powered search engine with real-time web access, citations, and image generation.",
+    priceZar: "$20.00",
+    priceUsd: "$20.00",
+    priceInr: "₹1,700",
+    icon: "🔍",
+    badge: "NEW",
     category: "AI Tools",
-    image: "https://images.unsplash.com/photo-1681580910373-b7e2a7e1c9b4?w=500&h=300&fit=crop"
+    image: "/images/perplexity.jpg"
   },
   {
     id: "github-copilot",
     name: "GitHub Copilot",
-    description: "AI pair programmer for developers. Autocomplete code.",
-    priceZar: "$35.00",
+    description: "AI pair programmer. Real-time code suggestions, multi-language support.",
+    priceZar: "$10.00",
     priceUsd: "$10.00",
     priceInr: "₹850",
     icon: "👨‍💻",
-    badge: undefined,
+    badge: "HOT",
     category: "AI Tools",
-    image: "https://images.unsplash.com/photo-1681580910373-b7e2a7e1c9b4?w=500&h=300&fit=crop"
+    image: "/images/github-copilot.jpg"
   },
   {
-    id: "figma-teams",
-    name: "Figma Teams",
-    description: "Professional design collaboration with unlimited projects.",
-    priceZar: "$80.00",
-    priceUsd: "$15.00",
-    priceInr: "₹1,275",
-    icon: "",
-    badge: undefined,
+    id: "slack-pro",
+    name: "Slack Pro",
+    description: "Team messaging with unlimited message history, Huddles, and 10+ app integrations.",
+    priceZar: "$7.25",
+    priceUsd: "$7.25",
+    priceInr: "₹615",
+    icon: "💬",
+    badge: "POPULAR",
+    category: "Business",
+    image: "/images/slack.jpg"
+  },
+  {
+    id: "dashlane-premium",
+    name: "Dashlane Premium",
+    description: "Password manager with VPN, dark web monitoring, and phishing alerts.",
+    priceZar: "$4.99",
+    priceUsd: "$4.99",
+    priceInr: "₹425",
+    icon: "🛡️",
+    badge: "POPULAR",
+    category: "Security",
+    image: "/images/dashlane.jpg"
+  },
+  {
+    id: "adobe-photoshop",
+    name: "Adobe Photoshop",
+    description: "Industry-standard photo editing and compositing. AI-powered tools, Neural Filters.",
+    priceZar: "$22.99",
+    priceUsd: "$22.99",
+    priceInr: "₹1,950",
+    icon: "🎨",
+    badge: "POPULAR",
     category: "Creative",
-    image: "https://images.unsplash.com/photo-1626785774573-4b799312afc2?w=500&h=300&fit=crop"
+    image: "/images/photoshop.jpg"
   },
   {
-    id: "airtable-enterprise",
-    name: "Airtable Enterprise",
-    description: "Database-as-a-platform for complex workflows.",
-    priceZar: "$75.00",
+    id: "claude-pro",
+    name: "Claude Pro",
+    description: "Anthropic's advanced AI assistant. 200K context window, priority access.",
+    priceZar: "$20.00",
     priceUsd: "$20.00",
     priceInr: "₹1,700",
-    icon: "",
-    badge: undefined,
-    category: "Productivity",
-    image: "https://images.unsplash.com/photo-1506784983877-45594efa4f8e?w=500&h=300&fit=crop"
-  },
-  {
-    id: "unity-pro-license",
-    name: "Unity Pro License",
-    description: "Professional game development engine. Remove Unity branding.",
-    priceZar: "$250.00",
-    priceUsd: "$200.00",
-    priceInr: "₹17,000",
-    icon: "🎮",
-    badge: undefined,
-    category: "Creative",
-    image: "https://images.unsplash.com/photo-1618331835155-5e782857fd49?w=500&h=300&fit=crop"
-  },
-  {
-    id: "blender-courses",
-    name: "Blender Pro Courses",
-    description: "Complete 3D modeling & animation training bundle.",
-    priceZar: "$95.00",
-    priceUsd: "$79.99",
-    priceInr: "₹6,800",
-    icon: "🎨",
+    icon: "💬",
     badge: "NEW",
+    category: "AI Tools",
+    image: "/images/claude.jpg"
+  },
+  {
+    id: "adobe-premiere-pro",
+    name: "Adobe Premiere Pro",
+    description: "Professional video editing with AI auto-reframe, speech-to-text, and Lumetri color.",
+    priceZar: "$22.99",
+    priceUsd: "$22.99",
+    priceInr: "₹1,950",
+    icon: "🎬",
+    badge: "HOT",
     category: "Creative",
-    image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500&h=300&fit=crop"
+    image: "/images/premiere.jpg"
+  },
+  {
+    id: "loom-business",
+    name: "Loom Business",
+    description: "Async video messaging. Screen + cam recording, AI summaries, team workspace.",
+    priceZar: "$12.50",
+    priceUsd: "$12.50",
+    priceInr: "₹1,060",
+    icon: "🎥",
+    badge: "POPULAR",
+    category: "Productivity",
+    image: "/images/loom.jpg"
+  },
+  {
+    id: "webflow-cms",
+    name: "Webflow CMS",
+    description: "No-code website builder with CMS, hosting, and custom domain. Export clean code.",
+    priceZar: "$14.00",
+    priceUsd: "$14.00",
+    priceInr: "₹1,190",
+    icon: "🌐",
+    badge: "NEW",
+    category: "Business",
+    image: "/images/webflow.jpg"
+  },
+  {
+    id: "elevenlabs-starter",
+    name: "ElevenLabs Starter",
+    description: "AI voice cloning and text-to-speech. 30,000 characters/month, 10+ voice styles.",
+    priceZar: "$5.00",
+    priceUsd: "$5.00",
+    priceInr: "₹425",
+    icon: "🗣️",
+    badge: "NEW",
+    category: "AI Tools",
+    image: "/images/elevenlabs.jpg"
   }
 ];
 
@@ -392,6 +392,7 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0e17] text-white">
+      {/* Navigation */}
       <nav className="border-b border-gray-800 sticky top-0 bg-[#0a0e17]/95 backdrop-blur-md z-50">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="font-bold text-xl text-cyan-400 flex items-center gap-2">
@@ -434,10 +435,12 @@ export default function ProductsPage() {
         </div>
       </nav>
 
+      {/* Main Products Section */}
       <section className="container mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold mb-6 text-center">All Digital Products</h1>
         <p className="text-center text-gray-400 mb-12 max-w-2xl mx-auto">Premium digital assets delivered instantly via email verification.</p>
         
+        {/* Category Tabs */}
         <div className="flex flex-wrap gap-3 mb-12 justify-center">
           {categories.map((category) => (
             <button
@@ -454,6 +457,7 @@ export default function ProductsPage() {
           ))}
         </div>
         
+        {/* Product Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
             <div key={product.id} className="relative group cursor-pointer">
@@ -489,6 +493,7 @@ export default function ProductsPage() {
         </div>
       </section>
 
+      {/* Footer */}
       <footer className="border-t border-gray-800 mt-24 py-12 text-center text-gray-400 text-sm">
         © 2026 Super Digital Markets. All rights reserved. | Instant Delivery • Secure Payment • 24/7 Support • Global Market
       </footer>
