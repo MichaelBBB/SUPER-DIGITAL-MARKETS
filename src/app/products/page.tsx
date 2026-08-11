@@ -43,7 +43,7 @@ const allProducts: Product[] = [
     image: "/images/adobe-cc.jpg"
   },
   {
-    id: "netflix-premium",
+    id: "netfix",  // FIXED: matches actual filename exactly
     name: "Netflix Premium",
     description: "4K streaming, 4 simultaneous screens, offline downloads. 10,000+ titles worldwide.",
     priceZar: "$22.99",
@@ -52,7 +52,7 @@ const allProducts: Product[] = [
     icon: "",
     badge: "HOT",
     category: "Entertainment",
-    image: "/images/netflix-premium.jpg"  // FIXED!
+    image: "/images/netfix.jpg"  // FIXED!
   },
   {
     id: "microsoft365",
