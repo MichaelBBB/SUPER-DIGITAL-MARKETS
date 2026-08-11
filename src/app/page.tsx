@@ -1,6 +1,65 @@
+"use client"; // Added to allow interactivity for the live tracker
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  // Initial Sales Numbers
+  const [sales, setSales] = useState({
+    usa: 226805,
+    india: 233953,
+    china: 231752,
+    sa: 215595,
+  });
+
+  // Recent Activity State
+  const [recentActivity, setRecentActivity] = useState<{ country: string; product: string; time: string } | null>(null);
+
+  const products = ["ChatGPT Plus", "Adobe CC", "Disney Premium", "NordVPN", "Canva Pro", "Spotify"];
+  const countries = [
+    { name: "USA", flag: "🇺🇸", key: "usa" },
+    { name: "India", flag: "🇮🇳", key: "india" },
+    { name: "China", flag: "🇳", key: "china" },
+    { name: "South Africa", flag: "🇿🇦", key: "sa" },
+  ];
+
+  // Effect 1: Increment Sales Numbers Randomly
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSales((prev) => {
+        const randomCountry = countries[Math.floor(Math.random() * countries.length)].key as keyof typeof prev;
+        return {
+          ...prev,
+          [randomCountry]: prev[randomCountry] + Math.floor(Math.random() * 3) + 1,
+        };
+      });
+    }, 2500); // Updates every 2.5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Effect 2: Show "Recent Sale" Popup
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomCountry = countries[Math.floor(Math.random() * countries.length)];
+      const randomProduct = products[Math.floor(Math.random() * products.length)];
+      
+      setRecentActivity({
+        country: randomCountry.name,
+        product: randomProduct,
+        time: "Just now",
+      });
+
+      // Hide popup after 4 seconds
+      setTimeout(() => setRecentActivity(null), 4000);
+    }, 8000); // New notification every 8 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Format numbers with commas
+  const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* EARTH BACKGROUND */}
@@ -32,7 +91,7 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-3">
-              <span className="bg-green-500/20 text-green-400 text-xs px-3 py-1 rounded-full border border-green-500">● LIVE</span>
+              <span className="bg-green-500/20 text-green-400 text-xs px-3 py-1 rounded-full border border-green-500 animate-pulse">● LIVE</span>
               <Link href="/products" className="bg-cyan-500 hover:bg-cyan-400 text-white px-6 py-2 rounded-full font-bold">Shop Now</Link>
             </div>
           </div>
@@ -47,7 +106,7 @@ export default function Home() {
             <span className="text-yellow-400">Delivered Instantly.</span>
           </h1>
           <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
-            From AI tools to creative software — shop globally. Pay in USD/ZAR/INR, receive instantly.
+            From AI tools to creative software — shop globally. Pay in USD, receive instantly.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
@@ -60,40 +119,56 @@ export default function Home() {
           </div>
         </main>
 
-        {/* LIVE SALES TRACKER SECTION (MOVED HERE) */}
+        {/* ✅ LIVE SALES TRACKER (DYNAMIC) */}
         <section className="container mx-auto px-4 pb-20">
-          <div className="bg-[#0b0f14]/90 backdrop-blur-sm rounded-2xl p-8 border border-gray-800 shadow-2xl">
+          <div className="bg-[#0b0f14]/90 backdrop-blur-sm rounded-2xl p-8 border border-gray-800 shadow-2xl relative overflow-hidden">
+            
+            {/* RECENT ACTIVITY POPUP */}
+            {recentActivity && (
+              <div className="absolute top-4 right-4 bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-bounce z-20">
+                <span className="text-xl">🛒</span>
+                <div className="text-sm">
+                  <span className="font-bold">{recentActivity.country}</span> just bought <span className="font-semibold">{recentActivity.product}</span>
+                </div>
+              </div>
+            )}
+
             <h2 className="text-cyan-400 font-bold text-center text-2xl mb-8 tracking-wider">LIVE SALES ACTIVITY</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {/* USA */}
-              <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700">
-                <div className="text-blue-400 text-sm font-bold mb-2">USA</div>
-                <div className="text-3xl font-bold text-white">226,805</div>
+              <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700 transition hover:border-blue-500">
+                <div className="text-blue-400 text-sm font-bold mb-2">🇺 USA</div>
+                <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.usa)}</div>
+                <div className="text-xs text-gray-500 mt-2">+{Math.floor(Math.random() * 5)} today</div>
               </div>
               {/* INDIA */}
-              <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700">
-                <div className="text-orange-400 text-sm font-bold mb-2">INDIA</div>
-                <div className="text-3xl font-bold text-white">233,953</div>
+              <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700 transition hover:border-orange-500">
+                <div className="text-orange-400 text-sm font-bold mb-2">🇮🇳 INDIA</div>
+                <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.india)}</div>
+                <div className="text-xs text-gray-500 mt-2">+{Math.floor(Math.random() * 5)} today</div>
               </div>
               {/* CHINA */}
-              <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700">
-                <div className="text-red-400 text-sm font-bold mb-2">CHINA</div>
-                <div className="text-3xl font-bold text-white">231,752</div>
+              <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700 transition hover:border-red-500">
+                <div className="text-red-400 text-sm font-bold mb-2">🇨🇳 CHINA</div>
+                <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.china)}</div>
+                <div className="text-xs text-gray-500 mt-2">+{Math.floor(Math.random() * 5)} today</div>
               </div>
               {/* SOUTH AFRICA */}
               <div className="bg-[#16191f] p-6 rounded-xl text-center border-2 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-                <div className="text-green-400 text-sm font-bold mb-2">SOUTH AFRICA</div>
-                <div className="text-3xl font-bold text-white">215,595</div>
+                <div className="text-green-400 text-sm font-bold mb-2">🇦 SOUTH AFRICA</div>
+                <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.sa)}</div>
+                <div className="text-xs text-gray-500 mt-2">+{Math.floor(Math.random() * 5)} today</div>
               </div>
             </div>
             <div className="mt-8 pt-6 border-t border-gray-800 text-center">
               <span className="text-gray-400 mr-2">Total Global Volume:</span>
-              <span className="text-cyan-400 font-bold text-2xl">908,105</span>
+              <span className="text-cyan-400 font-bold text-2xl tabular-nums">
+                {formatNumber(sales.usa + sales.india + sales.china + sales.sa)}
+              </span>
             </div>
           </div>
         </section>
 
-        {/* FOOTER */}
         <footer className="text-center text-gray-500 pb-8">
           © 2026 Super Digital Markets.
         </footer>
