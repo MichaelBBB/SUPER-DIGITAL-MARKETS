@@ -60,7 +60,7 @@ export default function Home() {
           </div>
         </main>
 
-        {/* LIVE SALES TRACKER SECTION */}
+        {/* LIVE SALES TRACKER SECTION (MOVED HERE) */}
         <section className="container mx-auto px-4 pb-20">
           <div className="bg-[#0b0f14]/90 backdrop-blur-sm rounded-2xl p-8 border border-gray-800 shadow-2xl">
             <h2 className="text-cyan-400 font-bold text-center text-2xl mb-8 tracking-wider">LIVE SALES ACTIVITY</h2>
