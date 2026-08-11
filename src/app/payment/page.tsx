@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Check, Zap, Lock } from "lucide-react";
 
 const methods = [
@@ -10,8 +11,28 @@ const methods = [
 ];
 
 export default function PaymentPage() {
+  const searchParams = useSearchParams();
+  
+  // ✅ READ FROM URL WITH DEFAULTS
+  const initialAmount = searchParams.get("amount") || "54.99";
+  const initialItem = searchParams.get("item") || "Digital Product";
+  
+  const [amount, setAmount] = useState(initialAmount);
+  const [itemName, setItemName] = useState(initialItem);
   const [selected, setSelected] = useState(methods[0]);
   const [loading, setLoading] = useState(false);
+
+  // Update state if URL changes (optional safety)
+  useEffect(() => {
+    const urlAmount = searchParams.get("amount");
+    const urlItem = searchParams.get("item");
+    if (urlAmount) setAmount(urlAmount);
+    if (urlItem) setItemName(urlItem);
+  }, [searchParams]);
+
+  // Calculate ZAR (Approx 1 USD = 18.5 ZAR)
+  const amountFloat = parseFloat(amount);
+  const zarAmount = (amountFloat * 18.5).toFixed(2);
 
   const handlePay = async () => {
     setLoading(true);
@@ -19,7 +40,12 @@ export default function PaymentPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: 5499, currency: "ZAR", paymentMethod: selected.id }),
+        body: JSON.stringify({ 
+          amount: Math.round(parseFloat(zarAmount) * 100), 
+          currency: "ZAR", 
+          paymentMethod: selected.id,
+          itemName: itemName
+        }),
       });
       const data = await res.json();
       if (data.redirectUrl) window.location.href = data.redirectUrl;
@@ -31,8 +57,8 @@ export default function PaymentPage() {
       <div className="w-full max-w-5xl">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Secure Checkout</h1>
-          <p className="text-gray-400">Select your payment method below</p>
-          <Link href="/" className="inline-block mt-4 text-blue-400 hover:text-blue-300">← Back to Home</Link>
+          <p className="text-gray-400">Purchasing: <span className="text-cyan-400 font-bold text-xl">{itemName}</span></p>
+          <Link href="/products" className="inline-block mt-4 text-blue-400 hover:text-blue-300">← Back to Products</Link>
         </div>
         
         <div className="flex flex-col md:flex-row gap-8">
@@ -80,7 +106,11 @@ export default function PaymentPage() {
                 </div>
               )}
 
-              <div className="text-xl font-bold mb-4 text-center">Total: R54.99</div>
+              {/* ✅ DYNAMIC PRICE DISPLAY */}
+              <div className="text-2xl font-bold mb-6 text-center text-cyan-400">
+                Total: R{zarAmount} 
+                <span className="block text-sm text-gray-500 font-normal mt-1">(Approx. ${amount})</span>
+              </div>
               
               {/* CAPITEC DETAILS */}
               {selected.id === "capitec" && (
@@ -92,13 +122,13 @@ export default function PaymentPage() {
                     <div className="text-gray-400">Branch Code:</div><div className="text-white font-medium">470010</div>
                     <div className="text-gray-400">Swift Code:</div><div className="text-white font-medium">CABLZAJJ</div>
                   </div>
-                  <div className="mt-4 text-xs text-gray-500">Transfer exact amount. Email proof to payments@superdigital.store with Order ID.</div>
+                  <div className="mt-4 text-xs text-gray-500">Transfer exact amount: <span className="text-white font-bold">R{zarAmount}</span>. Email proof to payments@superdigital.store with Item: {itemName}.</div>
                 </div>
               )}
 
               <button onClick={handlePay} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white py-4 rounded-xl font-bold text-lg flex justify-center items-center gap-2">
                 <Lock className="w-5 h-5"/>
-                {loading ? "Processing..." : "Pay R54.99"}
+                {loading ? "Processing..." : `Pay R${zarAmount}`}
               </button>
             </div>
           </div>
