@@ -52,10 +52,10 @@ const allProducts: Product[] = [
     icon: "",
     badge: "HOT",
     category: "Entertainment",
-    image: "/images/netflix-streaming.jpg"  // FIXED
+    image: "/images/netflix.jpg"  // FIXED!
   },
   {
-    id: "microsoft",
+    id: "microsoft365",
     name: "Microsoft 365 Business",
     description: "Word, Excel, PowerPoint, Teams, and 1TB OneDrive. For business and personal use.",
     priceZar: "$12.50",
@@ -64,7 +64,7 @@ const allProducts: Product[] = [
     icon: "💼",
     badge: "POPULAR",
     category: "Business",
-    image: "/images/microsoft-office.jpg"  // FIXED
+    image: "/images/microsoft365.jpg"  // FIXED!
   },
   {
     id: "spotify",
@@ -211,7 +211,7 @@ const allProducts: Product[] = [
     image: "/images/asana.jpg"
   },
   {
-    id: "express-vpn",
+    id: "expressvpn",
     name: "ExpressVPN",
     description: "Ultra-fast VPN with 3,000+ servers, split tunneling, and 24/7 support.",
     priceZar: "$6.67",
@@ -220,10 +220,10 @@ const allProducts: Product[] = [
     icon: "",
     badge: "HOT",
     category: "Security",
-    image: "/images/express.jpg"  // FIXED
+    image: "/images/expressvpn.jpg"  // FIXED!
   },
   {
-    id: "youtube",
+    id: "youtube-premium",
     name: "YouTube Premium",
     description: "Ad-free YouTube, background play, offline downloads, and YouTube Music included.",
     priceZar: "$13.99",
@@ -232,7 +232,7 @@ const allProducts: Product[] = [
     icon: "▶️",
     badge: "POPULAR",
     category: "Entertainment",
-    image: "/images/youtube-tv.jpg"  // FIXED
+    image: "/images/youtube-premium.jpg"  // FIXED!
   },
   {
     id: "1password",
