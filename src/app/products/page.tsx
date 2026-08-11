@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* BRIGHT EARTH BACKGROUND IMAGE */}
+      {/* EARTH BACKGROUND IMAGE */}
       <div 
         className="absolute inset-0 z-0"
         style={{
@@ -35,7 +35,7 @@ export default function Home() {
             <div className="hidden md:flex space-x-10">
               <Link href="/" className="text-white hover:text-cyan-400 transition font-medium">Home</Link>
               <Link href="/products" className="text-white hover:text-cyan-400 transition font-medium">Products</Link>
-              <Link href="/checkout" className="text-white hover:text-cyan-400 transition font-medium">Checkout</Link>
+              <Link href="/payment" className="text-white hover:text-cyan-400 transition font-medium">Checkout</Link>
             </div>
             
             <div className="flex items-center gap-3">
