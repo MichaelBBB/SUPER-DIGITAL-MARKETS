@@ -31,7 +31,7 @@ const allProducts: Product[] = [
     image: "/images/chatgpt.jpg"
   },
   {
-    id: "adobe-creative-cloud",
+    id: "adobe-cc",
     name: "Adobe Creative Cloud",
     description: "Full suite of Adobe apps — Photoshop, Illustrator, Premiere Pro, and 20+ more.",
     priceZar: "$54.99",
@@ -43,7 +43,7 @@ const allProducts: Product[] = [
     image: "/images/adobe-cc.jpg"
   },
   {
-    id: "netflix-premium",
+    id: "netflix",
     name: "Netflix Premium",
     description: "4K streaming, 4 simultaneous screens, offline downloads. 10,000+ titles worldwide.",
     priceZar: "$22.99",
@@ -55,7 +55,7 @@ const allProducts: Product[] = [
     image: "/images/netflix.jpg"
   },
   {
-    id: "microsoft-365-business",
+    id: "microsoft",
     name: "Microsoft 365 Business",
     description: "Word, Excel, PowerPoint, Teams, and 1TB OneDrive. For business and personal use.",
     priceZar: "$12.50",
@@ -64,10 +64,10 @@ const allProducts: Product[] = [
     icon: "💼",
     badge: "POPULAR",
     category: "Business",
-    image: "/images/microsoft-365.jpg"
+    image: "/images/microsoft.jpg"
   },
   {
-    id: "spotify-premium",
+    id: "spotify",
     name: "Spotify Premium",
     description: "Ad-free music, offline listening, unlimited skips. 100M+ songs and podcasts.",
     priceZar: "$9.99",
@@ -91,7 +91,7 @@ const allProducts: Product[] = [
     image: "/images/nordvpn.jpg"
   },
   {
-    id: "canva-pro",
+    id: "canva",
     name: "Canva Pro",
     description: "Premium design templates, Brand Kit, background remover, and 100M+ stock assets.",
     priceZar: "$12.99",
@@ -103,7 +103,7 @@ const allProducts: Product[] = [
     image: "/images/canva.jpg"
   },
   {
-    id: "grammarly-premium",
+    id: "grammarly",
     name: "Grammarly Premium",
     description: "AI writing assistant with advanced grammar, clarity, and plagiarism detection.",
     priceZar: "$12.00",
@@ -115,7 +115,7 @@ const allProducts: Product[] = [
     image: "/images/grammarly.jpg"
   },
   {
-    id: "zoom-pro",
+    id: "zoom",
     name: "Zoom Pro",
     description: "Unlimited meetings up to 30 hours, 100 participants, cloud recording, admin controls.",
     priceZar: "$14.99",
@@ -127,7 +127,7 @@ const allProducts: Product[] = [
     image: "/images/zoom.jpg"
   },
   {
-    id: "notion-plus",
+    id: "notion",
     name: "Notion Plus",
     description: "All-in-one workspace for notes, wikis, databases, and project management.",
     priceZar: "$8.00",
@@ -139,7 +139,7 @@ const allProducts: Product[] = [
     image: "/images/notion.jpg"
   },
   {
-    id: "figma-professional",
+    id: "figma",
     name: "Figma Professional",
     description: "Collaborative UI/UX design tool. Real-time multiplayer, unlimited projects, dev mode.",
     priceZar: "$12.00",
@@ -151,7 +151,7 @@ const allProducts: Product[] = [
     image: "/images/figma.jpg"
   },
   {
-    id: "dropbox-plus",
+    id: "dropbox",
     name: "Dropbox Plus",
     description: "2TB cloud storage, Smart Sync, version history, and secure file sharing.",
     priceZar: "$9.99",
@@ -163,7 +163,7 @@ const allProducts: Product[] = [
     image: "/images/dropbox.jpg"
   },
   {
-    id: "lastpass-premium",
+    id: "lastpass",
     name: "LastPass Premium",
     description: "Secure password manager with dark web monitoring, 1GB encrypted storage.",
     priceZar: "$3.00",
@@ -175,7 +175,7 @@ const allProducts: Product[] = [
     image: "/images/lastpass.jpg"
   },
   {
-    id: "cursor-ai-pro",
+    id: "cursor",
     name: "Cursor AI Pro",
     description: "AI-first code editor built on VS Code. Write, edit, and debug with GPT-4 natively.",
     priceZar: "$20.00",
@@ -187,7 +187,7 @@ const allProducts: Product[] = [
     image: "/images/cursor.jpg"
   },
   {
-    id: "midjourney-standard",
+    id: "midjourney",
     name: "Midjourney Standard",
     description: "AI image generation. 15 GPU hours/month, unlimited relaxed generations.",
     priceZar: "$24.00",
@@ -199,7 +199,7 @@ const allProducts: Product[] = [
     image: "/images/midjourney.jpg"
   },
   {
-    id: "asana-premium",
+    id: "asana",
     name: "Asana Premium",
     description: "Project management with Gantt charts, workflow automation, and advanced reporting.",
     priceZar: "$10.99",
@@ -223,7 +223,7 @@ const allProducts: Product[] = [
     image: "/images/express-vpn.jpg"
   },
   {
-    id: "youtube-premium",
+    id: "youtube",
     name: "YouTube Premium",
     description: "Ad-free YouTube, background play, offline downloads, and YouTube Music included.",
     priceZar: "$13.99",
@@ -247,7 +247,7 @@ const allProducts: Product[] = [
     image: "/images/1password.jpg"
   },
   {
-    id: "monday-com-pro",
+    id: "monday",
     name: "Monday.com Pro",
     description: "Visual work OS with automations, integrations, and real-time collaboration dashboards.",
     priceZar: "$9.00",
@@ -259,7 +259,7 @@ const allProducts: Product[] = [
     image: "/images/monday.jpg"
   },
   {
-    id: "perplexity-pro",
+    id: "perplexity",
     name: "Perplexity Pro",
     description: "AI-powered search engine with real-time web access, citations, and image generation.",
     priceZar: "$20.00",
@@ -283,7 +283,7 @@ const allProducts: Product[] = [
     image: "/images/github-copilot.jpg"
   },
   {
-    id: "slack-pro",
+    id: "slack",
     name: "Slack Pro",
     description: "Team messaging with unlimited message history, Huddles, and 10+ app integrations.",
     priceZar: "$7.25",
@@ -295,7 +295,7 @@ const allProducts: Product[] = [
     image: "/images/slack.jpg"
   },
   {
-    id: "dashlane-premium",
+    id: "dashlane",
     name: "Dashlane Premium",
     description: "Password manager with VPN, dark web monitoring, and phishing alerts.",
     priceZar: "$4.99",
@@ -307,7 +307,7 @@ const allProducts: Product[] = [
     image: "/images/dashlane.jpg"
   },
   {
-    id: "adobe-photoshop",
+    id: "photoshop",
     name: "Adobe Photoshop",
     description: "Industry-standard photo editing and compositing. AI-powered tools, Neural Filters.",
     priceZar: "$22.99",
@@ -319,7 +319,7 @@ const allProducts: Product[] = [
     image: "/images/photoshop.jpg"
   },
   {
-    id: "claude-pro",
+    id: "claude",
     name: "Claude Pro",
     description: "Anthropic's advanced AI assistant. 200K context window, priority access.",
     priceZar: "$20.00",
@@ -331,7 +331,7 @@ const allProducts: Product[] = [
     image: "/images/claude.jpg"
   },
   {
-    id: "adobe-premiere-pro",
+    id: "premiere",
     name: "Adobe Premiere Pro",
     description: "Professional video editing with AI auto-reframe, speech-to-text, and Lumetri color.",
     priceZar: "$22.99",
@@ -343,7 +343,7 @@ const allProducts: Product[] = [
     image: "/images/premiere.jpg"
   },
   {
-    id: "loom-business",
+    id: "loom",
     name: "Loom Business",
     description: "Async video messaging. Screen + cam recording, AI summaries, team workspace.",
     priceZar: "$12.50",
@@ -355,7 +355,7 @@ const allProducts: Product[] = [
     image: "/images/loom.jpg"
   },
   {
-    id: "webflow-cms",
+    id: "webflow",
     name: "Webflow CMS",
     description: "No-code website builder with CMS, hosting, and custom domain. Export clean code.",
     priceZar: "$14.00",
@@ -367,7 +367,7 @@ const allProducts: Product[] = [
     image: "/images/webflow.jpg"
   },
   {
-    id: "elevenlabs-starter",
+    id: "elevenlabs",
     name: "ElevenLabs Starter",
     description: "AI voice cloning and text-to-speech. 30,000 characters/month, 10+ voice styles.",
     priceZar: "$5.00",
