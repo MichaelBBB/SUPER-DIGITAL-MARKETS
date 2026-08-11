@@ -43,7 +43,7 @@ const allProducts: Product[] = [
     image: "/images/adobe-cc.jpg"
   },
   {
-    id: "netflix",
+    id: "netfix",  // FIXED: matches actual filename exactly
     name: "Netflix Premium",
     description: "4K streaming, 4 simultaneous screens, offline downloads. 10,000+ titles worldwide.",
     priceZar: "$22.99",
@@ -52,7 +52,7 @@ const allProducts: Product[] = [
     icon: "",
     badge: "HOT",
     category: "Entertainment",
-    image: "/images/netflix.jpg"  // FIXED!
+    image: "/images/netfix.jpg"  // FIXED!
   },
   {
     id: "microsoft365",
@@ -64,7 +64,7 @@ const allProducts: Product[] = [
     icon: "💼",
     badge: "POPULAR",
     category: "Business",
-    image: "/images/microsoft365.jpg"  // FIXED!
+    image: "/images/microsoft365.jpg"
   },
   {
     id: "spotify",
@@ -220,7 +220,7 @@ const allProducts: Product[] = [
     icon: "",
     badge: "HOT",
     category: "Security",
-    image: "/images/expressvpn.jpg"  // FIXED!
+    image: "/images/expressvpn.jpg"
   },
   {
     id: "youtube-premium",
@@ -232,7 +232,7 @@ const allProducts: Product[] = [
     icon: "▶️",
     badge: "POPULAR",
     category: "Entertainment",
-    image: "/images/youtube-premium.jpg"  // FIXED!
+    image: "/images/youtube-premium.jpg"
   },
   {
     id: "1password",
