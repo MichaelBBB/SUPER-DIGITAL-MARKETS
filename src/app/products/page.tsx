@@ -34,14 +34,14 @@ const allProducts: Product[] = [
   { id: "midjourney", name: "Midjourney Standard", description: "AI image generation.", priceUsd: "$24.00", category: "AI Tools", image: "/images/midjourney.jpg", badge: "HOT" },
   { id: "monday", name: "Monday.com Pro", description: "Visual work OS.", priceUsd: "$9.00", category: "Business", image: "/images/monday.jpg", badge: "NEW" },
   
-  // ✅ REPLACED NETFLIX WITH DISNEY+ (Uses reliable external image)
+  // ✅ UPDATED: Disney Premium with your uploaded image
   { 
-    id: "disney-plus", 
-    name: "Disney+ Premium", 
+    id: "disney-premium", 
+    name: "Disney Premium", 
     description: "Marvel, Star Wars, Pixar & National Geographic. 4K streaming, 4 screens.", 
     priceUsd: "$13.99", 
     category: "Entertainment", 
-    image: "https://images.unsplash.com/photo-1626245595304-8f5e9a11287d?q=80&w=800&auto=format&fit=crop", 
+    image: "/images/disney-premium.jpg", 
     badge: "HOT" 
   },
   
