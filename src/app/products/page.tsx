@@ -52,7 +52,7 @@ const allProducts: Product[] = [
     icon: "",
     badge: "HOT",
     category: "Entertainment",
-    image: "/images/netflix.jpg"
+    image: "/images/netflix-streaming.jpg"  // FIXED
   },
   {
     id: "microsoft",
@@ -64,7 +64,7 @@ const allProducts: Product[] = [
     icon: "💼",
     badge: "POPULAR",
     category: "Business",
-    image: "/images/microsoft.jpg"
+    image: "/images/microsoft-office.jpg"  // FIXED
   },
   {
     id: "spotify",
@@ -217,10 +217,10 @@ const allProducts: Product[] = [
     priceZar: "$6.67",
     priceUsd: "$6.67",
     priceInr: "₹570",
-    icon: "️",
+    icon: "",
     badge: "HOT",
     category: "Security",
-    image: "/images/express-vpn.jpg"
+    image: "/images/express.jpg"  // FIXED
   },
   {
     id: "youtube",
@@ -232,7 +232,7 @@ const allProducts: Product[] = [
     icon: "▶️",
     badge: "POPULAR",
     category: "Entertainment",
-    image: "/images/youtube.jpg"
+    image: "/images/youtube-tv.jpg"  // FIXED
   },
   {
     id: "1password",
@@ -464,28 +464,28 @@ export default function ProductsPage() {
               {product.badge && (
                 <div className="absolute top-3 left-3 z-10">
                   {product.badge === "HOT" ? (
-                    <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+                    <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                       <Flame className="w-3 h-3" /> HOT
                     </span>
                   ) : product.badge === "POPULAR" ? (
-                    <span className="bg-yellow-500 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+                    <span className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                       <Star className="w-3 h-3" /> POPULAR
                     </span>
                   ) : (
-                    <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold">
+                    <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-bold">
                       NEW
                     </span>
                   )}
                 </div>
               )}
               
-              <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded-t-2xl mb-4" />
+              <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded-2xl mb-4" />
               
               <h3 className="text-lg font-semibold mb-1">{product.name}</h3>
               <p className="text-sm text-gray-400 mb-2 line-clamp-2">{product.description}</p>
               <div className="text-cyan-400 font-bold text-lg mb-4">{product.priceUsd}</div>
               
-              <button className="w-full bg-cyan-500 hover:bg-cyan-400 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition">
+              <button className="w-full bg-cyan-500 hover:bg-cyan-400 text-white py-3 rounded-full font-bold flex items-center justify-center gap-2 transition transform hover:scale-105">
                 <ShoppingBag className="w-4 h-4" /> Buy Now — {product.priceUsd}
               </button>
             </div>
