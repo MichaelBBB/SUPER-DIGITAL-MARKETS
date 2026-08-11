@@ -31,19 +31,18 @@ function PaymentFormContent() {
     if (urlItem) setItemName(urlItem);
   }, [searchParams]);
 
-  // Calculate ZAR (Approx 1 USD = 18.5 ZAR)
-  const amountFloat = parseFloat(amount);
-  const zarAmount = (amountFloat * 18.5).toFixed(2);
-
   const handlePay = async () => {
     setLoading(true);
     try {
+      // Send amount in cents for USD (e.g., 20.00 -> 2000)
+      const amountInCents = Math.round(parseFloat(amount) * 100);
+      
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          amount: Math.round(parseFloat(zarAmount) * 100), 
-          currency: "ZAR", 
+          amount: amountInCents, 
+          currency: "USD", // Changed to USD
           paymentMethod: selected.id,
           itemName: itemName
         }),
@@ -86,7 +85,7 @@ function PaymentFormContent() {
           <div className="bg-[#16191f] border border-gray-800 rounded-2xl shadow-2xl p-8">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-lg bg-blue-600/20 flex items-center justify-center text-2xl">{selected.icon}</div>
-              <div><h3 className="text-xl font-bold">{selected.name}</h3><p className="text-gray-400 text-sm">South Africa Market</p></div>
+              <div><h3 className="text-xl font-bold">{selected.name}</h3><p className="text-gray-400 text-sm">Global Market (USD)</p></div>
             </div>
             <p className="text-gray-300 mb-6">{selected.desc}</p>
             
@@ -106,29 +105,31 @@ function PaymentFormContent() {
               </div>
             )}
 
-            {/* DYNAMIC PRICE DISPLAY */}
+            {/* ✅ USD PRICE DISPLAY ONLY */}
             <div className="text-2xl font-bold mb-6 text-center text-cyan-400">
-              Total: R{zarAmount} 
-              <span className="block text-sm text-gray-500 font-normal mt-1">(Approx. ${amount})</span>
+              Total: ${amount} USD
             </div>
             
-            {/* CAPITEC DETAILS */}
+            {/* CAPITEC DETAILS (Updated for USD) */}
             {selected.id === "capitec" && (
               <div className="bg-[#0b0f14] border border-cyan-500/30 rounded-xl p-4 mb-6">
-                <h4 className="font-semibold mb-3 text-cyan-400">CAPITEC BANK TRANSFER DETAILS</h4>
+                <h4 className="font-semibold mb-3 text-cyan-400">CAPITEC BANK TRANSFER DETAILS (USD Equivalent)</h4>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="text-gray-400">Account Holder:</div><div className="text-white font-medium">SUPER DIGITAL</div>
                   <div className="text-gray-400">Account Number:</div><div className="text-white font-medium">1975933441</div>
                   <div className="text-gray-400">Branch Code:</div><div className="text-white font-medium">470010</div>
                   <div className="text-gray-400">Swift Code:</div><div className="text-white font-medium">CABLZAJJ</div>
                 </div>
-                <div className="mt-4 text-xs text-gray-500">Transfer exact amount: <span className="text-white font-bold">R{zarAmount}</span>. Email proof to payments@superdigital.store with Item: {itemName}.</div>
+                <div className="mt-4 text-xs text-gray-500">
+                  Please transfer the <strong>ZAR equivalent</strong> of <span className="text-white font-bold">${amount} USD</span> at today's exchange rate. 
+                  Email proof to payments@superdigital.store with Item: {itemName}.
+                </div>
               </div>
             )}
 
             <button onClick={handlePay} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white py-4 rounded-xl font-bold text-lg flex justify-center items-center gap-2">
               <Lock className="w-5 h-5"/>
-              {loading ? "Processing..." : `Pay R${zarAmount}`}
+              {loading ? "Processing..." : `Pay $${amount}`}
             </button>
           </div>
         </div>
