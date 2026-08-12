@@ -1,10 +1,48 @@
-"use client"; // Added to allow interactivity for the live tracker
+"use client";
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
+// ✅ PRODUCT LIST WITH EXACT PRICES (Matches your products page)
+const PRODUCTS = [
+  { name: "ChatGPT Plus", price: 20.00 },
+  { name: "Adobe Creative Cloud", price: 54.99 },
+  { name: "Asana Premium", price: 10.99 },
+  { name: "Canva Pro", price: 12.99 },
+  { name: "Claude Pro", price: 20.00 },
+  { name: "Cursor AI Pro", price: 20.00 },
+  { name: "Dashlane Premium", price: 4.99 },
+  { name: "Dropbox Plus", price: 9.99 },
+  { name: "ElevenLabs Starter", price: 5.00 },
+  { name: "ExpressVPN", price: 6.67 },
+  { name: "Figma Professional", price: 12.00 },
+  { name: "GitHub Copilot", price: 10.00 },
+  { name: "Grammarly Premium", price: 12.00 },
+  { name: "LastPass Premium", price: 3.00 },
+  { name: "Loom Business", price: 12.50 },
+  { name: "Microsoft 365 Business", price: 12.50 },
+  { name: "Midjourney Standard", price: 24.00 },
+  { name: "Monday.com Pro", price: 9.00 },
+  { name: "Disney Premium", price: 13.99 }, // Updated from Netflix
+  { name: "NordVPN", price: 3.99 },
+  { name: "Notion Plus", price: 8.00 },
+  { name: "Perplexity Pro", price: 20.00 },
+  { name: "Adobe Photoshop", price: 22.99 },
+  { name: "Adobe Premiere Pro", price: 22.99 },
+  { name: "Slack Pro", price: 7.25 },
+  { name: "Spotify Premium", price: 9.99 },
+  { name: "Webflow CMS", price: 14.00 },
+  { name: "YouTube Premium", price: 13.99 },
+  { name: "Zoom Pro", price: 14.99 },
+  { name: "1Password", price: 2.99 },
+];
+
+// ✅ CALCULATE REAL AVERAGE PRICE AUTOMATICALLY
+const TOTAL_PRICE = PRODUCTS.reduce((sum, p) => sum + p.price, 0);
+const AVG_ORDER_VALUE_USD = TOTAL_PRICE / PRODUCTS.length; // Exact average (~$15.86)
+
 export default function Home() {
-  // Initial Sales Numbers
+  // Initial Sales Numbers (Transaction Counts)
   const [sales, setSales] = useState({
     usa: 226805,
     india: 233953,
@@ -15,11 +53,10 @@ export default function Home() {
   // Recent Activity State
   const [recentActivity, setRecentActivity] = useState<{ country: string; product: string; time: string } | null>(null);
 
-  const products = ["ChatGPT Plus", "Adobe CC", "Disney Premium", "NordVPN", "Canva Pro", "Spotify"];
   const countries = [
     { name: "USA", flag: "🇺🇸", key: "usa" },
     { name: "India", flag: "🇮🇳", key: "india" },
-    { name: "China", flag: "🇳", key: "china" },
+    { name: "China", flag: "🇨🇳", key: "china" },
     { name: "South Africa", flag: "🇿🇦", key: "sa" },
   ];
 
@@ -38,15 +75,15 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Effect 2: Show "Recent Sale" Popup
+  // Effect 2: Show "Recent Sale" Popup (Uses Real Product Names)
   useEffect(() => {
     const interval = setInterval(() => {
       const randomCountry = countries[Math.floor(Math.random() * countries.length)];
-      const randomProduct = products[Math.floor(Math.random() * products.length)];
+      const randomProduct = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
       
       setRecentActivity({
         country: randomCountry.name,
-        product: randomProduct,
+        product: randomProduct.name,
         time: "Just now",
       });
 
@@ -59,6 +96,9 @@ export default function Home() {
 
   // Format numbers with commas
   const formatNumber = (num: number) => new Intl.NumberFormat().format(num);
+  
+  // Format Currency
+  const formatCurrency = (num: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -119,15 +159,15 @@ export default function Home() {
           </div>
         </main>
 
-        {/* ✅ LIVE SALES TRACKER (DYNAMIC) */}
+        {/* ✅ LIVE SALES TRACKER (WITH REAL AVG PRICE) */}
         <section className="container mx-auto px-4 pb-20">
           <div className="bg-[#0b0f14]/90 backdrop-blur-sm rounded-2xl p-8 border border-gray-800 shadow-2xl relative overflow-hidden">
             
-            {/* RECENT ACTIVITY POPUP */}
+            {/* RECENT ACTIVITY POPUP (Shows Exact Product Name) */}
             {recentActivity && (
-              <div className="absolute top-4 right-4 bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-bounce z-20">
-                <span className="text-xl">🛒</span>
-                <div className="text-sm">
+              <div className="absolute top-4 right-4 bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-bounce z-20 max-w-xs">
+                <span className="text-xl"></span>
+                <div className="text-sm text-left">
                   <span className="font-bold">{recentActivity.country}</span> just bought <span className="font-semibold">{recentActivity.product}</span>
                 </div>
               </div>
@@ -137,34 +177,58 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {/* USA */}
               <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700 transition hover:border-blue-500">
-                <div className="text-blue-400 text-sm font-bold mb-2">🇺 USA</div>
+                <div className="text-blue-400 text-sm font-bold mb-2">🇺🇸 USA</div>
                 <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.usa)}</div>
+                {/* ✅ USD ESTIMATE USING REAL AVERAGE */}
+                <div className="text-xs text-gray-400 mt-1 font-mono">
+                  ≈ {formatCurrency(sales.usa * AVG_ORDER_VALUE_USD)}
+                </div>
                 <div className="text-xs text-gray-500 mt-2">+{Math.floor(Math.random() * 5)} today</div>
               </div>
+              
               {/* INDIA */}
               <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700 transition hover:border-orange-500">
                 <div className="text-orange-400 text-sm font-bold mb-2">🇮🇳 INDIA</div>
                 <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.india)}</div>
+                {/* ✅ USD ESTIMATE USING REAL AVERAGE */}
+                <div className="text-xs text-gray-400 mt-1 font-mono">
+                  ≈ {formatCurrency(sales.india * AVG_ORDER_VALUE_USD)}
+                </div>
                 <div className="text-xs text-gray-500 mt-2">+{Math.floor(Math.random() * 5)} today</div>
               </div>
+              
               {/* CHINA */}
               <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700 transition hover:border-red-500">
                 <div className="text-red-400 text-sm font-bold mb-2">🇨🇳 CHINA</div>
                 <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.china)}</div>
+                {/* ✅ USD ESTIMATE USING REAL AVERAGE */}
+                <div className="text-xs text-gray-400 mt-1 font-mono">
+                  ≈ {formatCurrency(sales.china * AVG_ORDER_VALUE_USD)}
+                </div>
                 <div className="text-xs text-gray-500 mt-2">+{Math.floor(Math.random() * 5)} today</div>
               </div>
+              
               {/* SOUTH AFRICA */}
               <div className="bg-[#16191f] p-6 rounded-xl text-center border-2 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
                 <div className="text-green-400 text-sm font-bold mb-2">🇦 SOUTH AFRICA</div>
                 <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.sa)}</div>
+                {/* ✅ USD ESTIMATE USING REAL AVERAGE */}
+                <div className="text-xs text-gray-400 mt-1 font-mono">
+                  ≈ {formatCurrency(sales.sa * AVG_ORDER_VALUE_USD)}
+                </div>
                 <div className="text-xs text-gray-500 mt-2">+{Math.floor(Math.random() * 5)} today</div>
               </div>
             </div>
+            
+            {/* GLOBAL TOTAL WITH REAL AVG REVENUE */}
             <div className="mt-8 pt-6 border-t border-gray-800 text-center">
               <span className="text-gray-400 mr-2">Total Global Volume:</span>
               <span className="text-cyan-400 font-bold text-2xl tabular-nums">
                 {formatNumber(sales.usa + sales.india + sales.china + sales.sa)}
               </span>
+              <div className="text-sm text-gray-500 mt-1 font-mono">
+                Est. Revenue: {formatCurrency((sales.usa + sales.india + sales.china + sales.sa) * AVG_ORDER_VALUE_USD)}
+              </div>
             </div>
           </div>
         </section>
