@@ -1,3 +1,4 @@
+// src/app/payment/PaymentForm.tsx
 'use client';
 
 import { useState } from 'react';
@@ -7,17 +8,14 @@ export default function PaymentForm() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
-  // ✅ Captures the price and item name dynamically from the URL
+  // Capture price and item from URL
   const amount = parseFloat(searchParams.get('amount') || '0');
   const itemName = searchParams.get('item') || 'Digital Product';
   const orderId = `ORD-${Date.now()}`;
 
   const handlePayNow = async () => {
     setLoading(true);
-    console.log(`🚀 Initiating payment for: ${itemName} ($${amount})`);
-
     try {
-      // 1. Call our Backend API to create a Peach Session
       const res = await fetch('/api/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -36,12 +34,10 @@ export default function PaymentForm() {
       }
 
       if (data.checkoutUrl) {
-        // 2. Redirect user to Secure Peach Payments Page
         window.location.href = `https://checkout.peachpayments.com/v1/${data.checkoutUrl}`;
       } else {
         throw new Error('No payment link generated');
       }
-
     } catch (error: any) {
       console.error("Payment Error:", error);
       alert(`Error: ${error.message}. Please try again.`);
@@ -53,11 +49,11 @@ export default function PaymentForm() {
     <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
       <div className="max-w-4xl w-full grid md:grid-cols-2 gap-8 bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
         
-        {/* LEFT SIDE: Instructions */}
+        {/* LEFT SIDE */}
         <div>
+          <a href="/products" className="text-blue-400 hover:text-blue-300 mb-4 inline-block">← Return to Products</a>
           <h2 className="text-3xl font-bold mb-6 text-green-400">How to Pay</h2>
           
-          {/* ✅ AUTOMATED OPTION (Replaces old WhatsApp button) */}
           <div className="bg-green-900/20 border border-green-500 p-6 rounded-lg mb-6">
             <h3 className="text-xl font-bold text-green-400 mb-2 flex items-center gap-2">
               ⚡ Option 1: Instant Pay (Recommended)
@@ -75,9 +71,7 @@ export default function PaymentForm() {
               onClick={handlePayNow}
               disabled={loading}
               className={`w-full font-bold py-4 px-6 rounded-lg transition-all flex justify-center items-center gap-2 ${
-                loading 
-                  ? 'bg-gray-600 cursor-not-allowed' 
-                  : 'bg-green-600 hover:bg-green-500 hover:shadow-lg hover:scale-[1.02]'
+                loading ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-500 hover:shadow-lg hover:scale-[1.02]'
               }`}
             >
               {loading ? 'Processing...' : 'Pay Now & Get Instant Access'}
@@ -85,7 +79,6 @@ export default function PaymentForm() {
             <p className="text-xs text-center mt-3 text-gray-400">Secured by Peach Payments</p>
           </div>
 
-          {/* MANUAL BACKUP (Optional - Keep if you want a fallback) */}
           <div className="bg-gray-700/50 p-6 rounded-lg opacity-80">
             <h3 className="text-lg font-bold text-gray-400 mb-2">Option 2: Manual Transfer</h3>
             <p className="text-xs text-gray-400 mb-4">Only if card payment fails.</p>
@@ -97,7 +90,7 @@ export default function PaymentForm() {
           </div>
         </div>
 
-        {/* RIGHT SIDE: Summary */}
+        {/* RIGHT SIDE */}
         <div className="flex flex-col justify-center">
           <div className="text-center mb-8">
             <h3 className="text-gray-400 uppercase tracking-wider text-sm mb-2">Total Amount</h3>
