@@ -15,34 +15,11 @@ export async function POST(request: Request) {
     const WHATSAPP_NUMBER = process.env.YOUR_WHATSAPP_NUMBER;
     const PEACH_MODE = process.env.NEXT_PUBLIC_PEACH_MODE;
 
-    console.log("- PEACH_MERCHANT_ID:", !!MERCHANT_ID ? "✅ Present" : "❌ Missing");
-    console.log("- PEACH_SECRET_KEY:", !!SECRET_KEY ? "✅ Present" : "❌ Missing");
-    console.log("- PEACH_ENTITY_ID:", !!ENTITY_ID ? "✅ Present" : "❌ Missing");
-    console.log("- NEXT_PUBLIC_URL:", !!BASE_URL ? "✅ Present" : "❌ Missing");
-    console.log("- PEACH_MODE:", PEACH_MODE);
+    console.log("- Mode:", PEACH_MODE);
+    console.log("- Entity ID:", ENTITY_ID ? "✅ Present" : "❌ Missing");
 
-    // If any critical key is missing, return a specific error
     if (!MERCHANT_ID || !SECRET_KEY || !ENTITY_ID || !BASE_URL) {
-      return NextResponse.json(
-        { 
-          error: 'Server configuration missing.',
-          debug: {
-            hasMerchantId: !!MERCHANT_ID,
-            hasSecretKey: !!SECRET_KEY,
-            hasEntityId: !!ENTITY_ID,
-            hasBaseUrl: !!BASE_URL
-          }
-        },
-        { status: 500 }
-      );
-    }
-
-    // Validate input data
-    if (!amount || !currency || !productName || !orderId) {
-      return NextResponse.json(
-        { error: 'Missing required payment details.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Server configuration missing.' }, { status: 500 });
     }
 
     // Prepare Peach Payload
@@ -50,8 +27,8 @@ export async function POST(request: Request) {
       entity_id: ENTITY_ID,
       merchant_id: MERCHANT_ID,
       amount: amount.toString(),
-      currency: currency,
-      paymentType: 'DB', // Debit (Card)
+      currency: currency.toUpperCase(),
+      paymentType: 'DB',
       transactionMode: PEACH_MODE === 'LIVE' ? 'LIVE' : 'TEST',
       billingMode: 'B2C',
       resultUrl: `${BASE_URL}/payment/success`,
@@ -66,13 +43,16 @@ export async function POST(request: Request) {
 
     const payload = new URLSearchParams(payloadData);
 
-    // Determine API Endpoint
-    const apiEndpoint = PEACH_MODE === 'LIVE' 
-      ? 'https://api.peachpayments.com/v1/checkouts' 
-      : 'https://eu-test.peachpayments.com/v1/checkouts';
+    // Determine API Endpoint - CRITICAL FIX
+    // If LIVE, use the standard global endpoint. If TEST, use eu-test.
+    let apiEndpoint = '';
+    if (PEACH_MODE === 'LIVE') {
+      apiEndpoint = 'https://api.peachpayments.com/v1/checkouts';
+    } else {
+      apiEndpoint = 'https://eu-test.peachpayments.com/v1/checkouts';
+    }
 
-    console.log("📡 Sending request to Peach API...");
-    console.log("- Endpoint:", apiEndpoint);
+    console.log("📡 Sending request to:", apiEndpoint);
 
     let response;
     try {
@@ -86,6 +66,7 @@ export async function POST(request: Request) {
       });
     } catch (fetchError: any) {
       console.error('🚨 Network Fetch Error:', fetchError.message);
+      console.error(' Error Cause:', fetchError.cause);
       return NextResponse.json(
         { error: 'Network error connecting to Peach Payments', details: fetchError.message },
         { status: 503 }
@@ -96,14 +77,15 @@ export async function POST(request: Request) {
     try {
       data = await response.json();
     } catch (jsonError: any) {
-      console.error(' JSON Parse Error:', jsonError.message);
+      console.error('JSON Parse Error:', jsonError.message);
       return NextResponse.json(
         { error: 'Invalid response from Peach Payments', details: jsonError.message },
         { status: 500 }
       );
     }
 
-    console.log("📥 Response from Peach:", data);
+    console.log("📥 Response Status:", response.status);
+    console.log("📥 Response Data:", data);
 
     if (!response.ok) {
       console.error('Peach API Error:', data);
@@ -118,11 +100,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('💀 CRITICAL SERVER ERROR:', error);
     return NextResponse.json(
-      { 
-        error: 'System error during payment setup', 
-        details: error.message,
-        stack: error.stack 
-      },
+      { error: 'System error during payment setup', details: error.message },
       { status: 500 }
     );
   }
