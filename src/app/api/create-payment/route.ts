@@ -40,7 +40,6 @@ export async function POST(request: Request) {
     const payload = new URLSearchParams(payloadData);
 
     // Determine API Endpoint (Test vs Live)
-    // Use 'eu-test.peachpayments.com' for Sandbox, 'api.peachpayments.com' for Live
     const apiEndpoint = process.env.NEXT_PUBLIC_PEACH_MODE === 'LIVE' 
       ? 'https://api.peachpayments.com/v1/checkouts' 
       : 'https://eu-test.peachpayments.com/v1/checkouts';
