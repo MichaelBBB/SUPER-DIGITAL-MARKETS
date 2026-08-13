@@ -5,7 +5,9 @@ export async function POST(request: Request) {
   try {
     const { amount, currency, productName, orderId } = await request.json();
 
-    // 🔍 DEBUG: Check which variables are present
+    // 🔍 DEBUG: Log which variables are present
+    console.log("🔑 Checking Environment Variables:");
+    
     const MERCHANT_ID = process.env.PEACH_MERCHANT_ID;
     const SECRET_KEY = process.env.PEACH_SECRET_KEY;
     const ENTITY_ID = process.env.PEACH_ENTITY_ID;
@@ -13,11 +15,10 @@ export async function POST(request: Request) {
     const WHATSAPP_NUMBER = process.env.YOUR_WHATSAPP_NUMBER;
     const PEACH_MODE = process.env.NEXT_PUBLIC_PEACH_MODE;
 
-    console.log("🔑 Debugging Env Vars:");
-    console.log("- PEACH_MERCHANT_ID:", !!MERCHANT_ID ? "✅ Found" : "❌ Missing");
-    console.log("- PEACH_SECRET_KEY:", !!SECRET_KEY ? "✅ Found" : "❌ Missing");
-    console.log("- PEACH_ENTITY_ID:", !!ENTITY_ID ? "✅ Found" : "❌ Missing");
-    console.log("- NEXT_PUBLIC_URL:", !!BASE_URL ? "✅ Found" : "❌ Missing");
+    console.log("- PEACH_MERCHANT_ID:", !!MERCHANT_ID ? "✅ Present" : "❌ Missing");
+    console.log("- PEACH_SECRET_KEY:", !!SECRET_KEY ? "✅ Present" : "❌ Missing");
+    console.log("- PEACH_ENTITY_ID:", !!ENTITY_ID ? "✅ Present" : "❌ Missing");
+    console.log("- NEXT_PUBLIC_URL:", !!BASE_URL ? "✅ Present" : "❌ Missing");
     console.log("- PEACH_MODE:", PEACH_MODE);
 
     // If any critical key is missing, return a specific error
@@ -33,6 +34,14 @@ export async function POST(request: Request) {
           }
         },
         { status: 500 }
+      );
+    }
+
+    // Validate input data
+    if (!amount || !currency || !productName || !orderId) {
+      return NextResponse.json(
+        { error: 'Missing required payment details.' },
+        { status: 400 }
       );
     }
 
@@ -62,6 +71,10 @@ export async function POST(request: Request) {
       ? 'https://api.peachpayments.com/v1/checkouts' 
       : 'https://eu-test.peachpayments.com/v1/checkouts';
 
+    console.log("📡 Sending request to Peach API...");
+    console.log("- Endpoint:", apiEndpoint);
+    console.log("- Payload Keys:", Array.from(payload.keys()).join(', '));
+
     const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
@@ -72,6 +85,8 @@ export async function POST(request: Request) {
     });
 
     const data = await response.json();
+
+    console.log("📥 Response from Peach:", data);
 
     if (!response.ok) {
       console.error('Peach API Error:', data);
@@ -86,7 +101,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Internal Server Error:', error);
     return NextResponse.json(
-      { error: 'System error during payment setup' },
+      { error: 'System error during payment setup', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
