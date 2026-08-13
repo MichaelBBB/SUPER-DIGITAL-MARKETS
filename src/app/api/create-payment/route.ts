@@ -1,31 +1,49 @@
+// src/app/api/create-payment/route.ts
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
     const { amount, currency, productName, orderId } = await request.json();
 
-    // ⚠️ Ensure these are set in your Vercel Environment Variables
+    // 🔍 DEBUG: Check which variables are present
     const MERCHANT_ID = process.env.PEACH_MERCHANT_ID;
     const SECRET_KEY = process.env.PEACH_SECRET_KEY;
     const ENTITY_ID = process.env.PEACH_ENTITY_ID;
-    const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://super-digital-markets-co9n.vercel.app';
+    const BASE_URL = process.env.NEXT_PUBLIC_URL;
     const WHATSAPP_NUMBER = process.env.YOUR_WHATSAPP_NUMBER;
+    const PEACH_MODE = process.env.NEXT_PUBLIC_PEACH_MODE;
 
-    if (!MERCHANT_ID || !SECRET_KEY || !ENTITY_ID) {
+    console.log("🔑 Debugging Env Vars:");
+    console.log("- PEACH_MERCHANT_ID:", !!MERCHANT_ID ? "✅ Found" : "❌ Missing");
+    console.log("- PEACH_SECRET_KEY:", !!SECRET_KEY ? "✅ Found" : "❌ Missing");
+    console.log("- PEACH_ENTITY_ID:", !!ENTITY_ID ? "✅ Found" : "❌ Missing");
+    console.log("- NEXT_PUBLIC_URL:", !!BASE_URL ? "✅ Found" : "❌ Missing");
+    console.log("- PEACH_MODE:", PEACH_MODE);
+
+    // If any critical key is missing, return a specific error
+    if (!MERCHANT_ID || !SECRET_KEY || !ENTITY_ID || !BASE_URL) {
       return NextResponse.json(
-        { error: 'Server configuration missing. Check Environment Variables.' },
+        { 
+          error: 'Server configuration missing.',
+          debug: {
+            hasMerchantId: !!MERCHANT_ID,
+            hasSecretKey: !!SECRET_KEY,
+            hasEntityId: !!ENTITY_ID,
+            hasBaseUrl: !!BASE_URL
+          }
+        },
         { status: 500 }
       );
     }
 
-    // Prepare Peach Payload - Explicitly typed as Record<string, string>
+    // Prepare Peach Payload
     const payloadData: Record<string, string> = {
       entity_id: ENTITY_ID,
       merchant_id: MERCHANT_ID,
       amount: amount.toString(),
       currency: currency,
-      paymentType: 'DB', // DB = Debit (Card), PA = Payment Account (Instant EFT)
-      transactionMode: 'LIVE', // Change to 'TEST' if you haven't gone live yet
+      paymentType: 'DB', // Debit (Card)
+      transactionMode: PEACH_MODE === 'LIVE' ? 'LIVE' : 'TEST',
       billingMode: 'B2C',
       resultUrl: `${BASE_URL}/payment/success`,
       errorUrl: `${BASE_URL}/payment/fail`,
@@ -39,8 +57,8 @@ export async function POST(request: Request) {
 
     const payload = new URLSearchParams(payloadData);
 
-    // Determine API Endpoint (Test vs Live)
-    const apiEndpoint = process.env.NEXT_PUBLIC_PEACH_MODE === 'LIVE' 
+    // Determine API Endpoint
+    const apiEndpoint = PEACH_MODE === 'LIVE' 
       ? 'https://api.peachpayments.com/v1/checkouts' 
       : 'https://eu-test.peachpayments.com/v1/checkouts';
 
@@ -63,7 +81,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Peach returns the checkout ID in 'id' field
     return NextResponse.json({ checkoutUrl: data.id });
 
   } catch (error) {
