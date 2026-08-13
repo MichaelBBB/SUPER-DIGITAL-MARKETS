@@ -15,9 +15,9 @@ export async function POST(request: Request) {
     const WHATSAPP_NUMBER = process.env.YOUR_WHATSAPP_NUMBER;
     const PEACH_MODE = process.env.NEXT_PUBLIC_PEACH_MODE;
 
-    console.log("- PEACH_MERCHANT_ID:", !!MERCHANT_ID ? "✅ Present" : " Missing");
-    console.log("- PEACH_SECRET_KEY:", !!SECRET_KEY ? "✅ Present" : " Missing");
-    console.log("- PEACH_ENTITY_ID:", !!ENTITY_ID ? "✅ Present" : " Missing");
+    console.log("- PEACH_MERCHANT_ID:", !!MERCHANT_ID ? "✅ Present" : "❌ Missing");
+    console.log("- PEACH_SECRET_KEY:", !!SECRET_KEY ? "✅ Present" : "❌ Missing");
+    console.log("- PEACH_ENTITY_ID:", !!ENTITY_ID ? "✅ Present" : "❌ Missing");
     console.log("- NEXT_PUBLIC_URL:", !!BASE_URL ? "✅ Present" : "❌ Missing");
     console.log("- PEACH_MODE:", PEACH_MODE);
 
@@ -73,18 +73,35 @@ export async function POST(request: Request) {
 
     console.log("📡 Sending request to Peach API...");
     console.log("- Endpoint:", apiEndpoint);
-    console.log("- Payload Keys:", Array.from(payload.keys()).join(', '));
 
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SECRET_KEY}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: payload
-    });
+    let response;
+    try {
+      response = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SECRET_KEY}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: payload
+      });
+    } catch (fetchError: any) {
+      console.error('🚨 Network Fetch Error:', fetchError.message);
+      return NextResponse.json(
+        { error: 'Network error connecting to Peach Payments', details: fetchError.message },
+        { status: 503 }
+      );
+    }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError: any) {
+      console.error(' JSON Parse Error:', jsonError.message);
+      return NextResponse.json(
+        { error: 'Invalid response from Peach Payments', details: jsonError.message },
+        { status: 500 }
+      );
+    }
 
     console.log("📥 Response from Peach:", data);
 
@@ -98,10 +115,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ checkoutUrl: data.id });
 
-  } catch (error) {
-    console.error('Internal Server Error:', error);
+  } catch (error: any) {
+    console.error('💀 CRITICAL SERVER ERROR:', error);
     return NextResponse.json(
-      { error: 'System error during payment setup', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'System error during payment setup', 
+        details: error.message,
+        stack: error.stack 
+      },
       { status: 500 }
     );
   }
