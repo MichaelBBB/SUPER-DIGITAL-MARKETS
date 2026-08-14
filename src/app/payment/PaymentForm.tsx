@@ -8,12 +8,20 @@ export default function PaymentForm() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
-  // Capture price and item from URL
   const amount = parseFloat(searchParams.get('amount') || '0');
   const itemName = searchParams.get('item') || 'Digital Product';
   const orderId = `ORD-${Date.now()}`;
+  
+  // Your WhatsApp number (replace with yours)
+  const YOUR_WHATSAPP = '27821234567'; 
 
-  const handlePayNow = async () => {
+  const handleWhatsAppOrder = () => {
+    const message = `🛒 *NEW ORDER*\n\nProduct: ${itemName}\nAmount: $${amount.toFixed(2)} USD\nOrder ID: ${orderId}\n\nPlease provide payment proof to complete.`;
+    const url = `https://wa.me/${YOUR_WHATSAPP}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
+
+  const handlePeachPayment = async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/create-payment', {
@@ -26,21 +34,16 @@ export default function PaymentForm() {
           orderId: orderId
         })
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to initialize payment');
-      }
-
+      if (!res.ok) throw new Error(data.error || 'Payment failed');
       if (data.checkoutUrl) {
         window.location.href = `https://checkout.peachpayments.com/v1/${data.checkoutUrl}`;
       } else {
-        throw new Error('No payment link generated');
+        throw new Error('No checkout URL');
       }
     } catch (error: any) {
-      console.error("Payment Error:", error);
-      alert(`Error: ${error.message}. Please try again.`);
+      console.error("Peach Error:", error);
+      alert(`Peach Payments is temporarily unavailable. Please use Manual Transfer instead.`);
       setLoading(false);
     }
   };
@@ -49,57 +52,52 @@ export default function PaymentForm() {
     <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
       <div className="max-w-4xl w-full grid md:grid-cols-2 gap-8 bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
         
-        {/* LEFT SIDE */}
         <div>
           <a href="/products" className="text-blue-400 hover:text-blue-300 mb-4 inline-block">← Return to Products</a>
           <h2 className="text-3xl font-bold mb-6 text-green-400">How to Pay</h2>
           
-          <div className="bg-green-900/20 border border-green-500 p-6 rounded-lg mb-6">
-            <h3 className="text-xl font-bold text-green-400 mb-2 flex items-center gap-2">
-              ⚡ Option 1: Instant Pay (Recommended)
-            </h3>
+          {/* ✅ WORKING: Manual WhatsApp + Capitec Transfer */}
+          <div className="bg-blue-900/20 border border-blue-500 p-6 rounded-lg mb-6">
+            <h3 className="text-xl font-bold text-blue-400 mb-2">⚡ Option 1: Manual Transfer (Working Now)</h3>
             <p className="text-gray-300 mb-4 text-sm">
-              Pay securely via Card or Instant EFT. Funds go directly to Capitec. 
-              No screenshots needed. Product delivered instantly after payment.
+              1. Click the WhatsApp button below.<br/>
+              2. Send the pre-filled order message.<br/>
+              3. Transfer ${amount.toFixed(2)} USD (or ZAR equivalent) to:<br/>
+              <strong>Capitec Bank | Acc: 197593441 | Ref: {orderId}</strong><br/>
+              4. Send proof of payment in the WhatsApp chat.<br/>
+              5. Receive your product instantly after verification.
             </p>
-            
-            <div className="text-4xl font-bold text-white mb-6">
-              ${amount.toFixed(2)} USD
-            </div>
-
             <button 
-              onClick={handlePayNow}
-              disabled={loading}
-              className={`w-full font-bold py-4 px-6 rounded-lg transition-all flex justify-center items-center gap-2 ${
-                loading ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-500 hover:shadow-lg hover:scale-[1.02]'
-              }`}
+              onClick={handleWhatsAppOrder}
+              className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-6 rounded-lg transition-all flex justify-center items-center gap-2"
             >
-              {loading ? 'Processing...' : 'Pay Now & Get Instant Access'}
+              📱 Complete Order on WhatsApp
             </button>
-            <p className="text-xs text-center mt-3 text-gray-400">Secured by Peach Payments</p>
+            <p className="text-xs text-center mt-3 text-gray-400">Instant support via WhatsApp</p>
           </div>
 
-          <div className="bg-gray-700/50 p-6 rounded-lg opacity-80">
-            <h3 className="text-lg font-bold text-gray-400 mb-2">Option 2: Manual Transfer</h3>
-            <p className="text-xs text-gray-400 mb-4">Only if card payment fails.</p>
-            <div className="bg-black p-3 rounded text-xs font-mono text-blue-300 break-all">
-              Bank: Capitec<br/>
-              Acc: 197593441<br/>
-              Ref: {orderId}
-            </div>
+          {/* 🔄 COMING SOON: Peach Payments (Disabled until fixed) */}
+          <div className="bg-gray-700/50 p-6 rounded-lg opacity-60">
+            <h3 className="text-lg font-bold text-gray-400 mb-2">Option 2: Peach Payments (Coming Soon)</h3>
+            <p className="text-xs text-gray-400 mb-4">Automated card/EFT payments. Currently under maintenance.</p>
+            <button 
+              onClick={handlePeachPayment}
+              disabled={true}
+              className="w-full bg-gray-600 text-gray-300 font-bold py-4 px-6 rounded-lg cursor-not-allowed"
+            >
+              Pay Now (Temporarily Unavailable)
+            </button>
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* RIGHT SIDE: Summary */}
         <div className="flex flex-col justify-center">
           <div className="text-center mb-8">
             <h3 className="text-gray-400 uppercase tracking-wider text-sm mb-2">Total Amount</h3>
             <div className="text-5xl font-extrabold text-cyan-400">
               ${amount.toFixed(2)} <span className="text-2xl text-gray-500">USD</span>
             </div>
-            <p className="text-gray-500 text-sm mt-2">(ZAR equivalent calculated at checkout)</p>
           </div>
-
           <div className="bg-gray-900 p-6 rounded-lg border border-gray-700">
             <h4 className="font-bold text-lg mb-4 text-white">Order Details</h4>
             <div className="space-y-3 text-sm text-gray-300">
@@ -112,8 +110,8 @@ export default function PaymentForm() {
                 <span className="font-mono text-cyan-400">{orderId}</span>
               </div>
               <div className="flex justify-between">
-                <span>Status:</span>
-                <span className="text-yellow-400">Awaiting Payment</span>
+                <span>Payment:</span>
+                <span className="text-green-400">Manual Transfer</span>
               </div>
             </div>
           </div>
