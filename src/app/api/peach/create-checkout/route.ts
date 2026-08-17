@@ -1,3 +1,4 @@
+// src/app/api/peach/create-checkout/route.ts
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -7,18 +8,23 @@ export async function POST(request: Request) {
     // ✅ CORRECT LIVE ENDPOINT FROM PEACH DOCS
     const PEACH_API_URL = "https://secure.peachpayments.com/checkout";
     
-    // ✅ Your credentials from Peach Dashboard
+    // ✅ Your credentials from Peach Dashboard (MUST be set in Vercel env vars)
     const ENTITY_ID = process.env.PEACH_ENTITY_ID;
     const SECRET_TOKEN = process.env.PEACH_SECRET_TOKEN;
 
+    // DEBUG: Log if credentials are missing (check Vercel logs)
     if (!ENTITY_ID || !SECRET_TOKEN) {
+      console.error("❌ Missing Peach credentials in environment variables");
+      console.error("PEACH_ENTITY_ID:", ENTITY_ID ? "✓ Set" : "✗ MISSING");
+      console.error("PEACH_SECRET_TOKEN:", SECRET_TOKEN ? "✓ Set" : "✗ MISSING");
+      
       return NextResponse.json(
-        { error: "Missing Peach credentials in environment variables" },
+        { error: "Missing Peach credentials. Check Vercel environment variables." },
         { status: 400 }
       );
     }
 
-    // ✅ Build request payload for Hosted Checkout
+    // ✅ Build request payload for Hosted Checkout (Peach API format)
     const payload = {
       entity_id: ENTITY_ID,
       amount: amount, // in cents (e.g., 5499 for R54.99)
@@ -61,12 +67,16 @@ export async function POST(request: Request) {
         "request.redirect": "true"
       },
       redirect: {
-        success_url: redirect_url || `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
-        failure_url: redirect_url || `${process.env.NEXT_PUBLIC_SITE_URL}/failure`,
-        cancel_url: redirect_url || `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`
+        success_url: redirect_url || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://super-digital-markets-co9n.vercel.app'}/success`,
+        failure_url: redirect_url || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://super-digital-markets-co9n.vercel.app'}/failure`,
+        cancel_url: redirect_url || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://super-digital-markets-co9n.vercel.app'}/cancel`
       },
       webhooks: webhooks || []
     };
+
+    // DEBUG: Log the request being sent
+    console.log("🔹 Sending to Peach API:", PEACH_API_URL);
+    console.log("🔹 Payload entity_id:", ENTITY_ID?.substring(0, 8) + "...");
 
     // ✅ Make API call to CORRECT endpoint
     const response = await fetch(PEACH_API_URL, {
@@ -80,10 +90,14 @@ export async function POST(request: Request) {
 
     const data = await response.json();
 
+    // DEBUG: Log Peach response
+    console.log("🔹 Peach API Response Status:", response.status);
+    console.log("🔹 Peach API Response Body:", JSON.stringify(data, null, 2));
+
     if (!response.ok) {
-      console.error("Peach API Error:", data);
+      console.error("❌ Peach API Error:", data);
       return NextResponse.json(
-        { error: data.result?.description || "Payment creation failed" },
+        { error: data.result?.description || data.message || "Payment creation failed" },
         { status: response.status }
       );
     }
@@ -95,8 +109,12 @@ export async function POST(request: Request) {
       result: data.result
     });
 
-  } catch (error) {
-    console.error("Checkout API Error:", error);
+  } catch (error: any) {
+    console.error("💥 Checkout API Error:", error);
+    console.error("💥 Error name:", error.name);
+    console.error("💥 Error message:", error.message);
+    console.error("💥 Error stack:", error.stack);
+    
     return NextResponse.json(
       { error: "Internal server error during checkout creation" },
       { status: 500 }
