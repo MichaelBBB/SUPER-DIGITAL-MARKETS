@@ -24,26 +24,33 @@ export default function PaymentForm() {
   const handlePeachPayment = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/create-payment', {
+      // ✅ Call the CORRECT API route we created
+      const res = await fetch('/api/peach/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: amount,
-          currency: 'USD',
-          productName: itemName,
-          orderId: orderId
+          amount: Math.round(amount * 100), // Convert to cents (e.g., $54.99 → 5499)
+          currency: 'ZAR', // Peach expects ZAR for SA accounts
+          redirect_url: `${window.location.origin}/success`,
+          webhooks: [`${window.location.origin}/api/webhook`]
         })
       });
+      
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Payment failed');
-      if (data.checkoutUrl) {
-        window.location.href = `https://checkout.peachpayments.com/v1/${data.checkoutUrl}`;
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Payment creation failed');
+      }
+      
+      // ✅ Redirect to Peach hosted checkout using the URL they return
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
       } else {
-        throw new Error('No checkout URL');
+        throw new Error('No checkout URL received from Peach');
       }
     } catch (error: any) {
-      console.error("Peach Error:", error);
-      alert(`Peach Payments is temporarily unavailable. Please use Manual Transfer instead.`);
+      console.error("Peach Payment Error:", error);
+      alert(`Payment error: ${error.message}. Please try Manual Transfer instead.`);
       setLoading(false);
     }
   };
@@ -76,17 +83,18 @@ export default function PaymentForm() {
             <p className="text-xs text-center mt-3 text-gray-400">Instant support via WhatsApp</p>
           </div>
 
-          {/* 🔄 COMING SOON: Peach Payments (Disabled until fixed) */}
-          <div className="bg-gray-700/50 p-6 rounded-lg opacity-60">
-            <h3 className="text-lg font-bold text-gray-400 mb-2">Option 2: Peach Payments (Coming Soon)</h3>
-            <p className="text-xs text-gray-400 mb-4">Automated card/EFT payments. Currently under maintenance.</p>
+          {/* ✅ Peach Payments - NOW ACTIVE */}
+          <div className="bg-gray-800 p-6 rounded-lg border-2 border-blue-500">
+            <h3 className="text-lg font-bold text-blue-400 mb-2">Option 2: Peach Payments ✅</h3>
+            <p className="text-xs text-gray-300 mb-4">Automated card/EFT payments. Instant delivery!</p>
             <button 
               onClick={handlePeachPayment}
-              disabled={true}
-              className="w-full bg-gray-600 text-gray-300 font-bold py-4 px-6 rounded-lg cursor-not-allowed"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-lg transition-all transform hover:scale-105 disabled:scale-100 disabled:transform-none"
             >
-              Pay Now (Temporarily Unavailable)
+              {loading ? "Processing..." : "Pay Now - Instant Delivery"}
             </button>
+            <p className="text-xs text-center mt-3 text-gray-400">🔒 Secure payment via Peach Payments</p>
           </div>
         </div>
 
