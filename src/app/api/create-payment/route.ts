@@ -24,7 +24,9 @@ export async function POST(request: Request) {
 
     // Build request body EXACTLY like Peach's example
     const nonce = `UNQ${Date.now()}`;
-    const body = {
+    
+    // Use Record<string, any> to allow string indexing (fixes TypeScript error)
+    const body: Record<string, any> = {
       "authentication.entityId": ENTITY_ID,
       "merchantTransactionId": orderId,
       "rateLimitId": orderId,
@@ -47,7 +49,8 @@ export async function POST(request: Request) {
 
     // Generate signature: alphabetical keys, key=value& format
     const sortedKeys = Object.keys(body).sort();
-    const sigString = sortedKeys.map(k => `${k}=${body[k]}`).join('&');
+    // ✅ FIX: Cast body[k] as any to satisfy TypeScript
+    const sigString = sortedKeys.map(k => `${k}=${(body as any)[k]}`).join('&');
     
     // Use Node.js crypto (available in Vercel serverless)
     const { createHmac } = await import('crypto');
