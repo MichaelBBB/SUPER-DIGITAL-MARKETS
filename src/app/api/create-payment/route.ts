@@ -1,148 +1,112 @@
 // src/app/api/create-payment/route.ts
 import { NextResponse } from 'next/server';
 
-// Web Crypto API compatible HMAC SHA256 (works in Vercel serverless)
-async function generateSignature(params: Record<string, any>, secretKey: string): Promise<string> {
-  // Sort keys alphabetically (Peach requirement)
-  const sortedKeys = Object.keys(params).sort();
-  
-  // Build signature string: key=value&key2=value2
-  const signatureString = sortedKeys
-    .map(key => `${key}=${params[key]}`)
-    .join('&');
-  
-  // Use Web Crypto API (available in Vercel)
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(secretKey);
-  const messageData = encoder.encode(signatureString);
-  
-  // Import key
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  
-  // Sign
-  const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
-  
-  // Convert to hex
-  return Array.from(new Uint8Array(signatureBuffer))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
 export async function POST(request: Request) {
   try {
     const { amount, currency, productName, orderId } = await request.json();
 
-    // Get environment variables
     const ENTITY_ID = process.env.PEACH_ENTITY_ID;
     const SECRET_KEY = process.env.PEACH_SECRET_KEY;
     const BASE_URL = process.env.NEXT_PUBLIC_URL;
-    const WHATSAPP_NUMBER = process.env.YOUR_WHATSAPP_NUMBER;
     const PEACH_MODE = process.env.NEXT_PUBLIC_PEACH_MODE;
 
-    console.log("🔑 Env check:", {
-      hasEntityId: !!ENTITY_ID,
-      hasSecretKey: !!SECRET_KEY,
-      hasBaseUrl: !!BASE_URL,
-      mode: PEACH_MODE
+    console.log("🔑 ENV CHECK:", {
+      ENTITY_ID: ENTITY_ID ? "✅" : "❌",
+      SECRET_KEY: SECRET_KEY ? "✅" : "❌", 
+      BASE_URL: BASE_URL || "❌",
+      MODE: PEACH_MODE
     });
 
     if (!ENTITY_ID || !SECRET_KEY || !BASE_URL) {
+      console.error("❌ Missing env vars");
       return NextResponse.json({ error: 'Server configuration missing.' }, { status: 500 });
     }
 
-    // Prepare parameters EXACTLY as Peach requires (flat keys with dot/bracket notation)
-    const nonce = `UNQ${Date.now()}${Math.floor(Math.random() * 1000000)}`;
-    
-    const peachParams: Record<string, any> = {
-      'authentication.entityId': ENTITY_ID,
-      'merchantTransactionId': orderId,
-      'rateLimitId': `order-${orderId}`,
-      'amount': amount.toFixed(2),
-      'paymentType': 'DB',
-      'currency': currency.toUpperCase(),
-      'nonce': nonce,
-      'shopperResultUrl': `${BASE_URL}/payment/success`,
-      'merchantInvoiceId': orderId,
-      'cancelUrl': `${BASE_URL}/payment/fail`,
-      'notificationUrl': `${BASE_URL}/api/webhook`,
-      'customParameters[orderId]': orderId,
-      'customParameters[productName]': productName,
-      'customParameters[whatsappNumber]': WHATSAPP_NUMBER || '',
-      'customer.givenName': 'Customer',
-      'customer.surname': 'Order',
-      'customer.email': 'customer@example.com',
-      'customer.ip': '127.0.0.1',
-      'billing.country': 'ZA',
-      'billing.city': 'Cape Town',
-      'shipping.country': 'ZA',
-      'shipping.city': 'Cape Town',
+    // Build request body EXACTLY like Peach's example
+    const nonce = `UNQ${Date.now()}`;
+    const body = {
+      "authentication.entityId": ENTITY_ID,
+      "merchantTransactionId": orderId,
+      "rateLimitId": orderId,
+      "amount": amount.toFixed(2),
+      "paymentType": "DB",
+      "currency": currency.toUpperCase(),
+      "nonce": nonce,
+      "shopperResultUrl": `${BASE_URL}/payment/success`,
+      "merchantInvoiceId": orderId,
+      "cancelUrl": `${BASE_URL}/payment/fail`,
+      "notificationUrl": `${BASE_URL}/api/webhook`,
+      "customParameters[orderId]": orderId,
+      "customParameters[productName]": productName,
+      "customer.givenName": "Customer",
+      "customer.surname": "Order", 
+      "customer.email": "order@super-digital.com",
+      "billing.country": "ZA",
+      "shipping.country": "ZA",
     };
 
-    // Generate signature BEFORE adding it to params
-    console.log("🔐 Generating signature for params:", Object.keys(peachParams).sort().slice(0, 5), '...');
-    const signature = await generateSignature(peachParams, SECRET_KEY);
-    console.log("✅ Signature generated:", signature.substring(0, 16) + '...');
+    // Generate signature: alphabetical keys, key=value& format
+    const sortedKeys = Object.keys(body).sort();
+    const sigString = sortedKeys.map(k => `${k}=${body[k]}`).join('&');
     
-    // Add signature to params
-    peachParams.signature = signature;
+    // Use Node.js crypto (available in Vercel serverless)
+    const { createHmac } = await import('crypto');
+    const signature = createHmac('sha256', SECRET_KEY).update(sigString).digest('hex');
+    
+    body.signature = signature;
 
-    // Determine endpoint (Peach Hosted Checkout)
-    const apiEndpoint = PEACH_MODE === 'LIVE'
+    console.log("🔐 Signature:", signature.substring(0, 20) + '...');
+    console.log("📦 Body keys:", sortedKeys);
+
+    // Endpoint from Peach docs
+    const endpoint = PEACH_MODE === 'LIVE' 
       ? 'https://secure.peachpayments.com/checkout/initiate'
       : 'https://testsecure.peachpayments.com/checkout/initiate';
 
-    console.log("📡 POST to:", apiEndpoint);
+    console.log("📡 POST to:", endpoint);
 
-    // Make request with EXACT headers Peach requires
-    const response = await fetch(apiEndpoint, {
+    // Fetch with EXACT headers from Peach example
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        'Referer': BASE_URL, // Must be allowlisted in Peach Dashboard
+        'Referer': BASE_URL,
         'accept': 'application/json',
         'content-type': 'application/json'
       },
-      body: JSON.stringify(peachParams)
+      body: JSON.stringify(body)
     });
 
-    console.log("📥 Response status:", response.status);
+    console.log("📥 Status:", res.status, res.statusText);
+    
+    const text = await res.text();
+    console.log("📥 Raw response:", text.substring(0, 500));
     
     let data;
     try {
-      data = await response.json();
-      console.log("📥 Response body:", JSON.stringify(data).slice(0, 200) + '...');
+      data = JSON.parse(text);
     } catch (e) {
-      const text = await response.text();
-      console.error("❌ Failed to parse JSON response:", text);
-      throw new Error(`Invalid JSON response: ${text}`);
+      console.error("❌ JSON parse failed:", e);
+      return NextResponse.json({ error: 'Invalid response from Peach', raw: text }, { status: 500 });
     }
 
-    if (!response.ok) {
-      console.error('🚫 Peach API error:', data);
-      return NextResponse.json(
-        { error: 'Payment initiation failed', details: data },
-        { status: response.status }
-      );
+    if (!res.ok) {
+      console.error("🚫 Peach error:", data);
+      return NextResponse.json({ error: 'Payment failed', details: data }, { status: res.status });
     }
 
-    // Peach returns redirectUrl for Hosted Checkout
     if (data.redirectUrl) {
-      console.log("✅ Success! Redirect URL:", data.redirectUrl);
+      console.log("✅ Success! Redirect:", data.redirectUrl);
       return NextResponse.json({ checkoutUrl: data.redirectUrl });
     }
 
-    console.error("❌ No redirectUrl in successful response:", data);
-    return NextResponse.json({ error: 'No redirectUrl in response', details: data }, { status: 500 });
+    console.error("❌ No redirectUrl:", data);
+    return NextResponse.json({ error: 'No redirectUrl', details: data }, { status: 500 });
 
   } catch (error: any) {
-    console.error('💥 CRITICAL ERROR:', {
-      message: error.message,
+    console.error("💥 CATCH ERROR:", {
       name: error.name,
+      message: error.message,
+      cause: error.cause,
       stack: error.stack?.split('\n')[0]
     });
     return NextResponse.json(
