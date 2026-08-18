@@ -1,18 +1,37 @@
 // src/app/api/create-payment/route.ts
 import { NextResponse } from 'next/server';
-import { createHmac } from 'crypto';
 
-// Helper: Generate HMAC SHA256 signature
-function generateSignature(params: Record<string, any>, secretKey: string): string {
-  // Peach requires signature of all parameters in alphabetical order
+// Web Crypto API compatible HMAC SHA256 (works in Vercel serverless)
+async function generateSignature(params: Record<string, any>, secretKey: string): Promise<string> {
+  // Sort keys alphabetically (Peach requirement)
   const sortedKeys = Object.keys(params).sort();
+  
+  // Build signature string: key=value&key2=value2
   const signatureString = sortedKeys
     .map(key => `${key}=${params[key]}`)
     .join('&');
   
-  return createHmac('sha256', secretKey)
-    .update(signatureString)
-    .digest('hex');
+  // Use Web Crypto API (available in Vercel)
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secretKey);
+  const messageData = encoder.encode(signatureString);
+  
+  // Import key
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  // Sign
+  const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
+  
+  // Convert to hex
+  return Array.from(new Uint8Array(signatureBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 export async function POST(request: Request) {
@@ -26,17 +45,24 @@ export async function POST(request: Request) {
     const WHATSAPP_NUMBER = process.env.YOUR_WHATSAPP_NUMBER;
     const PEACH_MODE = process.env.NEXT_PUBLIC_PEACH_MODE;
 
+    console.log("🔑 Env check:", {
+      hasEntityId: !!ENTITY_ID,
+      hasSecretKey: !!SECRET_KEY,
+      hasBaseUrl: !!BASE_URL,
+      mode: PEACH_MODE
+    });
+
     if (!ENTITY_ID || !SECRET_KEY || !BASE_URL) {
       return NextResponse.json({ error: 'Server configuration missing.' }, { status: 500 });
     }
 
-    // Prepare parameters EXACTLY as Peach requires
+    // Prepare parameters EXACTLY as Peach requires (flat keys with dot/bracket notation)
     const nonce = `UNQ${Date.now()}${Math.floor(Math.random() * 1000000)}`;
     
     const peachParams: Record<string, any> = {
       'authentication.entityId': ENTITY_ID,
       'merchantTransactionId': orderId,
-      'rateLimitId': `customer-${orderId}-order-${Date.now()}`,
+      'rateLimitId': `order-${orderId}`,
       'amount': amount.toFixed(2),
       'paymentType': 'DB',
       'currency': currency.toUpperCase(),
@@ -48,45 +74,56 @@ export async function POST(request: Request) {
       'customParameters[orderId]': orderId,
       'customParameters[productName]': productName,
       'customParameters[whatsappNumber]': WHATSAPP_NUMBER || '',
-      // Optional but recommended customer fields
       'customer.givenName': 'Customer',
       'customer.surname': 'Order',
       'customer.email': 'customer@example.com',
-      'customer.ip': '127.0.0.1', // Vercel will replace with real IP if configured
+      'customer.ip': '127.0.0.1',
       'billing.country': 'ZA',
       'billing.city': 'Cape Town',
       'shipping.country': 'ZA',
       'shipping.city': 'Cape Town',
     };
 
-    // Generate HMAC SHA256 signature [[1]]
-    const signature = generateSignature(peachParams, SECRET_KEY);
+    // Generate signature BEFORE adding it to params
+    console.log("🔐 Generating signature for params:", Object.keys(peachParams).sort().slice(0, 5), '...');
+    const signature = await generateSignature(peachParams, SECRET_KEY);
+    console.log("✅ Signature generated:", signature.substring(0, 16) + '...');
+    
+    // Add signature to params
     peachParams.signature = signature;
 
-    // Determine endpoint
+    // Determine endpoint (Peach Hosted Checkout)
     const apiEndpoint = PEACH_MODE === 'LIVE'
       ? 'https://secure.peachpayments.com/checkout/initiate'
       : 'https://testsecure.peachpayments.com/checkout/initiate';
 
-    console.log("📡 Sending to Peach:", apiEndpoint);
-    console.log("🔐 Signature generated:", signature.substring(0, 16) + '...');
+    console.log("📡 POST to:", apiEndpoint);
 
-    // Make request with CORRECT headers and JSON body
+    // Make request with EXACT headers Peach requires
     const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
-        'Referer': BASE_URL, // Must be allowlisted in Peach Dashboard [[16]]
+        'Referer': BASE_URL, // Must be allowlisted in Peach Dashboard
         'accept': 'application/json',
         'content-type': 'application/json'
       },
       body: JSON.stringify(peachParams)
     });
 
-    const data = await response.json();
-    console.log("📥 Peach Response:", response.status, data);
+    console.log("📥 Response status:", response.status);
+    
+    let data;
+    try {
+      data = await response.json();
+      console.log("📥 Response body:", JSON.stringify(data).slice(0, 200) + '...');
+    } catch (e) {
+      const text = await response.text();
+      console.error("❌ Failed to parse JSON response:", text);
+      throw new Error(`Invalid JSON response: ${text}`);
+    }
 
     if (!response.ok) {
-      console.error('Peach API Error:', data);
+      console.error('🚫 Peach API error:', data);
       return NextResponse.json(
         { error: 'Payment initiation failed', details: data },
         { status: response.status }
@@ -95,15 +132,21 @@ export async function POST(request: Request) {
 
     // Peach returns redirectUrl for Hosted Checkout
     if (data.redirectUrl) {
+      console.log("✅ Success! Redirect URL:", data.redirectUrl);
       return NextResponse.json({ checkoutUrl: data.redirectUrl });
     }
 
+    console.error("❌ No redirectUrl in successful response:", data);
     return NextResponse.json({ error: 'No redirectUrl in response', details: data }, { status: 500 });
 
   } catch (error: any) {
-    console.error('💥 CRITICAL ERROR:', error.message);
+    console.error('💥 CRITICAL ERROR:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack?.split('\n')[0]
+    });
     return NextResponse.json(
-      { error: 'Problem Connecting To Peach Payments', details: error.message },
+      { error: 'Internal server error during checkout creation', details: error.message },
       { status: 503 }
     );
   }
