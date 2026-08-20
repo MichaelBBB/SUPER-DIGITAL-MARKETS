@@ -29,7 +29,14 @@ export default function PaymentForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Payment failed');
+        // ✅ SHOW FULL PEACH ERROR DETAILS
+        const peachDetails = data.peachResponse 
+          ? `\n\n🍑 Peach Response:\n${JSON.stringify(data.peachResponse, null, 2)}`
+          : data.details 
+            ? `\n\nDetails: ${JSON.stringify(data.details, null, 2)}`
+            : '';
+        
+        throw new Error(`${data.error || 'Payment failed'}${peachDetails}`);
       }
 
       if (data.checkoutUrl) {
@@ -39,7 +46,7 @@ export default function PaymentForm() {
       }
     } catch (error: any) {
       console.error("Peach Error:", error);
-      alert(`Payment error: ${error.message}\n\nPlease try again or contact support.`);
+      alert(`Payment error:\n\n${error.message}`);
       setLoading(false);
     }
   };
@@ -55,7 +62,6 @@ export default function PaymentForm() {
         <h1 className="text-3xl font-bold mb-2 text-center">Secure Checkout</h1>
         <p className="text-gray-400 text-center mb-8">Powered by Peach Payments</p>
 
-        {/* Order Summary */}
         <div className="bg-gray-950/50 rounded-xl p-6 mb-8 border border-gray-800">
           <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-800">
             <span className="text-gray-400">Product</span>
@@ -73,7 +79,6 @@ export default function PaymentForm() {
           </div>
         </div>
 
-        {/* Peach Payments Button - PRIMARY ACTION */}
         <button
           onClick={handlePeachPayment}
           disabled={loading}
@@ -97,7 +102,6 @@ export default function PaymentForm() {
           )}
         </button>
 
-        {/* Trust Badges */}
         <div className="mt-6 flex flex-wrap justify-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +124,7 @@ export default function PaymentForm() {
         </div>
 
         <p className="text-center text-xs text-gray-600 mt-8">
-          🔒 Secured by Peach Payments • Instant automated delivery • Funds settle to Capitec
+          🔒 Secured by Peach Payments • Instant automated delivery
         </p>
       </div>
     </div>
