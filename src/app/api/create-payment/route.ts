@@ -17,8 +17,8 @@ export async function POST(request: Request) {
 
     const nonce = `UNQ${Date.now()}`;
     
-    // Build body WITHOUT signature (Peach requirement)
-    const bodyForSigning: Record<string, any> = {
+    // Build parameters for signing (alphabetical order, key=value format)
+    const paramsForSigning: Record<string, string> = {
       "authentication.entityId": ENTITY_ID,
       "merchantTransactionId": orderId,
       "rateLimitId": orderId,
@@ -39,55 +39,56 @@ export async function POST(request: Request) {
       "shipping.country": "ZA",
     };
 
-    // Generate signature string: alphabetical keys, key=value format
-    const sortedKeys = Object.keys(bodyForSigning).sort();
-    const sigString = sortedKeys.map(k => `${k}=${bodyForSigning[k]}`).join('&');
+    // Generate signature string: alphabetical keys, key=value (NO URL encoding for signature)
+    const sortedKeys = Object.keys(paramsForSigning).sort();
+    const sigString = sortedKeys.map(k => `${k}=${paramsForSigning[k]}`).join('&');
     
-    // Generate HMAC-SHA256 signature
+    // Generate HMAC-SHA256 signature using SECRET_KEY
     const signature = createHmac('sha256', SECRET_KEY).update(sigString).digest('hex');
-    
-    // LOG EVERYTHING for manual verification
-    console.log("=== PEACH SIGNATURE DEBUG ===");
-    console.log("Entity ID:", ENTITY_ID);
-    console.log("Secret Key Length:", SECRET_KEY.length);
-    console.log("Nonce:", nonce);
-    console.log("Signature String:", sigString);
-    console.log("Generated Signature:", signature);
-    console.log("=== END DEBUG ===");
-    
-    // Add signature to final body
-    const finalBody = { ...bodyForSigning, signature };
+
+    // Build final form data (URL-encoded)
+    const formData = new URLSearchParams();
+    for (const [key, value] of Object.entries(paramsForSigning)) {
+      formData.append(key, value);
+    }
+    formData.append('signature', signature);
 
     const endpoint = PEACH_MODE === 'LIVE' 
       ? 'https://secure.peachpayments.com/checkout/initiate'
       : 'https://testsecure.peachpayments.com/checkout/initiate';
 
+    console.log("📡 POST to:", endpoint);
+    console.log("🔐 Signature:", signature);
+
+    // ✅ CRITICAL: Send as application/x-www-form-urlencoded (NOT JSON)
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Referer': BASE_URL,
         'accept': 'application/json',
-        'content-type': 'application/json'
+        'content-type': 'application/x-www-form-urlencoded'  // ✅ THIS WAS THE BUG!
       },
-      body: JSON.stringify(finalBody)
+      body: formData.toString()  // ✅ Send as form string, NOT JSON.stringify()
     });
 
     const text = await res.text();
     
     if (!res.ok) {
-      console.error("Peach Error Response:", text);
-      return NextResponse.json({ error: 'Payment initiation failed', peachResponse: JSON.parse(text || '{}') }, { status: res.status });
+      console.error("🚫 Peach Error:", text);
+      return NextResponse.json({ error: 'Payment initiation failed', peachResponse: text }, { status: res.status });
     }
 
     const data = JSON.parse(text);
+    
     if (data.redirectUrl) {
+      console.log("✅ SUCCESS! Redirect:", data.redirectUrl);
       return NextResponse.json({ checkoutUrl: data.redirectUrl });
     }
 
     return NextResponse.json({ error: 'No redirectUrl', details: data }, { status: 500 });
 
   } catch (error: any) {
-    console.error("Critical Error:", error);
+    console.error("💥 CRITICAL ERROR:", error.message);
     return NextResponse.json({ error: 'Payment system error', details: error.message }, { status: 503 });
   }
 }
