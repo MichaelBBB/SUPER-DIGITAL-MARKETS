@@ -1,5 +1,6 @@
 // src/app/api/create-payment/route.ts
 import { NextResponse } from 'next/server';
+import { createHmac } from 'crypto';
 
 export async function POST(request: Request) {
   try {
@@ -10,22 +11,15 @@ export async function POST(request: Request) {
     const BASE_URL = process.env.NEXT_PUBLIC_URL;
     const PEACH_MODE = process.env.NEXT_PUBLIC_PEACH_MODE;
 
-    console.log("🔑 ENV CHECK:", {
-      ENTITY_ID: ENTITY_ID ? "✅" : "❌",
-      SECRET_KEY: SECRET_KEY ? "✅" : "❌", 
-      BASE_URL: BASE_URL || "❌",
-      MODE: PEACH_MODE
-    });
-
     if (!ENTITY_ID || !SECRET_KEY || !BASE_URL) {
-      console.error("❌ Missing env vars");
-      return NextResponse.json({ error: 'Server configuration missing.' }, { status: 500 });
+      return NextResponse.json({ 
+        error: 'Server configuration missing.',
+        debug: { hasEntityId: !!ENTITY_ID, hasSecretKey: !!SECRET_KEY, hasBaseUrl: !!BASE_URL }
+      }, { status: 500 });
     }
 
-    // Build request body EXACTLY like Peach's example
-    const nonce = `UNQ${Date.now()}`;
+    const nonce = `UNQ${Date.now()}${Math.floor(Math.random() * 1000000)}`;
     
-    // Use Record<string, any> to allow string indexing (fixes TypeScript error)
     const body: Record<string, any> = {
       "authentication.entityId": ENTITY_ID,
       "merchantTransactionId": orderId,
@@ -34,9 +28,9 @@ export async function POST(request: Request) {
       "paymentType": "DB",
       "currency": currency.toUpperCase(),
       "nonce": nonce,
-      "shopperResultUrl": `${BASE_URL}/payment/success`,
+      "shopperResultUrl": `${BASE_URL}/success?orderId=${orderId}&amount=${amount}&item=${encodeURIComponent(productName)}`,
       "merchantInvoiceId": orderId,
-      "cancelUrl": `${BASE_URL}/payment/fail`,
+      "cancelUrl": `${BASE_URL}/payment?cancelled=true`,
       "notificationUrl": `${BASE_URL}/api/webhook`,
       "customParameters[orderId]": orderId,
       "customParameters[productName]": productName,
@@ -47,28 +41,16 @@ export async function POST(request: Request) {
       "shipping.country": "ZA",
     };
 
-    // Generate signature: alphabetical keys, key=value& format
+    // Generate HMAC SHA256 signature (alphabetical keys)
     const sortedKeys = Object.keys(body).sort();
-    // ✅ FIX: Cast body[k] as any to satisfy TypeScript
     const sigString = sortedKeys.map(k => `${k}=${(body as any)[k]}`).join('&');
-    
-    // Use Node.js crypto (available in Vercel serverless)
-    const { createHmac } = await import('crypto');
     const signature = createHmac('sha256', SECRET_KEY).update(sigString).digest('hex');
-    
     body.signature = signature;
 
-    console.log("🔐 Signature:", signature.substring(0, 20) + '...');
-    console.log("📦 Body keys:", sortedKeys);
-
-    // Endpoint from Peach docs
     const endpoint = PEACH_MODE === 'LIVE' 
       ? 'https://secure.peachpayments.com/checkout/initiate'
       : 'https://testsecure.peachpayments.com/checkout/initiate';
 
-    console.log("📡 POST to:", endpoint);
-
-    // Fetch with EXACT headers from Peach example
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -79,42 +61,31 @@ export async function POST(request: Request) {
       body: JSON.stringify(body)
     });
 
-    console.log("📥 Status:", res.status, res.statusText);
-    
     const text = await res.text();
-    console.log("📥 Raw response:", text.substring(0, 500));
-    
     let data;
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      console.error("❌ JSON parse failed:", e);
-      return NextResponse.json({ error: 'Invalid response from Peach', raw: text }, { status: 500 });
-    }
+    try { data = JSON.parse(text); } 
+    catch (e) { data = { rawResponse: text }; }
 
     if (!res.ok) {
-      console.error("🚫 Peach error:", data);
-      return NextResponse.json({ error: 'Payment failed', details: data }, { status: res.status });
+      console.error('Peach API Error:', data);
+      return NextResponse.json({ 
+        error: 'Payment initiation failed', 
+        status: res.status,
+        peachResponse: data 
+      }, { status: res.status });
     }
 
     if (data.redirectUrl) {
-      console.log("✅ Success! Redirect:", data.redirectUrl);
       return NextResponse.json({ checkoutUrl: data.redirectUrl });
     }
 
-    console.error("❌ No redirectUrl:", data);
     return NextResponse.json({ error: 'No redirectUrl', details: data }, { status: 500 });
 
   } catch (error: any) {
-    console.error("💥 CATCH ERROR:", {
-      name: error.name,
-      message: error.message,
-      cause: error.cause,
-      stack: error.stack?.split('\n')[0]
-    });
-    return NextResponse.json(
-      { error: 'Internal server error during checkout creation', details: error.message },
-      { status: 503 }
-    );
+    console.error('Peach Integration Error:', error);
+    return NextResponse.json({
+      error: 'Payment system error',
+      details: error.message
+    }, { status: 503 });
   }
 }
