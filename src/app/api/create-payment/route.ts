@@ -12,15 +12,13 @@ export async function POST(request: Request) {
     const PEACH_MODE = process.env.NEXT_PUBLIC_PEACH_MODE;
 
     if (!ENTITY_ID || !SECRET_KEY || !BASE_URL) {
-      return NextResponse.json({ 
-        error: 'Server configuration missing.',
-        debug: { hasEntityId: !!ENTITY_ID, hasSecretKey: !!SECRET_KEY, hasBaseUrl: !!BASE_URL }
-      }, { status: 500 });
+      return NextResponse.json({ error: 'Server configuration missing.' }, { status: 500 });
     }
 
     const nonce = `UNQ${Date.now()}${Math.floor(Math.random() * 1000000)}`;
     
-    const body: Record<string, any> = {
+    // Build body WITHOUT signature first
+    const bodyForSigning: Record<string, any> = {
       "authentication.entityId": ENTITY_ID,
       "merchantTransactionId": orderId,
       "rateLimitId": orderId,
@@ -41,15 +39,23 @@ export async function POST(request: Request) {
       "shipping.country": "ZA",
     };
 
-    // Generate HMAC SHA256 signature (alphabetical keys)
-    const sortedKeys = Object.keys(body).sort();
-    const sigString = sortedKeys.map(k => `${k}=${(body as any)[k]}`).join('&');
+    // ✅ CRITICAL: Generate signature on body WITHOUT signature field
+    const sortedKeys = Object.keys(bodyForSigning).sort();
+    const sigString = sortedKeys.map(k => `${k}=${bodyForSigning[k]}`).join('&');
+    
+    console.log("🔐 Signature string:", sigString.substring(0, 100) + '...');
+    
     const signature = createHmac('sha256', SECRET_KEY).update(sigString).digest('hex');
-    body.signature = signature;
+    console.log("✅ Generated signature:", signature);
+
+    // NOW add signature to the final body
+    const finalBody = { ...bodyForSigning, signature };
 
     const endpoint = PEACH_MODE === 'LIVE' 
       ? 'https://secure.peachpayments.com/checkout/initiate'
       : 'https://testsecure.peachpayments.com/checkout/initiate';
+
+    console.log("📡 POST to:", endpoint);
 
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -58,34 +64,33 @@ export async function POST(request: Request) {
         'accept': 'application/json',
         'content-type': 'application/json'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(finalBody)
     });
 
     const text = await res.text();
+    console.log("📥 Status:", res.status);
+    console.log("📥 Response:", text.substring(0, 300));
+    
     let data;
     try { data = JSON.parse(text); } 
-    catch (e) { data = { rawResponse: text }; }
+    catch (e) { 
+      return NextResponse.json({ error: 'Invalid JSON response', raw: text.substring(0, 200) }, { status: 500 }); 
+    }
 
     if (!res.ok) {
-      console.error('Peach API Error:', data);
-      return NextResponse.json({ 
-        error: 'Payment initiation failed', 
-        status: res.status,
-        peachResponse: data 
-      }, { status: res.status });
+      console.error("🚫 Peach Error:", data);
+      return NextResponse.json({ error: 'Payment initiation failed', peachResponse: data }, { status: res.status });
     }
 
     if (data.redirectUrl) {
+      console.log("✅ Redirect:", data.redirectUrl);
       return NextResponse.json({ checkoutUrl: data.redirectUrl });
     }
 
     return NextResponse.json({ error: 'No redirectUrl', details: data }, { status: 500 });
 
   } catch (error: any) {
-    console.error('Peach Integration Error:', error);
-    return NextResponse.json({
-      error: 'Payment system error',
-      details: error.message
-    }, { status: 503 });
+    console.error("💥 ERROR:", error.message);
+    return NextResponse.json({ error: 'Payment system error', details: error.message }, { status: 503 });
   }
 }
