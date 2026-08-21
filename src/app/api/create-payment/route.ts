@@ -19,14 +19,16 @@ export async function POST(request: Request) {
     const shopperResultUrl = `${cleanBaseUrl}/success`;
     const nonce = `UNQ${Date.now()}`;
 
-    // 🚨 CRITICAL: ONLY sign the core parameters shown in Peach's official HMAC example.
-    // Do NOT include cancelUrl, notificationUrl, merchantInvoiceId, or customParameters in the signature.
+    // 🚨 CRITICAL: Match the Python example EXACTLY.
+    // Includes 'defaultPaymentMethod' and 'notificationUrl' as empty string.
     const coreParams: Record<string, string> = {
       "amount": amount.toFixed(2),
       "authentication.entityId": ENTITY_ID,
       "currency": currency.toUpperCase(),
+      "defaultPaymentMethod": "CARD",       // <--- ADDED (Required by docs)
       "merchantTransactionId": orderId,
       "nonce": nonce,
+      "notificationUrl": "",                // <--- ADDED as empty string (Matches Python example)
       "paymentType": "DB",
       "shopperResultUrl": shopperResultUrl,
     };
@@ -47,17 +49,16 @@ export async function POST(request: Request) {
     // Build Form Data Body
     const formData = new URLSearchParams();
     
-    // Add the 7 signed core fields
+    // Add the signed core fields
     for (const [key, value] of Object.entries(coreParams)) {
       formData.append(key, value);
     }
     formData.append('signature', signature);
 
     // Add Optional Fields to BODY ONLY (NOT included in signature)
-    // These are sent for functionality but excluded from the hash to match the official example
+    // These are sent for functionality but excluded from the hash
     formData.append('merchantInvoiceId', orderId);
     formData.append('cancelUrl', `${cleanBaseUrl}/payment?cancelled=true`);
-    formData.append('notificationUrl', `${cleanBaseUrl}/api/webhook`);
     formData.append('customParameters[orderId]', orderId);
     formData.append('customParameters[productName]', productName);
 
