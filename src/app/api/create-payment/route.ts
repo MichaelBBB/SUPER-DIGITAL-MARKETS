@@ -17,10 +17,11 @@ export async function POST(request: Request) {
 
     const nonce = `UNQ${Date.now()}`;
     
-    // 🚨 CRITICAL: ONLY these 7 fields for signature (exactly like Peach's sample)
-    // shopperResultUrl must be SIMPLE - no query params for signature calculation
-    const simpleSuccessUrl = `${BASE_URL}/success`;
+    // 🚨 CRITICAL: Use SIMPLE shopperResultUrl (NO query params, NO encoding)
+    // Just like Peach's example: https://mydemostore.com/OrderNo453432
+    const shopperResultUrl = `${BASE_URL}/success`;
     
+    // ONLY these 7 fields (alphabetical order)
     const paramsForSigning: Record<string, string> = {
       "amount": amount.toFixed(2),
       "authentication.entityId": ENTITY_ID,
@@ -28,45 +29,44 @@ export async function POST(request: Request) {
       "merchantTransactionId": orderId,
       "nonce": nonce,
       "paymentType": "DB",
-      "shopperResultUrl": simpleSuccessUrl, // 🚨 NO query params in signature!
+      "shopperResultUrl": shopperResultUrl, // 🚨 NO encodeURIComponent!
     };
 
-    // 🚨 CRITICAL: Signature = key+value concatenated, alphabetical keys, NO separators
+    // 🚨 CRITICAL: Concatenate key+value, NO separators, NO encoding
     const sortedKeys = Object.keys(paramsForSigning).sort();
     const sigString = sortedKeys.map(k => `${k}${paramsForSigning[k]}`).join('');
     
-    // Generate HMAC-SHA256 using SECRET_KEY as raw string
+    // 🚨 CRITICAL: Use secret key as-is (NO encoding, NO trimming beyond initial)
     const signature = createHmac('sha256', SECRET_KEY).update(sigString, 'utf8').digest('hex');
 
-    // Build form body: signed fields + signature + optional fields (NOT in signature)
+    console.log("🔐 Signature String:", sigString);
+    console.log("✅ Generated Signature:", signature);
+
+    // Build form body
     const formData = new URLSearchParams();
-    
-    // Add the 7 signed fields
     for (const [key, value] of Object.entries(paramsForSigning)) {
       formData.append(key, value);
     }
     formData.append('signature', signature);
     
-    // Add optional fields (NOT included in signature calculation)
+    // Optional fields (NOT in signature)
     formData.append('merchantInvoiceId', orderId);
     formData.append('cancelUrl', `${BASE_URL}/payment?cancelled=true`);
     formData.append('notificationUrl', `${BASE_URL}/api/webhook`);
     formData.append('customParameters[orderId]', orderId);
     formData.append('customParameters[productName]', productName);
-    formData.append('customParameters[itemName]', productName);
 
     const endpoint = PEACH_MODE === 'LIVE' 
       ? 'https://secure.peachpayments.com/checkout/initiate'
       : 'https://testsecure.peachpayments.com/checkout/initiate';
 
-    // Send as application/x-www-form-urlencoded (NOT JSON)
+    // Send as form-urlencoded
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Referer': BASE_URL,
         'accept': 'application/json',
         'content-type': 'application/x-www-form-urlencoded'
-        // 🚨 NO Authorization header - not required for /checkout/initiate per Peach docs
       },
       body: formData.toString()
     });
@@ -74,18 +74,21 @@ export async function POST(request: Request) {
     const text = await res.text();
     
     if (!res.ok) {
+      console.error("🚫 Peach Error:", text);
       return NextResponse.json({ error: 'Payment initiation failed', peachResponse: text }, { status: res.status });
     }
 
     const data = JSON.parse(text);
     
     if (data.redirectUrl) {
+      console.log("✅ SUCCESS! Redirect:", data.redirectUrl);
       return NextResponse.json({ checkoutUrl: data.redirectUrl });
     }
 
     return NextResponse.json({ error: 'No redirectUrl', details: data }, { status: 500 });
 
   } catch (error: any) {
+    console.error("💥 CRITICAL ERROR:", error.message);
     return NextResponse.json({ error: 'Payment system error', details: error.message }, { status: 503 });
   }
 }
