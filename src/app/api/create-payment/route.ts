@@ -17,16 +17,16 @@ export async function POST(request: Request) {
 
     const nonce = `UNQ${Date.now()}`;
     
-    // Build parameters for signing (alphabetical order, key=value format)
+    // Build parameters for signing (alphabetical order)
     const paramsForSigning: Record<string, string> = {
-      "authentication.entityId": ENTITY_ID,
-      "merchantTransactionId": orderId,
-      "rateLimitId": orderId,
       "amount": amount.toFixed(2),
-      "paymentType": "DB",
+      "authentication.entityId": ENTITY_ID,
       "currency": currency.toUpperCase(),
+      "merchantTransactionId": orderId,
       "nonce": nonce,
+      "paymentType": "DB",
       "shopperResultUrl": `${BASE_URL}/success?orderId=${orderId}&amount=${amount}&item=${encodeURIComponent(productName)}`,
+      // Optional fields - include only if needed
       "merchantInvoiceId": orderId,
       "cancelUrl": `${BASE_URL}/payment?cancelled=true`,
       "notificationUrl": `${BASE_URL}/api/webhook`,
@@ -39,12 +39,16 @@ export async function POST(request: Request) {
       "shipping.country": "ZA",
     };
 
-    // Generate signature string: alphabetical keys, key=value (NO URL encoding for signature)
+    // 🚨 CRITICAL: Generate signature string with NO separators (key + value only)
+    // Keys must be in alphabetical order
     const sortedKeys = Object.keys(paramsForSigning).sort();
-    const sigString = sortedKeys.map(k => `${k}=${paramsForSigning[k]}`).join('&');
+    const sigString = sortedKeys.map(k => `${k}${paramsForSigning[k]}`).join(''); // NO = or &
+    
+    console.log("🔐 Signature string (first 100 chars):", sigString.substring(0, 100) + '...');
     
     // Generate HMAC-SHA256 signature using SECRET_KEY
     const signature = createHmac('sha256', SECRET_KEY).update(sigString).digest('hex');
+    console.log("✅ Generated signature:", signature);
 
     // Build final form data (URL-encoded)
     const formData = new URLSearchParams();
@@ -58,20 +62,20 @@ export async function POST(request: Request) {
       : 'https://testsecure.peachpayments.com/checkout/initiate';
 
     console.log("📡 POST to:", endpoint);
-    console.log("🔐 Signature:", signature);
 
-    // ✅ CRITICAL: Send as application/x-www-form-urlencoded (NOT JSON)
+    // Send as application/x-www-form-urlencoded (NOT JSON)
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Referer': BASE_URL,
         'accept': 'application/json',
-        'content-type': 'application/x-www-form-urlencoded'  // ✅ THIS WAS THE BUG!
+        'content-type': 'application/x-www-form-urlencoded'
       },
-      body: formData.toString()  // ✅ Send as form string, NOT JSON.stringify()
+      body: formData.toString()
     });
 
     const text = await res.text();
+    console.log("📥 Response status:", res.status);
     
     if (!res.ok) {
       console.error("🚫 Peach Error:", text);
