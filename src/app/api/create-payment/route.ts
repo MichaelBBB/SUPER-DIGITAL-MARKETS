@@ -14,33 +14,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing Env Vars' }, { status: 500 });
     }
 
-    // Clean URL to prevent double slashes
+    // Clean URL
     const cleanBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
-    
-    const nonce = `UNQ${Date.now()}`;
     const shopperResultUrl = `${cleanBaseUrl}/success`;
-    const cancelUrl = `${cleanBaseUrl}/payment?cancelled=true`;
-    const notificationUrl = `${cleanBaseUrl}/api/webhook`;
+    const nonce = `UNQ${Date.now()}`;
 
-    // 🚨 CRITICAL: Define ALL parameters we will send. 
-    // Per Peach Docs: "Include all payment parameters... If you include any other parameters, they must be part of the encrypted message."
+    // 🚨 CRITICAL: Match Peach's cURL example exactly.
+    // They send notificationUrl and cancelUrl as EMPTY strings.
+    // We will do the same to ensure the signature matches.
     const allParams: Record<string, string> = {
       "amount": amount.toFixed(2),
       "authentication.entityId": ENTITY_ID,
-      "cancelUrl": cancelUrl,                  // Included in signature
+      "cancelUrl": "",                  // EMPTY string like Peach's example
       "currency": currency.toUpperCase(),
-      "customParameters[orderId]": orderId,     // Included in signature
-      "customParameters[productName]": productName, // Included in signature
-      "merchantInvoiceId": orderId,             // Included in signature
+      "merchantInvoiceId": orderId,     // Included as per standard practice
       "merchantTransactionId": orderId,
-      "notificationUrl": notificationUrl,       // Included in signature (even if not empty)
+      "notificationUrl": "",            // EMPTY string like Peach's example
       "nonce": nonce,
       "paymentType": "DB",
       "shopperResultUrl": shopperResultUrl,
+      // Custom parameters are tricky. If not in the example, exclude from signature 
+      // OR ensure they are formatted exactly as sent. 
+      // For safety, let's exclude customParameters from signature for now 
+      // and only send them in the body if needed, OR include them if strictly required.
+      // Given the repeated failures, let's stick to the CORE fields + empty optional ones first.
+      // If customParameters are required in signature, they must be added here.
+      // Let's add them as per standard requirement but ensure format is correct.
+      "customParameters[orderId]": orderId,
+      "customParameters[productName]": productName,
     };
 
-    // 1. Generate Signature String
-    // Sort keys alphabetically -> Concatenate key+value (NO separators, NO spaces)
+    // Generate Signature String: Alphabetical keys, key+value concatenation
     const sortedKeys = Object.keys(allParams).sort();
     let sigString = "";
     for (const key of sortedKeys) {
@@ -49,20 +53,18 @@ export async function POST(request: Request) {
 
     console.log("🔍 DEBUG SigString:", sigString);
     
-    // Calculate HMAC-SHA256 using the Secret Key
+    // Calculate HMAC-SHA256
     const signature = createHmac('sha256', SECRET_KEY).update(sigString, 'utf8').digest('hex');
     console.log("✅ Generated Signature:", signature);
 
-    // 2. Build Form Data Body
-    // We must send EXACTLY the same fields used in the signature
+    // Build Form Data Body
     const formData = new URLSearchParams();
     for (const [key, value] of Object.entries(allParams)) {
       formData.append(key, value);
     }
-    // Add the calculated signature
     formData.append('signature', signature);
 
-    // 3. Send Request
+    // Send Request
     const endpoint = 'https://secure.peachpayments.com/checkout/initiate';
 
     const res = await fetch(endpoint, {
@@ -78,18 +80,17 @@ export async function POST(request: Request) {
     const text = await res.text();
 
     if (!res.ok) {
-      console.error("🚫 Peach Error Response:", text);
+      console.error("🚫 Peach Error:", text);
       return NextResponse.json({ 
         error: 'Payment Initiation Failed', 
         peachMessage: text,
-        debugSigString: sigString // Send this to Peach if it fails again
+        debugSigString: sigString 
       }, { status: res.status });
     }
 
     const data = JSON.parse(text);
     
     if (data.redirectUrl) {
-      console.log("✅ SUCCESS! Redirect URL received.");
       return NextResponse.json({ checkoutUrl: data.redirectUrl });
     }
 
