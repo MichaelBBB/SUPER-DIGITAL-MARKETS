@@ -6,83 +6,65 @@ export async function POST(request: Request) {
   try {
     const { amount, currency, productName, orderId } = await request.json();
 
-    // 1. CLEAN CREDENTIALS & URL
-    let ENTITY_ID = process.env.PEACH_ENTITY_ID?.trim() || '';
-    let SECRET_KEY = process.env.PEACH_SECRET_KEY?.trim() || '';
-    let BASE_URL = process.env.NEXT_PUBLIC_URL?.trim() || '';
-
-    // CRITICAL FIX: Remove trailing slash from BASE_URL to prevent double slashes in URL
-    if (BASE_URL.endsWith('/')) {
-      BASE_URL = BASE_URL.slice(0, -1);
-    }
+    const ENTITY_ID = process.env.PEACH_ENTITY_ID?.trim();
+    const SECRET_KEY = process.env.PEACH_SECRET_KEY?.trim();
+    const BASE_URL = process.env.NEXT_PUBLIC_URL?.trim();
 
     if (!ENTITY_ID || !SECRET_KEY || !BASE_URL) {
       return NextResponse.json({ error: 'Missing Env Vars' }, { status: 500 });
     }
 
-    // 2. DEFINE SIMPLE SUCCESS URL (No query params for signature!)
-    const successPath = '/success';
-    const shopperResultUrl = `${BASE_URL}${successPath}`;
-
+    // Clean URL
+    const cleanBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+    const shopperResultUrl = `${cleanBaseUrl}/success`;
+    const cancelUrl = `${cleanBaseUrl}/payment?cancelled=true`;
+    const notificationUrl = `${cleanBaseUrl}/api/webhook`;
     const nonce = `UNQ${Date.now()}`;
 
-    // 3. PREPARE PARAMETERS (Exactly 7 fields, Alphabetical Order)
-    // These values will be used for BOTH the signature string AND the form body
-    const params: Record<string, string> = {
+    // 🚨 CRITICAL: Include ALL parameters that will be sent in the body, even empty ones or optional ones.
+    // This matches Peach's requirement: "Include all payment parameters... sorted alphabetically".
+    const allParams: Record<string, string> = {
       "amount": amount.toFixed(2),
       "authentication.entityId": ENTITY_ID,
+      "cancelUrl": cancelUrl,              // Included in signature
       "currency": currency.toUpperCase(),
+      "customParameters[orderId]": orderId, // Included in signature
+      "customParameters[productName]": productName, // Included in signature
+      "merchantInvoiceId": orderId,         // Included in signature
       "merchantTransactionId": orderId,
+      "notificationUrl": notificationUrl,   // Included in signature (Peach example includes this)
       "nonce": nonce,
       "paymentType": "DB",
-      "shopperResultUrl": shopperResultUrl, 
+      "shopperResultUrl": shopperResultUrl,
     };
 
-    // 4. GENERATE SIGNATURE STRING
-    // Sort keys alphabetically -> Concatenate key+value (NO separators)
-    const sortedKeys = Object.keys(params).sort();
+    // Generate Signature String: Alphabetical keys, key+value concatenation
+    const sortedKeys = Object.keys(allParams).sort();
     let sigString = "";
     for (const key of sortedKeys) {
-      sigString += key + params[key];
+      sigString += key + allParams[key];
     }
 
+    console.log("🔍 DEBUG SigString:", sigString);
+    
     // Calculate HMAC-SHA256
     const signature = createHmac('sha256', SECRET_KEY).update(sigString, 'utf8').digest('hex');
+    console.log("✅ Generated Signature:", signature);
 
-    console.log("🔍 DEBUG SigString:", sigString);
-    console.log("🔍 DEBUG Signature:", signature);
-    console.log(" DEBUG ShopperURL Used:", shopperResultUrl);
-
-    // 5. BUILD FORM DATA BODY
-    // We MUST use the EXACT same values as in the signature calculation
+    // Build Form Data Body (Must match the params used in signature exactly)
     const formData = new URLSearchParams();
-    
-    // Add the 7 signed fields
-    formData.append('amount', params['amount']);
-    formData.append('authentication.entityId', params['authentication.entityId']);
-    formData.append('currency', params['currency']);
-    formData.append('merchantTransactionId', params['merchantTransactionId']);
-    formData.append('nonce', params['nonce']);
-    formData.append('paymentType', params['paymentType']);
-    formData.append('shopperResultUrl', params['shopperResultUrl']); // Must match signature exactly
-    
-    // Add the calculated signature
+    for (const [key, value] of Object.entries(allParams)) {
+      formData.append(key, value);
+    }
     formData.append('signature', signature);
 
-    // Add Optional Fields (NOT part of signature)
-    formData.append('merchantInvoiceId', orderId);
-    formData.append('cancelUrl', `${BASE_URL}/payment?cancelled=true`);
-    formData.append('notificationUrl', `${BASE_URL}/api/webhook`);
-    formData.append('customParameters[orderId]', orderId);
-    formData.append('customParameters[productName]', productName);
-
-    // 6. SEND REQUEST
+    // Send Request
     const endpoint = 'https://secure.peachpayments.com/checkout/initiate';
 
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        'Referer': BASE_URL,
+        'Referer': cleanBaseUrl,
         'accept': 'application/json',
         'content-type': 'application/x-www-form-urlencoded'
       },
@@ -92,12 +74,11 @@ export async function POST(request: Request) {
     const text = await res.text();
 
     if (!res.ok) {
-      console.error("🚫 Peach Error Response:", text);
+      console.error(" Peach Error:", text);
       return NextResponse.json({ 
         error: 'Payment Initiation Failed', 
         peachMessage: text,
-        debugSigString: sigString, // Send this to Peach if it fails again
-        debugShopperUrl: shopperResultUrl
+        debugSigString: sigString 
       }, { status: res.status });
     }
 
