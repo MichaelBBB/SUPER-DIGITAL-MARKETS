@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
     const nonce = `UNQ${Date.now()}`;
     
-    // Build parameters for signing (alphabetical order)
+    // 🚨 CRITICAL: Only include the 7 fields from Peach's sample in the signature
     const paramsForSigning: Record<string, string> = {
       "amount": amount.toFixed(2),
       "authentication.entityId": ENTITY_ID,
@@ -26,36 +26,40 @@ export async function POST(request: Request) {
       "nonce": nonce,
       "paymentType": "DB",
       "shopperResultUrl": `${BASE_URL}/success?orderId=${orderId}&amount=${amount}&item=${encodeURIComponent(productName)}`,
-      // Optional fields - include only if needed
-      "merchantInvoiceId": orderId,
-      "cancelUrl": `${BASE_URL}/payment?cancelled=true`,
-      "notificationUrl": `${BASE_URL}/api/webhook`,
-      "customParameters[orderId]": orderId,
-      "customParameters[productName]": productName,
-      "customer.givenName": "Customer",
-      "customer.surname": "Order", 
-      "customer.email": "order@super-digital.com",
-      "billing.country": "ZA",
-      "shipping.country": "ZA",
     };
 
-    // 🚨 CRITICAL: Generate signature string with NO separators (key + value only)
-    // Keys must be in alphabetical order
+    // 🚨 CRITICAL: Signature string = key+value concatenated, NO separators, alphabetical keys
     const sortedKeys = Object.keys(paramsForSigning).sort();
-    const sigString = sortedKeys.map(k => `${k}${paramsForSigning[k]}`).join(''); // NO = or &
+    const sigString = sortedKeys.map(k => `${k}${paramsForSigning[k]}`).join('');
     
-    console.log("🔐 Signature string (first 100 chars):", sigString.substring(0, 100) + '...');
+    console.log("🔐 Signature string:", sigString);
     
-    // Generate HMAC-SHA256 signature using SECRET_KEY
+    // Generate HMAC-SHA256 signature using SECRET_KEY as the HMAC key
     const signature = createHmac('sha256', SECRET_KEY).update(sigString).digest('hex');
     console.log("✅ Generated signature:", signature);
 
-    // Build final form data (URL-encoded)
+    // Build final form data (URL-encoded for HTTP body)
     const formData = new URLSearchParams();
+    
+    // Add the 7 signed fields
     for (const [key, value] of Object.entries(paramsForSigning)) {
       formData.append(key, value);
     }
+    
+    // Add signature
     formData.append('signature', signature);
+    
+    // 🎁 Add optional fields (NOT included in signature)
+    formData.append('merchantInvoiceId', orderId);
+    formData.append('cancelUrl', `${BASE_URL}/payment?cancelled=true`);
+    formData.append('notificationUrl', `${BASE_URL}/api/webhook`);
+    formData.append('customParameters[orderId]', orderId);
+    formData.append('customParameters[productName]', productName);
+    formData.append('customer.givenName', 'Customer');
+    formData.append('customer.surname', 'Order');
+    formData.append('customer.email', 'order@super-digital.com');
+    formData.append('billing.country', 'ZA');
+    formData.append('shipping.country', 'ZA');
 
     const endpoint = PEACH_MODE === 'LIVE' 
       ? 'https://secure.peachpayments.com/checkout/initiate'
@@ -63,19 +67,25 @@ export async function POST(request: Request) {
 
     console.log("📡 POST to:", endpoint);
 
-    // Send as application/x-www-form-urlencoded (NOT JSON)
+    // 🚨 CRITICAL: Add Authorization header (base64 of entityId + "|" + secretKey)
+    const authCredentials = `${ENTITY_ID}|${SECRET_KEY}`;
+    const authHeader = Buffer.from(authCredentials).toString('base64');
+
+    // Send as application/x-www-form-urlencoded
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Referer': BASE_URL,
         'accept': 'application/json',
-        'content-type': 'application/x-www-form-urlencoded'
+        'content-type': 'application/x-www-form-urlencoded',
+        'Authorization': `Bearer ${authHeader}`  // 🚨 THIS WAS MISSING!
       },
       body: formData.toString()
     });
 
     const text = await res.text();
     console.log("📥 Response status:", res.status);
+    console.log("📥 Response body:", text.substring(0, 300));
     
     if (!res.ok) {
       console.error("🚫 Peach Error:", text);
