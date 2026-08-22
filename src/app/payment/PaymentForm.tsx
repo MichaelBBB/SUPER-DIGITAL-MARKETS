@@ -1,4 +1,14 @@
-// src/app/payment/PaymentForm.tsx
+// In handlePeachPayment function
+const res = await fetch('/api/create-payment', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    amount, 
+    currency: 'ZAR', // ✅ CHANGE FROM 'USD' TO 'ZAR'
+    productName: itemName, 
+    orderId 
+  })
+});// src/app/payment/PaymentForm.tsx
 'use client';
 
 import { useState } from 'react';
