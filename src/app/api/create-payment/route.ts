@@ -14,11 +14,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Server configuration missing.' }, { status: 500 });
     }
 
-    // Clean Base URL (remove trailing slash)
+    // Clean Base URL
     const cleanBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
 
-    // Prepare V2 Payload (JSON Format)
-    // V2 does NOT require a signature field!
+    // Prepare V2 Payload (JSON Format - NO SIGNATURE REQUIRED)
     const payload = {
       authentication: {
         entityId: ENTITY_ID,
@@ -49,7 +48,7 @@ export async function POST(request: Request) {
       },
     };
 
-    console.log(" Sending V2 Request...");
+    console.log("🚀 Sending V2 Request...");
 
     // Send Request to V2 Endpoint
     const res = await fetch('https://secure.peachpayments.com/v2/checkout', {
@@ -67,7 +66,7 @@ export async function POST(request: Request) {
     try {
       data = JSON.parse(text);
     } catch (e) {
-      console.error("Invalid JSON response:", text);
+      console.error("❌ Invalid JSON response:", text);
       return NextResponse.json({ error: 'Invalid response from Peach', raw: text.substring(0, 200) }, { status: 500 });
     }
 
