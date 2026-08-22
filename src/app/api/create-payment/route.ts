@@ -14,20 +14,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Server configuration missing.' }, { status: 500 });
     }
 
-    // Clean Base URL
     const cleanBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
 
-    // 1. PREPARE PARAMETERS EXACTLY AS PER PYTHON EXAMPLE
-    // Include ALL parameters that will be sent in the form body
+    // 1. PREPARE PARAMETERS EXACTLY AS PER OFFICIAL DOCS
+    // Added defaultPaymentMethod: CARD as shown in Python example
     const params: Record<string, string> = {
       "amount": parseFloat(amount).toFixed(2),
       "authentication.entityId": ENTITY_ID,
       "currency": currency.toUpperCase(),
+      "defaultPaymentMethod": "CARD", // ✅ CRITICAL: Required per docs
       "merchantTransactionId": orderId,
       "nonce": `UNQ${Date.now()}`,
       "paymentType": "DB",
       "shopperResultUrl": `${cleanBaseUrl}/success`,
-      // Optional but recommended fields (must be included in signature if sent)
       "merchantInvoiceId": orderId,
       "cancelUrl": `${cleanBaseUrl}/payment?cancelled=true`,
       "notificationUrl": `${cleanBaseUrl}/api/webhook`,
@@ -41,7 +40,7 @@ export async function POST(request: Request) {
     };
 
     // 2. GENERATE SIGNATURE STRING (Alphabetical, Key+Value, No Separators)
-    // This matches the Python: "".join([str(key) + str(value) for key in sorted(params)])
+    // Must include ALL parameters above
     const sortedKeys = Object.keys(params).sort();
     let sigString = "";
     for (const key of sortedKeys) {
@@ -54,19 +53,14 @@ export async function POST(request: Request) {
     const signature = createHmac('sha256', SECRET_KEY).update(sigString, 'utf8').digest('hex');
     console.log("✅ Generated Signature:", signature);
 
-    // 4. BUILD FORM DATA BODY (URL Encoded)
+    // 4. BUILD FORM DATA BODY (Must match signature params exactly)
     const formData = new URLSearchParams();
-    
-    // Add all signed parameters
     for (const [key, value] of Object.entries(params)) {
       formData.append(key, value);
     }
-    
-    // Add the signature itself
     formData.append('signature', signature);
 
-    // 5. SEND REQUEST TO LIVE ENDPOINT
-    // Per docs: Live endpoint is https://secure.peachpayments.com/checkout
+    // 5. SEND TO LIVE ENDPOINT
     const res = await fetch('https://secure.peachpayments.com/checkout', {
       method: 'POST',
       headers: {
@@ -85,19 +79,30 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       console.error("🚫 API Error:", data);
+      
+      // Handle "No valid payment methods" gracefully
+      if (data.message?.includes("No valid payment methods")) {
+        return NextResponse.json({ 
+          error: 'No payment methods configured', 
+          details: data,
+          fallback: 'whatsapp'
+        }, { status: 422 });
+      }
+      
       return NextResponse.json({ error: 'Payment initiation failed', details: data }, { status: res.status });
     }
 
-    // Hosted Checkout returns redirectUrl or id depending on version
-    if (data.redirectUrl || data.id) {
-      const checkoutUrl = data.redirectUrl || `https://secure.peachpayments.com/checkout/${data.id}`;
-      return NextResponse.json({ checkoutUrl });
+    // Handle both V1 and V2 response formats
+    if (data.redirectUrl) {
+      return NextResponse.json({ checkoutUrl: data.redirectUrl });
+    } else if (data.id) {
+      return NextResponse.json({ checkoutUrl: `https://secure.peachpayments.com/checkout/${data.id}` });
     }
 
     return NextResponse.json({ error: 'No checkout URL in response', details: data }, { status: 500 });
 
   } catch (error: any) {
-    console.error("💥 System Error:", error);
+    console.error(" System Error:", error);
     return NextResponse.json({ error: 'System error', details: error.message }, { status: 503 });
   }
 }
