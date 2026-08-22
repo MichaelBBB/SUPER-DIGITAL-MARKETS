@@ -1,91 +1,85 @@
 // src/app/api/create-payment/route.ts
 import { NextResponse } from 'next/server';
-import { createHmac } from 'crypto';
 
 export async function POST(request: Request) {
   try {
     const { amount, currency, productName, orderId } = await request.json();
 
     const ENTITY_ID = process.env.PEACH_ENTITY_ID?.trim();
-    const SECRET_KEY = process.env.PEACH_SECRET_KEY?.trim();
+    const CLIENT_ID = process.env.PEACH_CLIENT_ID?.trim(); // New env var needed
+    const CLIENT_SECRET = process.env.PEACH_CLIENT_SECRET?.trim(); // New env var needed
     const BASE_URL = process.env.NEXT_PUBLIC_URL?.trim();
 
-    if (!ENTITY_ID || !SECRET_KEY || !BASE_URL) {
-      return NextResponse.json({ error: 'Server configuration missing.' }, { status: 500 });
+    if (!ENTITY_ID || !CLIENT_ID || !CLIENT_SECRET || !BASE_URL) {
+      return NextResponse.json({ 
+        error: 'Missing credentials. Please add PEACH_CLIENT_ID and PEACH_CLIENT_SECRET to Vercel.' 
+      }, { status: 500 });
     }
 
     const cleanBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
 
-    // 1. PREPARE PAYLOAD FOR SIGNATURE (V1 Style - Required for many V2 endpoints)
-    // Note: V2 JSON structure flattened for signature string generation
-    const paramsForSigning: Record<string, string> = {
-      "amount": parseFloat(amount).toFixed(2),
-      "authentication.entityId": ENTITY_ID,
-      "currency": currency.toUpperCase(),
-      "merchantTransactionId": orderId,
-      "nonce": `UNQ${Date.now()}`,
-      "paymentType": "DB",
-      "shopperResultUrl": `${cleanBaseUrl}/success`,
-    };
+    // STEP 1: Get OAuth Access Token
+    const tokenRes = await fetch('https://api.peachpayments.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        scope: 'checkout'
+      }).toString()
+    });
 
-    // 2. GENERATE SIGNATURE STRING (Alphabetical, Key+Value, No Separators)
-    const sortedKeys = Object.keys(paramsForSigning).sort();
-    let sigString = "";
-    for (const key of sortedKeys) {
-      sigString += key + paramsForSigning[key];
+    if (!tokenRes.ok) {
+      const tokenError = await tokenRes.text();
+      console.error(" OAuth Token Failed:", tokenError);
+      return NextResponse.json({ 
+        error: 'Authentication failed', 
+        details: tokenError 
+      }, { status: 401 });
     }
 
-    // 3. CALCULATE HMAC-SHA256
-    const signature = createHmac('sha256', SECRET_KEY).update(sigString, 'utf8').digest('hex');
+    const tokenData = await tokenRes.json();
+    const accessToken = tokenData.access_token;
 
-    console.log("🔐 V2 Hybrid Signature:", signature);
+    console.log("✅ OAuth Token Obtained");
 
-    // 4. BUILD V2 JSON PAYLOAD WITH SIGNATURE INCLUDED
+    // STEP 2: Create Checkout with Valid Bearer Token
     const payload = {
-      authentication: {
-        entityId: ENTITY_ID,
-      },
+      authentication: { entityId: ENTITY_ID },
       merchantTransactionId: orderId,
       amount: parseFloat(amount).toFixed(2),
       currency: currency.toUpperCase(),
       paymentType: "DB",
-      nonce: paramsForSigning.nonce,
-      shopperResultUrl: paramsForSigning.shopperResultUrl,
+      nonce: `UNQ${Date.now()}`,
+      shopperResultUrl: `${cleanBaseUrl}/success`,
       merchantInvoiceId: orderId,
       cancelUrl: `${cleanBaseUrl}/payment?cancelled=true`,
       notificationUrl: `${cleanBaseUrl}/api/webhook`,
-      customParameters: {
-        orderId: orderId,
-        productName: productName,
-      },
-      customer: {
-        givenName: "Customer",
-        surname: "Order",
-        email: "order@super-digital.com",
-      },
+      customParameters: { orderId, productName },
+      customer: { givenName: "Customer", surname: "Order", email: "order@super-digital.com" },
       billing: { country: "ZA" },
-      shipping: { country: "ZA" },
-      // CRITICAL: Include signature in V2 payload for authentication
-      signature: signature 
+      shipping: { country: "ZA" }
     };
 
-    // 5. SEND TO V2 ENDPOINT
     const res = await fetch('https://secure.peachpayments.com/v2/checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Referer': cleanBaseUrl,
-        // Try without Authorization header first, as signature is in body
+        'Authorization': `Bearer ${accessToken}`,
+        'Referer': cleanBaseUrl
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
 
     const text = await res.text();
     let data;
-    try { data = JSON.parse(text); } catch (e) { return NextResponse.json({ error: 'Invalid response', raw: text.substring(0, 200) }, { status: 500 }); }
+    try { data = JSON.parse(text); } catch (e) { 
+      return NextResponse.json({ error: 'Invalid response', raw: text.substring(0, 200) }, { status: 500 }); 
+    }
 
     if (!res.ok) {
-      console.error("🚫 V2 Error:", data);
+      console.error("🚫 V2 Checkout Error:", data);
       return NextResponse.json({ error: 'Payment initiation failed', details: data }, { status: res.status });
     }
 
