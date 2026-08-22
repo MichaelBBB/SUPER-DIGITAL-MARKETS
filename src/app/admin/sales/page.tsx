@@ -4,14 +4,12 @@
 import { useEffect, useState } from 'react';
 
 export default function SalesTracker() {
-  const [sales, setSales] = useState([]);
+  const [sales, setSales] = useState<any[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
 
   useEffect(() => {
-    // Load sales data
     fetchSales();
-    
-    // Auto-refresh every 30 seconds
+    // Auto-refresh every 30 seconds to show live updates
     const interval = setInterval(fetchSales, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -22,7 +20,6 @@ export default function SalesTracker() {
       const data = await res.json();
       setSales(data.sales || []);
       
-      // Calculate total revenue
       const total = data.sales?.reduce((sum: number, sale: any) => sum + sale.amount, 0) || 0;
       setTotalRevenue(total);
     } catch (error) {
@@ -41,12 +38,10 @@ export default function SalesTracker() {
             <h3 className="text-gray-400 mb-2">Total Revenue</h3>
             <p className="text-3xl font-bold text-green-400">ZAR {totalRevenue.toFixed(2)}</p>
           </div>
-          
           <div className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border border-blue-500/30 rounded-xl p-6">
             <h3 className="text-gray-400 mb-2">Total Sales</h3>
             <p className="text-3xl font-bold text-blue-400">{sales.length}</p>
           </div>
-          
           <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border border-purple-500/30 rounded-xl p-6">
             <h3 className="text-gray-400 mb-2">Avg Order Value</h3>
             <p className="text-3xl font-bold text-purple-400">
@@ -60,7 +55,6 @@ export default function SalesTracker() {
           <div className="p-6 border-b border-gray-800">
             <h2 className="text-2xl font-bold">Recent Transactions</h2>
           </div>
-          
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-950">
@@ -73,11 +67,11 @@ export default function SalesTracker() {
               </thead>
               <tbody className="divide-y divide-gray-800">
                 {sales.slice().reverse().map((sale: any) => (
-                  <tr key={sale.id} className="hover:bg-gray-800/50">
+                  <tr key={sale.id} className="hover:bg-gray-800/50 transition-colors">
                     <td className="px-6 py-4 font-mono text-sm">{sale.orderId}</td>
                     <td className="px-6 py-4 font-bold text-green-400">ZAR {sale.amount.toFixed(2)}</td>
                     <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-green-900/30 text-green-400 rounded text-xs">
+                      <span className="px-2 py-1 bg-green-900/30 text-green-400 rounded text-xs uppercase font-bold">
                         {sale.status}
                       </span>
                     </td>
@@ -88,8 +82,8 @@ export default function SalesTracker() {
                 ))}
                 {sales.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                      No sales yet. Make your first sale! 🚀
+                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                      No sales recorded yet. Make your first sale to see it here! 🚀
                     </td>
                   </tr>
                 )}
