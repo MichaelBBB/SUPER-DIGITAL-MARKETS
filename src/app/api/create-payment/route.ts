@@ -16,11 +16,11 @@ export async function POST(request: Request) {
 
     const cleanBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
 
-    // EXACT parameters from Peach Knowledge Base (No extra fields)
+    // EXACT parameters from Peach Knowledge Base
     const params: Record<string, string> = {
       "amount": parseFloat(amount).toFixed(2),
       "authentication.entityId": ENTITY_ID,
-      "currency": "ZAR", // Forced to ZAR as per your account capabilities
+      "currency": "ZAR",
       "defaultPaymentMethod": "CARD",
       "merchantTransactionId": orderId,
       "nonce": `UNQ${Date.now()}`,
@@ -52,6 +52,8 @@ export async function POST(request: Request) {
     }
     formData.append('signature', signature);
 
+    console.log("📤 Sending request to: https://secure.peachpayments.com/checkout");
+
     // Send to EXACT live endpoint from KB
     const res = await fetch('https://secure.peachpayments.com/checkout', {
       method: 'POST',
@@ -64,13 +66,18 @@ export async function POST(request: Request) {
 
     const text = await res.text();
     console.log("📥 Peach Status:", res.status);
-    console.log("📥 Peach Body:", text);
+    console.log("📥 Peach RAW Response:", text);
     
     let data;
     try { 
       data = JSON.parse(text); 
     } catch (e) { 
-      return NextResponse.json({ error: 'Invalid JSON response', raw: text.substring(0, 500) }, { status: 500 }); 
+      console.error("❌ PEACH RETURNED HTML/TEXT INSTEAD OF JSON!");
+      // Return the raw HTML so the frontend can display it
+      return NextResponse.json({ 
+        error: 'Peach returned an HTML error page (Likely Domain Not Allowlisted)', 
+        raw: text.substring(0, 1000) 
+      }, { status: 500 }); 
     }
 
     if (!res.ok) {
