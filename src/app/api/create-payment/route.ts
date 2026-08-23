@@ -1,3 +1,4 @@
+// src/app/api/create-payment/route.ts
 import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
     }
     formData.append('signature', signature);
 
-    // 5. SEND TO LIVE ENDPOINT (✅ FIXED: Using exact KB endpoint)
+    // 5. SEND TO LIVE ENDPOINT (Using exact KB endpoint)
     const res = await fetch('https://secure.peachpayments.com/checkout', {
       method: 'POST',
       headers: {
@@ -74,13 +75,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: data.message || 'Payment initiation failed', details: data }, { status: res.status });
     }
 
-    // 6. HANDLE SUCCESSFUL RESPONSE
-    if (data.redirectUrl) {
+    // 6. HANDLE SUCCESSFUL RESPONSE (THE FIX IS HERE)
+    if (data.redirectUrl && data.redirectUrl !== "") {
       return NextResponse.json({ checkoutUrl: data.redirectUrl });
-    } else if (data.id) {
-      return NextResponse.json({ checkoutUrl: `https://secure.peachpayments.com/checkout/${data.id}` });
+    } else if (data.checkoutId) {
+      // ✅ Peach returns checkoutId, we build the URL!
+      return NextResponse.json({ checkoutUrl: `https://secure.peachpayments.com/checkout?checkoutId=${data.checkoutId}` });
     } else {
-      return NextResponse.json({ error: 'No checkout URL in response', details: data }, { status: 500 });
+      console.error("❓ UNKNOWN RESPONSE FORMAT:", data);
+      return NextResponse.json({ error: 'No checkout URL or checkoutId in response', details: data }, { status: 500 });
     }
 
   } catch (error: any) {
