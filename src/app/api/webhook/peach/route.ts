@@ -1,3 +1,4 @@
+// src/app/api/webhook/peach/route.ts
 import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 import fs from 'fs/promises';
@@ -6,12 +7,10 @@ import path from 'path';
 export async function POST(request: Request) {
   try {
     const body = await request.text();
-    const signature = request.headers.get('x-signature') || '';
+    const signature = request.headers.get('x-signature') || request.headers.get('X-Signature') || '';
     const SECRET_KEY = process.env.PEACH_SECRET_KEY?.trim() || '';
 
-    console.log('📥 Webhook received from Peach Payments');
-
-    // 1. VERIFY WEBHOOK SIGNATURE
+    // 1. Verify the signature (Same logic that worked for checkout)
     const params = new URLSearchParams(body);
     const sortedKeys = Array.from(params.keys()).sort();
     
@@ -26,72 +25,60 @@ export async function POST(request: Request) {
       .digest('hex');
 
     if (signature !== expectedSignature) {
-      console.error('❌ INVALID SIGNATURE - Webhook rejected');
+      console.error('❌ Webhook signature invalid');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    console.log('✅ Webhook signature verified successfully');
+    // 2. Parse the payment data
+    const resultCode = params.get('result.code');
+    const merchantTransactionId = params.get('merchantTransactionId') || '';
+    const amount = params.get('amount') || '0';
+    const currency = params.get('currency') || 'ZAR';
 
-    // 2. PARSE WEBHOOK DATA
-    const paymentData = {
-      id: params.get('id') || '',
-      merchantTransactionId: params.get('merchantTransactionId') || '',
-      resultCode: params.get('result.code') || '',
-      resultDescription: params.get('result.description') || '',
-      paymentType: params.get('paymentType') || '',
-      amount: params.get('amount') || '0',
-      currency: params.get('currency') || 'ZAR',
-      timestamp: new Date().toISOString(),
-    };
+    console.log(`📥 Webhook received: ${resultCode} for Order ${merchantTransactionId}`);
 
-    console.log('💳 Payment Data:', paymentData);
+    // 3. Check if payment was successful ('ACK' means approved)
+    if (resultCode === 'ACK') {
+      console.log('✅ Payment Successful! Recording sale...');
+      
+      // 4. Record the sale automatically
+      const salesFilePath = path.join(process.cwd(), 'data', 'sales.json');
+      const dataDir = path.dirname(salesFilePath);
+      
+      // Ensure directory exists
+      await fs.mkdir(dataDir, { recursive: true });
 
-    // 3. CHECK IF PAYMENT WAS SUCCESSFUL ('ACK' means successful)
-    if (paymentData.resultCode === 'ACK') {
-      console.log('✅ PAYMENT SUCCESSFUL! Recording sale...');
-      await recordSale(paymentData);
-      return NextResponse.json({ status: 'success' });
-    } else {
-      console.log('⚠️ Payment failed or pending:', paymentData.resultDescription);
-      return NextResponse.json({ status: 'ignored', result: paymentData.resultCode });
+      // Read existing sales or start fresh
+      let sales = [];
+      try {
+        const existingData = await fs.readFile(salesFilePath, 'utf8');
+        sales = JSON.parse(existingData);
+      } catch (e) {
+        sales = [];
+      }
+
+      // Add new sale
+      sales.push({
+        id: sales.length + 1,
+        orderId: merchantTransactionId,
+        amount: parseFloat(amount),
+        currency: currency,
+        status: 'completed',
+        timestamp: new Date().toISOString(),
+      });
+
+      // Save back to file
+      await fs.writeFile(salesFilePath, JSON.stringify(sales, null, 2));
+      console.log('💰 Sale recorded successfully!');
+
+      // TODO: Add WhatsApp delivery trigger here later when you have Twilio credentials
     }
+
+    // Always return 200 OK to Peach so they know we received it
+    return NextResponse.json({ status: 'success' });
 
   } catch (error: any) {
-    console.error('💥 Webhook processing error:', error);
+    console.error('💥 Webhook error:', error);
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
-  }
-}
-
-// Function to record sale in sales tracker
-async function recordSale(paymentData: any) {
-  try {
-    const salesFilePath = path.join(process.cwd(), 'data', 'sales.json');
-    const dataDir = path.dirname(salesFilePath);
-    await fs.mkdir(dataDir, { recursive: true });
-
-    let sales = [];
-    try {
-      const existingData = await fs.readFile(salesFilePath, 'utf8');
-      sales = JSON.parse(existingData);
-    } catch (e) {
-      sales = [];
-    }
-
-    const newSale = {
-      id: sales.length + 1,
-      orderId: paymentData.merchantTransactionId,
-      peachPaymentId: paymentData.id,
-      amount: parseFloat(paymentData.amount),
-      currency: paymentData.currency,
-      status: 'completed',
-      paymentMethod: paymentData.paymentType,
-      timestamp: paymentData.timestamp,
-    };
-
-    sales.push(newSale);
-    await fs.writeFile(salesFilePath, JSON.stringify(sales, null, 2));
-    console.log('💰 Sale recorded to tracker:', newSale.orderId);
-  } catch (error) {
-    console.error('Error recording sale:', error);
   }
 }
