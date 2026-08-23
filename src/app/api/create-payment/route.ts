@@ -1,4 +1,3 @@
-// src/app/api/create-payment/route.ts
 import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 
@@ -68,6 +67,10 @@ export async function POST(request: Request) {
 
     const text = await res.text();
     
+    // 🔍 CRITICAL: Log the EXACT raw response from Peach
+    console.log("🔍 RAW PEACH STATUS:", res.status);
+    console.log("🔍 RAW PEACH RESPONSE:", text);
+
     let data;
     try { 
       data = JSON.parse(text); 
@@ -77,7 +80,7 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       console.error("🚫 API Error:", data);
-      return NextResponse.json({ error: 'Payment initiation failed', details: data }, { status: res.status });
+      return NextResponse.json({ error: data.message || 'Payment initiation failed', details: data }, { status: res.status });
     }
 
     // 6. HANDLE SUCCESSFUL RESPONSE
