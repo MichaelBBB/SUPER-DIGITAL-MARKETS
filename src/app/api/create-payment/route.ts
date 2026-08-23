@@ -16,8 +16,8 @@ export async function POST(request: Request) {
 
     const cleanBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
 
-    // 1. PREPARE PARAMETERS (EXACTLY matching the official Peach Knowledge Base Python example)
-    // We removed customer/billing fields and set notificationUrl to "" as per the KB.
+    // 1. PREPARE PARAMETERS (EXACTLY matching the official Peach documentation)
+    // ONLY the fields shown in the KB example - NO extra fields!
     const params: Record<string, string> = {
       "amount": parseFloat(amount).toFixed(2),
       "authentication.entityId": ENTITY_ID,
@@ -25,14 +25,13 @@ export async function POST(request: Request) {
       "defaultPaymentMethod": "CARD",
       "merchantTransactionId": orderId,
       "nonce": `UNQ${Date.now()}`,
-      "notificationUrl": "", // MUST be empty string exactly like the KB example
+      "notificationUrl": "", // Empty string as per KB example
       "paymentType": "DB",
       "shopperResultUrl": `${cleanBaseUrl}/success`,
     };
 
     // 2. GENERATE SIGNATURE STRING (Exactly like the KB Python example)
     // Sort keys alphabetically and concatenate key+value without separators.
-    // Because notificationUrl is "", it concatenates as "...nonce...notificationUrlpaymentType..."
     const sortedKeys = Object.keys(params).sort();
     let sigString = "";
     for (const key of sortedKeys) {
@@ -55,7 +54,7 @@ export async function POST(request: Request) {
     }
     formData.append('signature', signature);
 
-    // 5. SEND TO LIVE ENDPOINT (Per documentation)
+    // 5. SEND TO LIVE ENDPOINT (https://secure.peachpayments.com/checkout)
     const res = await fetch('https://secure.peachpayments.com/checkout', {
       method: 'POST',
       headers: {
@@ -68,7 +67,7 @@ export async function POST(request: Request) {
 
     const text = await res.text();
     console.log(" Peach Response Status:", res.status);
-    console.log("📥 Peach Response Body:", text.substring(0, 500));
+    console.log(" Peach Response Body:", text.substring(0, 500));
     
     let data;
     try { 
@@ -78,7 +77,7 @@ export async function POST(request: Request) {
     }
 
     if (!res.ok) {
-      console.error("🚫 Peach API Error:", data);
+      console.error(" Peach API Error:", data);
       return NextResponse.json({ error: data.message || 'Payment initiation failed', details: data }, { status: res.status });
     }
 
@@ -88,12 +87,12 @@ export async function POST(request: Request) {
     } else if (data.checkoutId) {
       return NextResponse.json({ checkoutUrl: `https://secure.peachpayments.com/checkout?checkoutId=${data.checkoutId}` });
     } else {
-      console.error("❓ UNKNOWN RESPONSE FORMAT:", data);
+      console.error(" UNKNOWN RESPONSE FORMAT:", data);
       return NextResponse.json({ error: 'No checkout URL or checkoutId in response', details: data }, { status: 500 });
     }
 
   } catch (error: any) {
-    console.error("💥 SYSTEM ERROR:", error);
+    console.error(" SYSTEM ERROR:", error);
     return NextResponse.json({ error: 'System error', details: error.message }, { status: 503 });
   }
 }
