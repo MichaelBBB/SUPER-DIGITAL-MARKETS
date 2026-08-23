@@ -1,4 +1,3 @@
-// src/app/api/create-payment/route.ts
 import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 
@@ -16,62 +15,72 @@ export async function POST(request: Request) {
 
     const cleanBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
 
-    // EXACT parameters from the official Peach Knowledge Base
     const params: Record<string, string> = {
       "amount": parseFloat(amount).toFixed(2),
       "authentication.entityId": ENTITY_ID,
-      "currency": "ZAR",
+      "currency": currency.toUpperCase(),
       "defaultPaymentMethod": "CARD",
       "merchantTransactionId": orderId,
       "nonce": `UNQ${Date.now()}`,
-      "notificationUrl": "",
       "paymentType": "DB",
       "shopperResultUrl": `${cleanBaseUrl}/success`,
+      "merchantInvoiceId": orderId,
+      "cancelUrl": `${cleanBaseUrl}/payment?cancelled=true`,
+      "notificationUrl": `${cleanBaseUrl}/api/webhook/peach`,
+      "customParameters[orderId]": orderId,
+      "customParameters[productName]": productName,
+      "customer.givenName": "Customer",
+      "customer.surname": "Order",
+      "customer.email": "order@super-digital.com",
+      "billing.country": "ZA",
+      "shipping.country": "ZA",
     };
 
-    // Sort keys alphabetically and concatenate key+value without separators
     const sortedKeys = Object.keys(params).sort();
     let sigString = "";
     for (const key of sortedKeys) {
       sigString += key + params[key];
     }
 
-    // Calculate HMAC-SHA256
     const signature = createHmac('sha256', SECRET_KEY).update(sigString, 'utf8').digest('hex');
 
-    // Build Form Data Body
     const formData = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
       formData.append(key, value);
     }
     formData.append('signature', signature);
 
-    // Send to Live Endpoint
-    const res = await fetch('https://secure.peachpayments.com/checkout', {
+    const res = await fetch('https://secure.peachpayments.com/checkout/initiate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Referer': cleanBaseUrl,
         'Accept': 'application/json'
       },
       body: formData.toString()
     });
 
-    const data = await res.json();
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch (e) { 
+      return NextResponse.json({ error: 'Invalid response', raw: text.substring(0, 200) }, { status: 500 }); 
+    }
 
     if (!res.ok) {
-      return NextResponse.json({ error: data.message || 'Payment initiation failed', details: data }, { status: res.status });
+      console.error("🚫 API Error:", data);
+      return NextResponse.json({ error: 'Payment initiation failed', details: data }, { status: res.status });
     }
 
-    // Handle Successful Response (This is what worked before)
     if (data.redirectUrl) {
       return NextResponse.json({ checkoutUrl: data.redirectUrl });
-    } else if (data.checkoutId) {
-      return NextResponse.json({ checkoutUrl: `https://secure.peachpayments.com/checkout?checkoutId=${data.checkoutId}` });
-    } else {
-      return NextResponse.json({ error: 'No checkout URL in response', details: data }, { status: 500 });
+    } else if (data.id) {
+      return NextResponse.json({ checkoutUrl: `https://secure.peachpayments.com/checkout/${data.id}` });
     }
 
+    return NextResponse.json({ error: 'No checkout URL in response', details: data }, { status: 500 });
+
   } catch (error: any) {
+    console.error("💥 System Error:", error);
     return NextResponse.json({ error: 'System error', details: error.message }, { status: 503 });
   }
 }
