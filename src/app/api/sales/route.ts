@@ -12,7 +12,7 @@ export async function GET() {
       const data = await fs.readFile(salesFilePath, 'utf8');
       sales = JSON.parse(data);
     } catch (e) {
-      sales = []; // Return empty array if file doesn't exist yet
+      sales = []; // Return empty array if no sales yet
     }
 
     return NextResponse.json({ sales });
