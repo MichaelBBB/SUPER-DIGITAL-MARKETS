@@ -1,4 +1,3 @@
-// src/app/api/webhook/peach/route.ts
 import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 import fs from 'fs/promises';
@@ -12,14 +11,14 @@ export async function POST(request: Request) {
 
     console.log('📥 Webhook received from Peach Payments');
 
-    // 1. VERIFY WEBHOOK SIGNATURE (Security Check)
+    // 1. VERIFY WEBHOOK SIGNATURE
     const params = new URLSearchParams(body);
     const sortedKeys = Array.from(params.keys()).sort();
     
     let sigString = '';
     for (const key of sortedKeys) {
       const value = params.get(key) || '';
-      sigString += key + value; // Concatenate key + value without separators
+      sigString += key + value;
     }
 
     const expectedSignature = createHmac('sha256', SECRET_KEY)
@@ -47,17 +46,10 @@ export async function POST(request: Request) {
 
     console.log('💳 Payment Data:', paymentData);
 
-    // 3. CHECK IF PAYMENT WAS SUCCESSFUL ('ACK' means acknowledged/successful)
+    // 3. CHECK IF PAYMENT WAS SUCCESSFUL ('ACK' means successful)
     if (paymentData.resultCode === 'ACK') {
       console.log('✅ PAYMENT SUCCESSFUL! Recording sale...');
-      
-      // 4. RECORD THE SALE
       await recordSale(paymentData);
-      
-      // 5. TRIGGER PRODUCT DELIVERY (Placeholder for your logic)
-      await triggerDelivery(paymentData);
-      
-      // Return 200 OK to Peach so they know we received it
       return NextResponse.json({ status: 'success' });
     } else {
       console.log('⚠️ Payment failed or pending:', paymentData.resultDescription);
@@ -74,12 +66,9 @@ export async function POST(request: Request) {
 async function recordSale(paymentData: any) {
   try {
     const salesFilePath = path.join(process.cwd(), 'data', 'sales.json');
-    
-    // Create data directory if it doesn't exist
     const dataDir = path.dirname(salesFilePath);
     await fs.mkdir(dataDir, { recursive: true });
 
-    // Read existing sales or create new array
     let sales = [];
     try {
       const existingData = await fs.readFile(salesFilePath, 'utf8');
@@ -88,7 +77,6 @@ async function recordSale(paymentData: any) {
       sales = [];
     }
 
-    // Add new sale
     const newSale = {
       id: sales.length + 1,
       orderId: paymentData.merchantTransactionId,
@@ -101,27 +89,9 @@ async function recordSale(paymentData: any) {
     };
 
     sales.push(newSale);
-
-    // Save updated sales
     await fs.writeFile(salesFilePath, JSON.stringify(sales, null, 2));
-    
     console.log('💰 Sale recorded to tracker:', newSale.orderId);
   } catch (error) {
     console.error('Error recording sale:', error);
-  }
-}
-
-// Function to trigger product delivery
-async function triggerDelivery(paymentData: any) {
-  try {
-    const orderId = paymentData.merchantTransactionId;
-    console.log('📦 Triggering automated delivery for order:', orderId);
-    
-    // TODO: Add your specific delivery logic here
-    // Example: await sendWhatsAppMessage(orderId);
-    // Example: await sendConfirmationEmail(orderId);
-    
-  } catch (error) {
-    console.error('Error triggering delivery:', error);
   }
 }
