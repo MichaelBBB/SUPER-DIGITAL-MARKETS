@@ -16,58 +16,55 @@ export async function POST(request: Request) {
 
     const cleanBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
 
-    // 1. PREPARE PARAMETERS (EXACTLY matching the official Peach documentation)
-    // ONLY the fields shown in the KB example - NO extra fields!
+    // EXACT parameters from Peach Knowledge Base (No extra fields)
     const params: Record<string, string> = {
       "amount": parseFloat(amount).toFixed(2),
       "authentication.entityId": ENTITY_ID,
-      "currency": currency.toUpperCase(),
+      "currency": "ZAR", // Forced to ZAR as per your account capabilities
       "defaultPaymentMethod": "CARD",
       "merchantTransactionId": orderId,
       "nonce": `UNQ${Date.now()}`,
-      "notificationUrl": "", // Empty string as per KB example
+      "notificationUrl": "", // Must be included as empty string per KB
       "paymentType": "DB",
       "shopperResultUrl": `${cleanBaseUrl}/success`,
     };
 
-    // 2. GENERATE SIGNATURE STRING (Exactly like the KB Python example)
-    // Sort keys alphabetically and concatenate key+value without separators.
+    // Sort keys alphabetically and concatenate key+value without separators
     const sortedKeys = Object.keys(params).sort();
     let sigString = "";
     for (const key of sortedKeys) {
       sigString += key + params[key];
     }
 
-    console.log(" Signature String:", sigString);
+    console.log("🔐 Signature String:", sigString);
 
-    // 3. CALCULATE HMAC-SHA256 (Using secret token as key)
+    // Calculate HMAC-SHA256
     const signature = createHmac('sha256', SECRET_KEY)
       .update(sigString, 'utf8')
       .digest('hex');
 
     console.log("✅ Generated Signature:", signature);
 
-    // 4. BUILD FORM DATA BODY
+    // Build Form Data Body
     const formData = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
       formData.append(key, value);
     }
     formData.append('signature', signature);
 
-    // 5. SEND TO LIVE ENDPOINT (https://secure.peachpayments.com/checkout)
+    // Send to EXACT live endpoint from KB
     const res = await fetch('https://secure.peachpayments.com/checkout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Referer': cleanBaseUrl,
         'Accept': 'application/json'
       },
       body: formData.toString()
     });
 
     const text = await res.text();
-    console.log(" Peach Response Status:", res.status);
-    console.log(" Peach Response Body:", text.substring(0, 500));
+    console.log("📥 Peach Status:", res.status);
+    console.log("📥 Peach Body:", text);
     
     let data;
     try { 
@@ -77,22 +74,22 @@ export async function POST(request: Request) {
     }
 
     if (!res.ok) {
-      console.error(" Peach API Error:", data);
+      console.error("🚫 Peach API Error:", data);
       return NextResponse.json({ error: data.message || 'Payment initiation failed', details: data }, { status: res.status });
     }
 
-    // 6. HANDLE SUCCESSFUL RESPONSE
+    // Handle Successful Response
     if (data.redirectUrl && data.redirectUrl !== "") {
       return NextResponse.json({ checkoutUrl: data.redirectUrl });
     } else if (data.checkoutId) {
       return NextResponse.json({ checkoutUrl: `https://secure.peachpayments.com/checkout?checkoutId=${data.checkoutId}` });
     } else {
-      console.error(" UNKNOWN RESPONSE FORMAT:", data);
+      console.error("❓ UNKNOWN RESPONSE FORMAT:", data);
       return NextResponse.json({ error: 'No checkout URL or checkoutId in response', details: data }, { status: 500 });
     }
 
   } catch (error: any) {
-    console.error(" SYSTEM ERROR:", error);
+    console.error("💥 SYSTEM ERROR:", error);
     return NextResponse.json({ error: 'System error', details: error.message }, { status: 503 });
   }
 }
