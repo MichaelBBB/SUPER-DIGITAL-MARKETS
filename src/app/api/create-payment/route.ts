@@ -16,33 +16,30 @@ export async function POST(request: Request) {
 
     const cleanBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
 
-    // 1. PREPARE PARAMETERS (Exactly as per official Peach documentation)
-    // MUST include notificationUrl (even if empty) and sort alphabetically
+    // 1. PREPARE PARAMETERS (EXACTLY matching the official Peach Knowledge Base Python example)
+    // We removed customer/billing fields and set notificationUrl to "" as per the KB.
     const params: Record<string, string> = {
       "amount": parseFloat(amount).toFixed(2),
       "authentication.entityId": ENTITY_ID,
-      "billing.country": "ZA",
       "currency": currency.toUpperCase(),
-      "customer.email": "customer@example.com",
-      "customer.givenName": "Customer",
-      "customer.surname": "Order",
       "defaultPaymentMethod": "CARD",
       "merchantTransactionId": orderId,
       "nonce": `UNQ${Date.now()}`,
-      "notificationUrl": `${cleanBaseUrl}/api/webhook/peach`, // MUST be in signature
+      "notificationUrl": "", // MUST be empty string exactly like the KB example
       "paymentType": "DB",
       "shopperResultUrl": `${cleanBaseUrl}/success`,
     };
 
-    // 2. GENERATE SIGNATURE STRING (Exactly like Python example)
-    // Sort keys alphabetically and concatenate key+value without separators
+    // 2. GENERATE SIGNATURE STRING (Exactly like the KB Python example)
+    // Sort keys alphabetically and concatenate key+value without separators.
+    // Because notificationUrl is "", it concatenates as "...nonce...notificationUrlpaymentType..."
     const sortedKeys = Object.keys(params).sort();
     let sigString = "";
     for (const key of sortedKeys) {
       sigString += key + params[key];
     }
 
-    console.log("🔐 Signature String:", sigString);
+    console.log(" Signature String:", sigString);
 
     // 3. CALCULATE HMAC-SHA256 (Using secret token as key)
     const signature = createHmac('sha256', SECRET_KEY)
@@ -70,7 +67,7 @@ export async function POST(request: Request) {
     });
 
     const text = await res.text();
-    console.log("📥 Peach Response Status:", res.status);
+    console.log(" Peach Response Status:", res.status);
     console.log("📥 Peach Response Body:", text.substring(0, 500));
     
     let data;
