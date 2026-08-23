@@ -9,8 +9,8 @@ export default function SalesTracker() {
 
   useEffect(() => {
     fetchSales();
-    // Auto-refresh every 30 seconds to show live updates
-    const interval = setInterval(fetchSales, 30000);
+    // Auto-refresh every 15 seconds for live updates
+    const interval = setInterval(fetchSales, 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -32,7 +32,7 @@ export default function SalesTracker() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-8">💰 Live Sales Tracker</h1>
         
-        {/* Revenue Stats */}
+        {/* Stats Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border border-green-500/30 rounded-xl p-6">
             <h3 className="text-gray-400 mb-2">Total Revenue</h3>
@@ -83,7 +83,7 @@ export default function SalesTracker() {
                 {sales.length === 0 && (
                   <tr>
                     <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
-                      No sales recorded yet. Make your first sale to see it here! 🚀
+                      No automated sales yet. Make a test payment to see it here! 🚀
                     </td>
                   </tr>
                 )}
