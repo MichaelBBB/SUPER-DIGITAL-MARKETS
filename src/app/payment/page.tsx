@@ -4,9 +4,9 @@
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { MessageCircle, Copy, Check, ShieldCheck } from "lucide-react";
+import { MessageCircle, Copy, Check, ShieldCheck, AlertTriangle } from "lucide-react";
 
-// ✅ FIX: Explicitly define Peach Payments global type to prevent TS errors
+// ✅ FIX: Explicitly define Peach Payments global type
 declare global {
   interface Window {
     PeachPayments?: {
@@ -26,6 +26,7 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'capitec' | 'whatsapp'>('capitec');
+  const [widgetError, setWidgetError] = useState(false);
 
   // Initialize Peach Checkout Session Securely
   useEffect(() => {
@@ -42,26 +43,25 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
         });
         const data = await res.json();
         if (data.checkoutId) setCheckoutId(data.checkoutId);
-      } catch (err) { console.error("Failed to load payment gateway", err); }
+        else setWidgetError(true);
+      } catch (err) { 
+        console.error("Failed to load payment gateway", err); 
+        setWidgetError(true);
+      }
     };
 
     if (activeTab === 'capitec') initCheckout();
   }, [activeTab, amount, itemName]);
 
-  // Load Peach Widget Script Safely with Runtime Guard
+  // Load Peach Widget Script with Timeout Fallback
   useEffect(() => {
-    if (checkoutId && activeTab === 'capitec') {
+    if (checkoutId && activeTab === 'capitec' && !widgetError) {
       if (document.getElementById('peach-widget-script')) return;
 
       const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
       
-      // ✅ BLOCK widget if Entity ID is missing/empty to prevent crashes
       if (!entityId || entityId === '') {
-        console.error("❌ Peach Entity ID is missing! Check Vercel Env Vars.");
-        const container = document.getElementById('peach-widget-container');
-        if (container) {
-          container.innerHTML = '<div class="text-red-400 p-4 text-center font-bold">Payment Gateway Unavailable.<br/>Please contact support or use WhatsApp.</div>';
-        }
+        setWidgetError(true);
         return;
       }
 
@@ -70,27 +70,41 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
       script.src = `https://test.peachpayments.com/checkout/v1/widget.js?entityId=${entityId}`;
       script.async = true;
       
+      // ✅ TIMEOUT FALLBACK: If widget doesn't load in 10s, switch to WhatsApp
+      const timeout = setTimeout(() => {
+        if (!window.PeachPayments) {
+          console.warn("Peach widget timed out. Switching to manual payment.");
+          setWidgetError(true);
+          setActiveTab('whatsapp');
+        }
+      }, 10000);
+
       script.onload = () => {
+        clearTimeout(timeout);
         if (window.PeachPayments) {
           window.PeachPayments.createWidget({
             checkoutId: checkoutId,
             selector: '#peach-widget-container',
             style: { primaryColor: '#0ea5e9', borderRadius: '12px' }
           });
+        } else {
+          setWidgetError(true);
         }
       };
       
       script.onerror = () => {
-        console.error("Failed to load Peach Payments script");
+        clearTimeout(timeout);
+        setWidgetError(true);
       };
       
       document.body.appendChild(script);
       return () => { 
+        clearTimeout(timeout);
         const el = document.getElementById('peach-widget-script');
         if (el) el.remove(); 
       };
     }
-  }, [checkoutId, activeTab]);
+  }, [checkoutId, activeTab, widgetError]);
 
   const handleCopyDetails = () => {
     const text = `SUPER DIGITAL\nAcc: 1975933441\nBranch: 470010\nRef: ${itemName}`;
@@ -112,7 +126,7 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
 
       {/* Tab Switcher */}
       <div className="flex bg-[#16191f] p-1 rounded-xl mb-8 border border-gray-800">
-        <button onClick={() => setActiveTab('capitec')} 
+        <button onClick={() => { setActiveTab('capitec'); setWidgetError(false); }} 
           className={`flex-1 py-3 rounded-lg font-semibold transition ${activeTab === 'capitec' ? 'bg-cyan-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>
            Capitec Pay (Instant)
         </button>
@@ -137,9 +151,20 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
             <span className="text-4xl font-bold text-white">R{(parseFloat(amount) * 18.5).toFixed(2)}</span>
           </div>
 
-          <div id="peach-widget-container" className="min-h-[300px] flex items-center justify-center bg-gray-900/50 rounded-xl border border-dashed border-gray-700">
-            {!checkoutId ? <span className="text-gray-500 animate-pulse">Initializing Secure Gateway...</span> : null}
-          </div>
+          {widgetError ? (
+            <div className="min-h-[300px] flex flex-col items-center justify-center bg-red-500/10 rounded-xl border border-red-500/30 p-6 text-center">
+              <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
+              <h4 className="text-red-400 font-bold text-lg mb-2">Payment Gateway Unavailable</h4>
+              <p className="text-gray-400 text-sm mb-6">We couldn't connect to Capitec Pay right now.</p>
+              <button onClick={() => setActiveTab('whatsapp')} className="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2">
+                <MessageCircle className="w-5 h-5" /> Use WhatsApp Instead
+              </button>
+            </div>
+          ) : (
+            <div id="peach-widget-container" className="min-h-[300px] flex items-center justify-center bg-gray-900/50 rounded-xl border border-dashed border-gray-700">
+              {!checkoutId ? <span className="text-gray-500 animate-pulse">Initializing Secure Gateway...</span> : null}
+            </div>
+          )}
           
           <p className="text-xs text-center text-gray-500 mt-4">Secured by Peach Payments.</p>
         </div>
