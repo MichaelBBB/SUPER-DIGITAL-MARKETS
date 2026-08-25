@@ -1,11 +1,10 @@
 // src/app/payment/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { MessageCircle, Copy, Check, ShieldCheck, AlertTriangle } from "lucide-react";
 
-// ✅ FIX: Explicitly define Peach Payments global type
 declare global {
   interface Window {
     PeachPayments?: {
@@ -21,15 +20,14 @@ interface PaymentFormProps {
 }
 
 function PaymentFormContent({ whatsappNumber, initialAmount, initialItem }: PaymentFormProps) {
-  // ✅ NO useSearchParams! We use props passed safely from the Server Component
-  const [amount, setAmount] = useState(initialAmount);
-  const [itemName, setItemName] = useState(initialItem);
+  const [amount] = useState(initialAmount);
+  const [itemName] = useState(initialItem);
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'capitec' | 'whatsapp'>('capitec');
   const [widgetError, setWidgetError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  // Initialize Peach Checkout Session Securely
   useEffect(() => {
     const initCheckout = async () => {
       try {
@@ -43,13 +41,23 @@ function PaymentFormContent({ whatsappNumber, initialAmount, initialItem }: Paym
           }),
         });
         const data = await res.json();
+        
+        if (!res.ok) {
+          setErrorMsg(data.details ? 
+            `Missing: ${!data.details.hasEntityId ? 'Entity ID ' : ''}${!data.details.hasAuthToken ? 'Auth Token' : ''}` : 
+            data.error || 'Unknown error');
+          setWidgetError(true);
+          return;
+        }
+        
         if (data.checkoutId) {
           setCheckoutId(data.checkoutId);
         } else {
+          setErrorMsg('No checkout ID returned');
           setWidgetError(true);
         }
       } catch (err) { 
-        console.error("Failed to load payment gateway", err); 
+        setErrorMsg('Network error');
         setWidgetError(true);
       }
     };
@@ -57,15 +65,14 @@ function PaymentFormContent({ whatsappNumber, initialAmount, initialItem }: Paym
     if (activeTab === 'capitec') initCheckout();
   }, [activeTab, amount, itemName]);
 
-  // Load Peach Widget Script with Timeout Fallback
   useEffect(() => {
     if (checkoutId && activeTab === 'capitec' && !widgetError) {
       if (document.getElementById('peach-widget-script')) return;
 
       const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
       
-      // ✅ BLOCK widget if Entity ID is missing to prevent crashes
       if (!entityId || entityId === '') {
+        setErrorMsg('Peach Entity ID not configured');
         setWidgetError(true);
         return;
       }
@@ -75,12 +82,10 @@ function PaymentFormContent({ whatsappNumber, initialAmount, initialItem }: Paym
       script.src = `https://test.peachpayments.com/checkout/v1/widget.js?entityId=${entityId}`;
       script.async = true;
       
-      // ✅ TIMEOUT FALLBACK: If widget doesn't load in 10s, switch to WhatsApp
       const timeout = setTimeout(() => {
         if (!window.PeachPayments) {
-          console.warn("Peach widget timed out. Switching to manual payment.");
+          setErrorMsg('Widget load timeout');
           setWidgetError(true);
-          setActiveTab('whatsapp');
         }
       }, 10000);
 
@@ -93,12 +98,14 @@ function PaymentFormContent({ whatsappNumber, initialAmount, initialItem }: Paym
             style: { primaryColor: '#0ea5e9', borderRadius: '12px' }
           });
         } else {
+          setErrorMsg('PeachPayments not loaded');
           setWidgetError(true);
         }
       };
       
       script.onerror = () => {
         clearTimeout(timeout);
+        setErrorMsg('Script failed to load');
         setWidgetError(true);
       };
       
@@ -126,12 +133,11 @@ function PaymentFormContent({ whatsappNumber, initialAmount, initialItem }: Paym
     <div className="w-full max-w-4xl mx-auto p-6">
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold mb-2">Secure Checkout</h1>
-        <p className="text-gray-400">Purchasing: <span className="text-cyan-400 font-bold">{itemName}</span></p>
+        <p className="text-gray-400">Purchasing: <span className="text-cyan-400 font-bold text-xl">{itemName}</span></p>
       </div>
 
-      {/* Tab Switcher */}
       <div className="flex bg-[#16191f] p-1 rounded-xl mb-8 border border-gray-800">
-        <button onClick={() => { setActiveTab('capitec'); setWidgetError(false); }} 
+        <button onClick={() => { setActiveTab('capitec'); setWidgetError(false); setErrorMsg(''); }} 
           className={`flex-1 py-3 rounded-lg font-semibold transition ${activeTab === 'capitec' ? 'bg-cyan-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>
            Capitec Pay (Instant)
         </button>
@@ -160,7 +166,7 @@ function PaymentFormContent({ whatsappNumber, initialAmount, initialItem }: Paym
             <div className="min-h-[300px] flex flex-col items-center justify-center bg-red-500/10 rounded-xl border border-red-500/30 p-6 text-center">
               <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
               <h4 className="text-red-400 font-bold text-lg mb-2">Payment Gateway Unavailable</h4>
-              <p className="text-gray-400 text-sm mb-6">We couldn't connect to Capitec Pay right now.</p>
+              <p className="text-gray-400 text-sm mb-2">{errorMsg}</p>
               <button onClick={() => setActiveTab('whatsapp')} className="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 mx-auto">
                 <MessageCircle className="w-5 h-5" /> Use WhatsApp Instead
               </button>
@@ -182,7 +188,7 @@ function PaymentFormContent({ whatsappNumber, initialAmount, initialItem }: Paym
 
           <div className="relative flex py-2 items-center">
             <div className="flex-grow border-t border-gray-700"></div>
-            <span className="mx-4 text-gray-500 text-sm">OR MANUAL EFT</span>
+            <span className="mx-4 text-gray-500 text-sm">OR PAY MANUALLY</span>
             <div className="flex-grow border-t border-gray-700"></div>
           </div>
 
@@ -210,13 +216,14 @@ function PaymentFormContent({ whatsappNumber, initialAmount, initialItem }: Paym
   );
 }
 
-// ✅ SERVER COMPONENT: Reads URL params safely and passes them as props
+// ✅ SERVER COMPONENT with Suspense boundary
+import { Suspense } from 'react';
+
 export default async function PaymentPage({
   searchParams,
 }: {
   searchParams: Promise<{ amount?: string; item?: string }>
 }) {
-  // Next.js 15 requires awaiting searchParams
   const params = await searchParams;
   
   const whatsappNumber = process.env.WHATSAPP_NUMBER || "27821234567";
@@ -225,12 +232,16 @@ export default async function PaymentPage({
 
   return (
     <div className="min-h-screen bg-[#0f1115] text-white flex items-center justify-center">
-      {/* ✅ NO Suspense needed anymore because useSearchParams is completely removed! */}
-      <PaymentFormContent 
-        whatsappNumber={whatsappNumber}
-        initialAmount={amount}
-        initialItem={item}
-      />
+      {/* ✅ WRAP CLIENT COMPONENT IN SUSPENSE */}
+      <Suspense fallback={
+        <div className="text-white text-xl animate-pulse">Loading checkout...</div>
+      }>
+        <PaymentFormContent 
+          whatsappNumber={whatsappNumber}
+          initialAmount={amount}
+          initialItem={item}
+        />
+      </Suspense>
     </div>
   );
 }
