@@ -1,51 +1,48 @@
 // src/app/api/peach-checkout/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await req.json();
-    const { amount, currency, itemName } = body;
+    const body = await request.json();
+    const { amount, currency, merchantTransactionId, itemName } = body;
 
-    const ENTITY_ID = process.env.PEACH_ENTITY_ID;
-    const AUTH_TOKEN = process.env.PEACH_SECRET_TOKEN; 
+    // ✅ FIX: Default to 'sandbox' if PEACH_ENV is missing!
+    const env = process.env.PEACH_ENV || 'sandbox'; 
     
-    if (!ENTITY_ID || !AUTH_TOKEN) {
-      return NextResponse.json({ error: 'Payment configuration missing' }, { status: 500 });
-    }
+    // Correct Peach Payments URLs (Test vs Live)
+    const baseUrl = env === 'live' 
+      ? 'https://peachpayments.com/v1/checkouts' 
+      : 'https://test.peachpayments.com/v1/checkouts';
 
-    const payload = {
-      entityid: ENTITY_ID,
-      amount: amount.toString(),
-      currency: currency || 'ZAR',
-      paymentType: 'DB',
-      'customParameters[CAPITEC_PAY_BRANDING]': 'true', 
-      testMode: process.env.NEXT_PUBLIC_PEACH_MODE === 'TEST' ? '1' : '0',
-      merchantTransactionId: `SDM-${Date.now()}`,
-      notificationUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/peach-webhook`,
-      returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/success`,
-      cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/cancelled`,
-    };
-
-    const response = await fetch('https://test.peachpayments.com/v1/checkouts', {
+    const response = await fetch(baseUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${AUTH_TOKEN}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Bearer ${process.env.PEACH_SECRET_TOKEN}`,
+        'Content-Type': 'application/json',
       },
-      body: new URLSearchParams(payload as any).toString(),
+      body: JSON.stringify({
+        amount: amount.toString(),
+        currency: currency || 'ZAR',
+        merchantTransactionId: merchantTransactionId || `SDM-${Date.now()}`,
+        entityid: process.env.PEACH_ENTITY_ID, // Peach API expects lowercase 'entityid'
+        paymentType: 'DB', // Debit/Instant Payment for Capitec Pay
+        'customParameters[CAPITEC_PAY_BRANDING]': 'true',
+        testMode: env === 'live' ? '0' : '1',
+      }),
     });
 
     const data = await response.json();
 
-    if (!response.ok || !data.id) {
-      console.error('Peach API Error:', data);
-      return NextResponse.json({ error: 'Failed to initialize payment' }, { status: 502 });
+    if (!response.ok) {
+      console.error('❌ Peach API Error:', data);
+      return NextResponse.json({ error: data }, { status: response.status });
     }
 
+    // The frontend widget needs the 'id' from Peach to render
     return NextResponse.json({ checkoutId: data.id });
 
   } catch (error) {
-    console.error('Checkout API Error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('💥 Internal Server Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
