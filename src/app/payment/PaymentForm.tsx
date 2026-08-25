@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MessageCircle, Copy, Check, AlertTriangle } from "lucide-react";
 
-// ✅ Tell TypeScript about Peach Payments global object
 declare global {
   interface Window {
     PeachPayments?: {
@@ -32,7 +31,6 @@ export default function PaymentForm({
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Initialize Peach checkout session
   useEffect(() => {
     const initCheckout = async () => {
       try {
@@ -68,10 +66,8 @@ export default function PaymentForm({
     }
   }, [activeTab, amount, itemName]);
 
-  // Load Peach Widget script when checkoutId is ready
   useEffect(() => {
     if (checkoutId && activeTab === 'capitec' && !widgetError) {
-      // Prevent duplicate script injection
       if (document.getElementById('peach-widget-script')) return;
 
       const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
@@ -87,7 +83,6 @@ export default function PaymentForm({
       script.src = `https://test.peachpayments.com/checkout/v1/widget.js?entityId=${entityId}`;
       script.async = true;
       
-      // Timeout fallback if widget doesn't load
       const timeout = setTimeout(() => {
         if (!window.PeachPayments) {
           setErrorMsg('Widget load timeout');
@@ -134,7 +129,6 @@ export default function PaymentForm({
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <Link href="/products" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm font-medium transition">
           ← Back
@@ -144,12 +138,10 @@ export default function PaymentForm({
         </div>
       </div>
 
-      {/* Product Info */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
         <p className="text-sm text-gray-600">Purchasing: <span className="font-semibold text-gray-900">{itemName}</span></p>
       </div>
 
-      {/* Tab Switcher */}
       <div className="flex bg-gray-100 p-1 rounded-lg mb-6">
         <button 
           onClick={() => { setActiveTab('capitec'); setWidgetError(false); }}
@@ -165,7 +157,6 @@ export default function PaymentForm({
         </button>
       </div>
 
-      {/* Capitec Pay Tab */}
       {activeTab === 'capitec' ? (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           {loading ? (
@@ -190,7 +181,6 @@ export default function PaymentForm({
           )}
         </div>
       ) : (
-        /* WhatsApp / Manual Tab */
         <div className="space-y-6">
           <button 
             onClick={() => window.open(waLink, '_blank')}
