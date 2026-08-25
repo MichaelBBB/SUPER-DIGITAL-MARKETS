@@ -1,9 +1,8 @@
 // src/app/payment/page.tsx
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
 import { MessageCircle, Copy, Check, ShieldCheck, AlertTriangle } from "lucide-react";
 
 // ✅ FIX: Explicitly define Peach Payments global type
@@ -17,12 +16,14 @@ declare global {
 
 interface PaymentFormProps {
   whatsappNumber: string;
+  initialAmount: string;
+  initialItem: string;
 }
 
-function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
-  const searchParams = useSearchParams();
-  const [amount, setAmount] = useState(searchParams.get("amount") || "54.99");
-  const [itemName, setItemName] = useState(searchParams.get("item") || "Digital Product");
+function PaymentFormContent({ whatsappNumber, initialAmount, initialItem }: PaymentFormProps) {
+  // ✅ NO useSearchParams! We use props passed safely from the Server Component
+  const [amount, setAmount] = useState(initialAmount);
+  const [itemName, setItemName] = useState(initialItem);
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'capitec' | 'whatsapp'>('capitec');
@@ -42,8 +43,11 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
           }),
         });
         const data = await res.json();
-        if (data.checkoutId) setCheckoutId(data.checkoutId);
-        else setWidgetError(true);
+        if (data.checkoutId) {
+          setCheckoutId(data.checkoutId);
+        } else {
+          setWidgetError(true);
+        }
       } catch (err) { 
         console.error("Failed to load payment gateway", err); 
         setWidgetError(true);
@@ -60,6 +64,7 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
 
       const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
       
+      // ✅ BLOCK widget if Entity ID is missing to prevent crashes
       if (!entityId || entityId === '') {
         setWidgetError(true);
         return;
@@ -156,7 +161,7 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
               <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
               <h4 className="text-red-400 font-bold text-lg mb-2">Payment Gateway Unavailable</h4>
               <p className="text-gray-400 text-sm mb-6">We couldn't connect to Capitec Pay right now.</p>
-              <button onClick={() => setActiveTab('whatsapp')} className="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2">
+              <button onClick={() => setActiveTab('whatsapp')} className="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 mx-auto">
                 <MessageCircle className="w-5 h-5" /> Use WhatsApp Instead
               </button>
             </div>
@@ -205,18 +210,27 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
   );
 }
 
-// ✅ SERVER COMPONENT: Uses connection() to force dynamic rendering & pass secrets safely
-import { connection } from 'next/server';
-export default async function PaymentPage() {
-  await connection(); 
+// ✅ SERVER COMPONENT: Reads URL params safely and passes them as props
+export default async function PaymentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ amount?: string; item?: string }>
+}) {
+  // Next.js 15 requires awaiting searchParams
+  const params = await searchParams;
   
-  const whatsappNumber = process.env.WHATSAPP_NUMBER || "27821234567"; 
+  const whatsappNumber = process.env.WHATSAPP_NUMBER || "27821234567";
+  const amount = params.amount || "54.99";
+  const item = params.item || "Digital Product";
 
   return (
     <div className="min-h-screen bg-[#0f1115] text-white flex items-center justify-center">
-      <Suspense fallback={<div className="text-white text-xl">Loading Secure Checkout...</div>}>
-        <PaymentFormContent whatsappNumber={whatsappNumber} />
-      </Suspense>
+      {/* ✅ NO Suspense needed anymore because useSearchParams is completely removed! */}
+      <PaymentFormContent 
+        whatsappNumber={whatsappNumber}
+        initialAmount={amount}
+        initialItem={item}
+      />
     </div>
   );
 }
