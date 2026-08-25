@@ -48,18 +48,13 @@ export default function PaymentForm({
         });
         const data = await res.json();
         
-        if (!res.ok) {
+        if (!res.ok || !data.checkoutId) {
           setErrorMsg(data.error || 'Failed to initialize payment');
           setWidgetError(true);
           return;
         }
         
-        if (data.checkoutId) {
-          setCheckoutId(data.checkoutId);
-        } else {
-          setErrorMsg('No checkout ID returned');
-          setWidgetError(true);
-        }
+        setCheckoutId(data.checkoutId);
       } catch (err) { 
         setErrorMsg('Network error');
         setWidgetError(true);
