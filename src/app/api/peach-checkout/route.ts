@@ -6,21 +6,18 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { amount, currency, itemName } = body;
 
-    // ✅ SECURE: Read secrets ONLY on server
     const ENTITY_ID = process.env.PEACH_ENTITY_ID;
-    const AUTH_TOKEN = process.env.PEACH_SECRET_TOKEN; // Maps to your PEACH_SECRET_TOKEN
-    const API_KEY = process.env.PEACH_SECRET_KEY;     // Maps to your PEACH_SECRET_KEY
+    const AUTH_TOKEN = process.env.PEACH_SECRET_TOKEN; 
     
-    if (!ENTITY_ID || !AUTH_TOKEN || !API_KEY) {
+    if (!ENTITY_ID || !AUTH_TOKEN) {
       return NextResponse.json({ error: 'Payment configuration missing' }, { status: 500 });
     }
 
-    // Capitec Pay requires specific branding parameters
     const payload = {
       entityid: ENTITY_ID,
       amount: amount.toString(),
       currency: currency || 'ZAR',
-      paymentType: 'DB', // Debit/Instant Payment for Capitec Pay
+      paymentType: 'DB',
       'customParameters[CAPITEC_PAY_BRANDING]': 'true', 
       testMode: process.env.NEXT_PUBLIC_PEACH_MODE === 'TEST' ? '1' : '0',
       merchantTransactionId: `SDM-${Date.now()}`,
@@ -29,7 +26,6 @@ export async function POST(req: NextRequest) {
       cancelUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/cancelled`,
     };
 
-    // Call Peach Payments REST API
     const response = await fetch('https://test.peachpayments.com/v1/checkouts', {
       method: 'POST',
       headers: {
