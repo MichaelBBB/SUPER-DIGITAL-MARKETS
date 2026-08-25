@@ -7,7 +7,6 @@ export default async function PaymentPage({
 }: {
   searchParams: Promise<{ amount?: string; item?: string }>;
 }) {
-  // ✅ Next.js 15: Await the searchParams Promise
   const params = await searchParams;
   
   const amount = params.amount || "54.99";
@@ -16,7 +15,6 @@ export default async function PaymentPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ✅ Suspense boundary prevents prerender errors */}
       <Suspense fallback={
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-gray-600 font-medium">Loading secure checkout...</div>
