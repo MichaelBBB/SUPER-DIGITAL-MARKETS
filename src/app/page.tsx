@@ -23,7 +23,7 @@ const PRODUCTS = [
   { name: "Microsoft 365 Business", price: 12.50 },
   { name: "Midjourney Standard", price: 24.00 },
   { name: "Monday.com Pro", price: 9.00 },
-  { name: "Disney Premium", price: 13.99 }, // Updated from Netflix
+  { name: "Disney Premium", price: 13.99 },
   { name: "NordVPN", price: 3.99 },
   { name: "Notion Plus", price: 8.00 },
   { name: "Perplexity Pro", price: 20.00 },
@@ -39,7 +39,7 @@ const PRODUCTS = [
 
 // ✅ CALCULATE REAL AVERAGE PRICE AUTOMATICALLY
 const TOTAL_PRICE = PRODUCTS.reduce((sum, p) => sum + p.price, 0);
-const AVG_ORDER_VALUE_USD = TOTAL_PRICE / PRODUCTS.length; // Exact average (~$15.86)
+const AVG_ORDER_VALUE_USD = TOTAL_PRICE / PRODUCTS.length; 
 
 export default function Home() {
   // Initial Sales Numbers (Transaction Counts)
@@ -56,8 +56,8 @@ export default function Home() {
   const countries = [
     { name: "USA", flag: "🇺🇸", key: "usa" },
     { name: "India", flag: "🇮🇳", key: "india" },
-    { name: "China", flag: "🇨🇳", key: "china" },
-    { name: "South Africa", flag: "🇿🇦", key: "sa" },
+    { name: "China", flag: "🇨", key: "china" },
+    { name: "South Africa", flag: "🇿", key: "sa" },
   ];
 
   // Effect 1: Increment Sales Numbers Randomly
@@ -70,7 +70,7 @@ export default function Home() {
           [randomCountry]: prev[randomCountry] + Math.floor(Math.random() * 3) + 1,
         };
       });
-    }, 2500); // Updates every 2.5 seconds
+    }, 2500); 
 
     return () => clearInterval(interval);
   }, []);
@@ -87,9 +87,8 @@ export default function Home() {
         time: "Just now",
       });
 
-      // Hide popup after 4 seconds
       setTimeout(() => setRecentActivity(null), 4000);
-    }, 8000); // New notification every 8 seconds
+    }, 8000); 
 
     return () => clearInterval(interval);
   }, []);
@@ -99,6 +98,21 @@ export default function Home() {
   
   // Format Currency
   const formatCurrency = (num: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
+
+  // ✅ SMART CHECKOUT HANDLER (Automates the journey)
+  const handleSmartCheckout = () => {
+    // Detects if user is likely in SA based on timezone or browser lang, 
+    // otherwise defaults to global USD flow.
+    const isSA = navigator.language === 'en-ZA' || Intl.DateTimeFormat().resolvedOptions().timeZone === 'Africa/Johannesburg';
+    
+    if (isSA) {
+      // Direct to WhatsApp for instant local processing
+      window.location.href = '/payment?method=whatsapp&region=za';
+    } else {
+      // Direct to standard checkout for international users
+      window.location.href = '/payment?method=card&region=global';
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -153,20 +167,25 @@ export default function Home() {
             <Link href="/products" className="bg-cyan-500 hover:bg-cyan-400 text-white px-10 py-5 rounded-full text-lg font-bold shadow-xl shadow-cyan-500/40 transform hover:scale-105 transition">
               Browse All Products
             </Link>
-            <Link href="/payment" className="bg-gray-800 hover:bg-gray-700 text-white px-10 py-5 rounded-full text-lg font-bold border border-gray-600">
-              Go to Checkout
-            </Link>
+            
+            {/* ✅ AUTOMATED SMART CHECKOUT BUTTON */}
+            <button 
+              onClick={handleSmartCheckout}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-10 py-5 rounded-full text-lg font-bold border border-purple-400/30 shadow-lg shadow-purple-900/20 transform hover:scale-105 transition flex items-center gap-2"
+            >
+              <span>⚡ Quick Checkout</span>
+            </button>
           </div>
         </main>
 
-        {/* ✅ LIVE SALES TRACKER (WITH REAL AVG PRICE) */}
+        {/* ✅ LIVE SALES TRACKER (WITH REAL AVG PRICE & POPUPS) */}
         <section className="container mx-auto px-4 pb-20">
           <div className="bg-[#0b0f14]/90 backdrop-blur-sm rounded-2xl p-8 border border-gray-800 shadow-2xl relative overflow-hidden">
             
-            {/* RECENT ACTIVITY POPUP (Shows Exact Product Name) */}
+            {/* RECENT ACTIVITY POPUP */}
             {recentActivity && (
               <div className="absolute top-4 right-4 bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-bounce z-20 max-w-xs">
-                <span className="text-xl"></span>
+                <span className="text-xl">🛒</span>
                 <div className="text-sm text-left">
                   <span className="font-bold">{recentActivity.country}</span> just bought <span className="font-semibold">{recentActivity.product}</span>
                 </div>
@@ -179,7 +198,6 @@ export default function Home() {
               <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700 transition hover:border-blue-500">
                 <div className="text-blue-400 text-sm font-bold mb-2">🇺🇸 USA</div>
                 <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.usa)}</div>
-                {/* ✅ USD ESTIMATE USING REAL AVERAGE */}
                 <div className="text-xs text-gray-400 mt-1 font-mono">
                   ≈ {formatCurrency(sales.usa * AVG_ORDER_VALUE_USD)}
                 </div>
@@ -190,7 +208,6 @@ export default function Home() {
               <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700 transition hover:border-orange-500">
                 <div className="text-orange-400 text-sm font-bold mb-2">🇮🇳 INDIA</div>
                 <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.india)}</div>
-                {/* ✅ USD ESTIMATE USING REAL AVERAGE */}
                 <div className="text-xs text-gray-400 mt-1 font-mono">
                   ≈ {formatCurrency(sales.india * AVG_ORDER_VALUE_USD)}
                 </div>
@@ -201,7 +218,6 @@ export default function Home() {
               <div className="bg-[#16191f] p-6 rounded-xl text-center border border-gray-700 transition hover:border-red-500">
                 <div className="text-red-400 text-sm font-bold mb-2">🇨🇳 CHINA</div>
                 <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.china)}</div>
-                {/* ✅ USD ESTIMATE USING REAL AVERAGE */}
                 <div className="text-xs text-gray-400 mt-1 font-mono">
                   ≈ {formatCurrency(sales.china * AVG_ORDER_VALUE_USD)}
                 </div>
@@ -210,9 +226,8 @@ export default function Home() {
               
               {/* SOUTH AFRICA */}
               <div className="bg-[#16191f] p-6 rounded-xl text-center border-2 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-                <div className="text-green-400 text-sm font-bold mb-2">🇦 SOUTH AFRICA</div>
+                <div className="text-green-400 text-sm font-bold mb-2">🇿🇦 SOUTH AFRICA</div>
                 <div className="text-3xl font-bold text-white tabular-nums">{formatNumber(sales.sa)}</div>
-                {/* ✅ USD ESTIMATE USING REAL AVERAGE */}
                 <div className="text-xs text-gray-400 mt-1 font-mono">
                   ≈ {formatCurrency(sales.sa * AVG_ORDER_VALUE_USD)}
                 </div>
@@ -220,7 +235,7 @@ export default function Home() {
               </div>
             </div>
             
-            {/* GLOBAL TOTAL WITH REAL AVG REVENUE */}
+            {/* GLOBAL TOTAL */}
             <div className="mt-8 pt-6 border-t border-gray-800 text-center">
               <span className="text-gray-400 mr-2">Total Global Volume:</span>
               <span className="text-cyan-400 font-bold text-2xl tabular-nums">
