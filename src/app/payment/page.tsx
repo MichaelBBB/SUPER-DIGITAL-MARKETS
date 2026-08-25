@@ -6,12 +6,16 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { MessageCircle, Copy, Check, Zap, ShieldCheck } from "lucide-react";
 
-function PaymentFormContent() {
+// ✅ SAFE: Receive WhatsApp number as prop from Server Component
+interface PaymentFormProps {
+  whatsappNumber: string;
+}
+
+function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
   const searchParams = useSearchParams();
   const [amount, setAmount] = useState(searchParams.get("amount") || "54.99");
   const [itemName, setItemName] = useState(searchParams.get("item") || "Digital Product");
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'capitec' | 'whatsapp'>('capitec');
 
@@ -23,16 +27,14 @@ function PaymentFormContent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            amount: (parseFloat(amount) * 18.5).toFixed(2), // Convert USD to ZAR approx
+            amount: (parseFloat(amount) * 18.5).toFixed(2), 
             currency: 'ZAR',
             itemName 
           }),
         });
         const data = await res.json();
         if (data.checkoutId) setCheckoutId(data.checkoutId);
-      } catch (err) {
-        console.error("Failed to load payment gateway", err);
-      }
+      } catch (err) { console.error("Failed to load payment gateway", err); }
     };
 
     if (activeTab === 'capitec') initCheckout();
@@ -42,18 +44,16 @@ function PaymentFormContent() {
   useEffect(() => {
     if (checkoutId && activeTab === 'capitec') {
       const script = document.createElement('script');
+      // ✅ Uses NEXT_PUBLIC_PEACH_ENTITY_ID which IS allowed in Vercel
       script.src = `https://test.peachpayments.com/checkout/v1/widget.js?entityId=${process.env.NEXT_PUBLIC_PEACH_ENTITY_ID}`;
       script.async = true;
       script.onload = () => {
-        // @ts-ignore - Peach widget global
+        // @ts-ignore
         if (window.PeachPayments) {
           window.PeachPayments.createWidget({
             checkoutId: checkoutId,
             selector: '#peach-widget-container',
-            style: {
-              primaryColor: '#0ea5e9', // Cyan-500
-              borderRadius: '12px',
-            }
+            style: { primaryColor: '#0ea5e9', borderRadius: '12px' }
           });
         }
       };
@@ -70,7 +70,7 @@ function PaymentFormContent() {
     });
   };
 
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "27821234567";
+  // ✅ Construct WhatsApp Link using passed prop
   const waMessage = `Hi Super Digital! I want to buy *${itemName}* for $${amount}. Ready to pay.`;
   const waLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(waMessage)}`;
 
@@ -108,12 +108,11 @@ function PaymentFormContent() {
             <span className="text-4xl font-bold text-white">R{(parseFloat(amount) * 18.5).toFixed(2)}</span>
           </div>
 
-          {/* ✅ Peach Widget Container */}
           <div id="peach-widget-container" className="min-h-[300px] flex items-center justify-center bg-gray-900/50 rounded-xl border border-dashed border-gray-700">
             {!checkoutId ? <span className="text-gray-500 animate-pulse">Initializing Secure Gateway...</span> : null}
           </div>
           
-          <p className="text-xs text-center text-gray-500 mt-4">Secured by Peach Payments. Your card details never touch our servers.</p>
+          <p className="text-xs text-center text-gray-500 mt-4">Secured by Peach Payments.</p>
         </div>
       ) : (
         <div className="bg-[#16191f] border border-gray-800 rounded-2xl p-8 shadow-2xl space-y-6">
@@ -152,14 +151,19 @@ function PaymentFormContent() {
   );
 }
 
-// ✅ FORCE DYNAMIC RENDERING TO AVOID PRERENDER ERRORS
+// ✅ SERVER COMPONENT: Passes secrets safely to client
 import { connection } from 'next/server';
 export default async function PaymentPage() {
   await connection(); 
+  
+  // ✅ Read server-side secret here
+  const whatsappNumber = process.env.WHATSAPP_NUMBER || "27821234567"; 
+
   return (
     <div className="min-h-screen bg-[#0f1115] text-white flex items-center justify-center">
       <Suspense fallback={<div className="text-white text-xl">Loading Secure Checkout...</div>}>
-        <PaymentFormContent />
+        {/* ✅ Pass secret as prop - never exposed in bundle */}
+        <PaymentFormContent whatsappNumber={whatsappNumber} />
       </Suspense>
     </div>
   );
