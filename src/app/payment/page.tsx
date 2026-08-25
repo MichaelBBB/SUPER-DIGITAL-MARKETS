@@ -4,9 +4,17 @@
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { MessageCircle, Copy, Check, Zap, ShieldCheck } from "lucide-react";
+import { MessageCircle, Copy, Check, ShieldCheck } from "lucide-react";
 
-// ✅ SAFE: Receive WhatsApp number as prop from Server Component
+// ✅ FIX: Tell TypeScript about the Peach Payments global object
+declare global {
+  interface Window {
+    PeachPayments?: {
+      createWidget: (config: { checkoutId: string; selector: string; style?: any }) => void;
+    };
+  }
+}
+
 interface PaymentFormProps {
   whatsappNumber: string;
 }
@@ -43,12 +51,15 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
   // Load Peach Widget Script Safely
   useEffect(() => {
     if (checkoutId && activeTab === 'capitec') {
+      // Prevent duplicate scripts
+      if (document.getElementById('peach-widget-script')) return;
+
       const script = document.createElement('script');
-      // ✅ Uses NEXT_PUBLIC_PEACH_ENTITY_ID which IS allowed in Vercel
+      script.id = 'peach-widget-script';
       script.src = `https://test.peachpayments.com/checkout/v1/widget.js?entityId=${process.env.NEXT_PUBLIC_PEACH_ENTITY_ID}`;
       script.async = true;
+      
       script.onload = () => {
-        // @ts-ignore
         if (window.PeachPayments) {
           window.PeachPayments.createWidget({
             checkoutId: checkoutId,
@@ -57,8 +68,12 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
           });
         }
       };
+      
       document.body.appendChild(script);
-      return () => { document.body.removeChild(script); };
+      return () => { 
+        const existingScript = document.getElementById('peach-widget-script');
+        if (existingScript) document.body.removeChild(existingScript); 
+      };
     }
   }, [checkoutId, activeTab]);
 
@@ -70,7 +85,6 @@ function PaymentFormContent({ whatsappNumber }: PaymentFormProps) {
     });
   };
 
-  // ✅ Construct WhatsApp Link using passed prop
   const waMessage = `Hi Super Digital! I want to buy *${itemName}* for $${amount}. Ready to pay.`;
   const waLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(waMessage)}`;
 
@@ -156,13 +170,11 @@ import { connection } from 'next/server';
 export default async function PaymentPage() {
   await connection(); 
   
-  // ✅ Read server-side secret here
   const whatsappNumber = process.env.WHATSAPP_NUMBER || "27821234567"; 
 
   return (
     <div className="min-h-screen bg-[#0f1115] text-white flex items-center justify-center">
       <Suspense fallback={<div className="text-white text-xl">Loading Secure Checkout...</div>}>
-        {/* ✅ Pass secret as prop - never exposed in bundle */}
         <PaymentFormContent whatsappNumber={whatsappNumber} />
       </Suspense>
     </div>
