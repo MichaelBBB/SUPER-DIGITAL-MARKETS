@@ -4,12 +4,11 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { amount, currency, merchantTransactionId, itemName } = body;
+    const { amount, currency, itemName } = body;
 
-    // ✅ FIX: Default to 'sandbox' if PEACH_ENV is missing!
-    const env = process.env.PEACH_ENV || 'sandbox'; 
+    // Default to sandbox if PEACH_ENV is missing
+    const env = process.env.PEACH_ENV || 'sandbox';
     
-    // Correct Peach Payments URLs (Test vs Live)
     const baseUrl = env === 'live' 
       ? 'https://peachpayments.com/v1/checkouts' 
       : 'https://test.peachpayments.com/v1/checkouts';
@@ -23,26 +22,26 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         amount: amount.toString(),
         currency: currency || 'ZAR',
-        merchantTransactionId: merchantTransactionId || `SDM-${Date.now()}`,
-        entityid: process.env.PEACH_ENTITY_ID, // Peach API expects lowercase 'entityid'
-        paymentType: 'DB', // Debit/Instant Payment for Capitec Pay
+        entityid: process.env.PEACH_ENTITY_ID,
+        paymentType: 'DB',
         'customParameters[CAPITEC_PAY_BRANDING]': 'true',
         testMode: env === 'live' ? '0' : '1',
+        merchantTransactionId: `SDM-${Date.now()}`,
+        shopperResultUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/success`,
       }),
     });
 
     const data = await response.json();
 
-    if (!response.ok) {
+    if (!response.ok || !data.id) {
       console.error('❌ Peach API Error:', data);
-      return NextResponse.json({ error: data }, { status: response.status });
+      return NextResponse.json({ error: data.description || 'Payment initialization failed' }, { status: response.status });
     }
 
-    // The frontend widget needs the 'id' from Peach to render
     return NextResponse.json({ checkoutId: data.id });
 
   } catch (error) {
-    console.error('💥 Internal Server Error:', error);
+    console.error('💥 Checkout Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
