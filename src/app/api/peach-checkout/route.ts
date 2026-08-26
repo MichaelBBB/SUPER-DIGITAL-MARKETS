@@ -2,85 +2,65 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
-  // Step 1: Safely parse request body
-  let amount: string;
-  let currency: string;
-  
   try {
     const body = await request.json();
-    amount = body.amount || '100.00';
-    currency = body.currency || 'ZAR';
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Invalid request body' }, 
-      { status: 400 }
-    );
-  }
+    const amount = body.amount;
+    const currency = body.currency || 'ZAR';
 
-  // Step 2: Get environment variables safely
-  const entityId = process.env.PEACH_ENTITY_ID;
-  const authToken = process.env.PEACH_SECRET_TOKEN;
+    // 1. Explicitly log what we are sending (Check Vercel Function Logs later if needed)
+    console.log(' Attempting Peach Checkout:', { amount, currency });
 
-  if (!entityId) {
-    return NextResponse.json(
-      { error: 'Server configuration error', details: 'PEACH_ENTITY_ID missing' },
-      { status: 500 }
-    );
-  }
+    // 2. Construct the EXACT payload Peach expects
+    // Note: Peach usually expects 'entityid' (lowercase d), not 'entityId'
+    const payload = {
+      amount: amount.toString(),
+      currency: currency,
+      entityid: process.env.PEACH_ENTITY_ID, 
+      paymentType: 'DB', // Debit
+      testMode: '1',     // Force Test Mode explicitly
+    };
 
-  if (!authToken) {
-    return NextResponse.json(
-      { error: 'Server configuration error', details: 'PEACH_SECRET_TOKEN missing' },
-      { status: 500 }
-    );
-  }
+    console.log('🔑 Using Entity ID:', process.env.PEACH_ENTITY_ID ? 'Present' : 'MISSING');
+    console.log(' Using Token:', process.env.PEACH_SECRET_TOKEN ? 'Present' : 'MISSING');
 
-  // Step 3: Make the Peach Payments API call
-  try {
-    const peachResponse = await fetch('https://test.peachpayments.com/v1/checkouts', {
+    // 3. Call Peach API
+    // IMPORTANT: Ensure URL matches your environment (test. vs live.)
+    const peachUrl = 'https://test.peachpayments.com/v1/checkouts'; 
+    
+    const response = await fetch(peachUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${authToken}`,
+        'Authorization': `Bearer ${process.env.PEACH_SECRET_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        amount: amount,
-        currency: currency,
-        entityid: entityId,
-        paymentType: 'DB',
-        testMode: '1',
-      }),
+      body: JSON.stringify(payload),
     });
 
-    const peachData = await peachResponse.json();
+    const data = await response.json();
 
-    if (!peachResponse.ok) {
-      return NextResponse.json(
-        { 
-          error: 'Payment gateway error',
-          message: peachData.description || 'Failed to initialize payment',
-          peachResponse: peachData
-        }, 
-        { status: peachResponse.status }
-      );
+    // 4. CRITICAL: If Peach returns an error, forward it EXACTLY to the frontend
+    if (!response.ok) {
+      console.error('❌ Peach API Error:', data);
+      return NextResponse.json({ 
+        error: 'Peach Payment Failed', 
+        details: data, // This will show up in your Network tab!
+        status: response.status 
+      }, { status: response.status });
     }
 
-    if (!peachData.id) {
-      return NextResponse.json(
-        { error: 'No checkout ID returned', response: peachData },
-        { status: 500 }
-      );
+    // 5. Success
+    if (!data.id) {
+       throw new Error('Peach returned no ID');
     }
 
-    return NextResponse.json({ checkoutId: peachData.id });
+    return NextResponse.json({ checkoutId: data.id });
 
-  } catch (fetchError) {
-    return NextResponse.json(
-      { 
-        error: 'Network error',
-        message: fetchError instanceof Error ? fetchError.message : 'Unknown network error'
-      },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    console.error('💥 Unexpected Crash:', error);
+    return NextResponse.json({ 
+      error: 'Server Crash', 
+      message: error.message,
+      stack: error.stack 
+    }, { status: 500 });
   }
 }
