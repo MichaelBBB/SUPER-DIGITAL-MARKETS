@@ -28,6 +28,7 @@ export default function PaymentForm({
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [widgetLoaded, setWidgetLoaded] = useState(false);
 
   // Initialize checkout
   useEffect(() => {
@@ -35,6 +36,7 @@ export default function PaymentForm({
       try {
         setLoading(true);
         setError(null);
+        
         const res = await fetch('/api/peach-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -48,12 +50,18 @@ export default function PaymentForm({
         const data = await res.json();
         
         if (!res.ok) {
-          setError(data.error || 'Failed to initialize');
+          console.error('Peach API Error:', data);
+          setError(data.error || 'Failed to initialize payment');
           return;
         }
         
-        setCheckoutId(data.checkoutId);
+        if (data.checkoutId) {
+          setCheckoutId(data.checkoutId);
+        } else {
+          setError('No checkout ID received');
+        }
       } catch (err) {
+        console.error('Network error:', err);
         setError('Network error');
       } finally {
         setLoading(false);
@@ -63,9 +71,11 @@ export default function PaymentForm({
     initCheckout();
   }, [amount, itemName]);
 
-  // Load Peach widget
+  // Load Peach widget when checkoutId is ready
   useEffect(() => {
-    if (checkoutId && !error) {
+    if (checkoutId && !error && !widgetLoaded) {
+      setWidgetLoaded(true);
+      
       const script = document.createElement('script');
       script.src = `https://test.peachpayments.com/checkout/v1/widget.js?entityId=${process.env.NEXT_PUBLIC_PEACH_ENTITY_ID}`;
       script.async = true;
@@ -74,19 +84,30 @@ export default function PaymentForm({
         if (window.PeachPayments) {
           window.PeachPayments.createWidget({
             checkoutId: checkoutId,
-            selector: '#peach-widget',
-            style: { primaryColor: '#10b981' } // Green to match your design
+            selector: '#peach-widget-container',
+            style: { 
+              primaryColor: '#10b981', // Green to match design
+              borderRadius: '8px'
+            }
           });
+        } else {
+          setError('Failed to load payment widget');
         }
       };
       
       script.onerror = () => {
-        setError('Failed to load payment widget');
+        setError('Failed to load payment script');
       };
       
       document.body.appendChild(script);
+      
+      return () => {
+        if (document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
+      };
     }
-  }, [checkoutId, error]);
+  }, [checkoutId, error, widgetLoaded]);
 
   const handleCopyDetails = () => {
     const text = `Bank: Capitec\nAcc: 1975933441\nRef: ${itemName}`;
@@ -123,27 +144,31 @@ export default function PaymentForm({
             <div className="text-3xl font-bold mb-6">${amount} USD</div>
 
             {loading ? (
-              <button disabled className="w-full bg-green-600 text-white py-4 rounded font-bold">
-                Loading...
-              </button>
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+                <p className="text-gray-400">Loading secure payment...</p>
+              </div>
             ) : error ? (
-              <a 
-                href={waLink}
-                target="_blank"
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded font-bold flex items-center justify-center gap-2"
-              >
-                <MessageCircle className="w-5 h-5" />
-                Use WhatsApp Instead
-              </a>
+              <div className="text-center">
+                <p className="text-red-400 mb-4">{error}</p>
+                <a 
+                  href={waLink}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-bold transition"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Use WhatsApp Instead
+                </a>
+              </div>
             ) : (
-              <div id="peach-widget" />
+              <div id="peach-widget-container" className="peach-widget-wrapper" />
             )}
 
             <p className="text-xs text-gray-400 mt-4 text-center">Secured by Peach Payments</p>
           </div>
 
           {/* Option 2: Manual Transfer */}
-          <div className="border border-gray-700 bg-gray-800 rounded-lg p-6 opacity-75">
+          <div className="border border-gray-700 bg-gray-800 rounded-lg p-6">
             <h2 className="text-xl font-bold text-gray-400 mb-2">Option 2: Manual Transfer</h2>
             <p className="text-gray-400 text-sm mb-6">
               Only use this if card payment fails. Requires manual verification.
