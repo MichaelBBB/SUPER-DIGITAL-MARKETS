@@ -2,51 +2,85 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
+  // Step 1: Safely parse request body
+  let amount: string;
+  let currency: string;
+  
   try {
     const body = await request.json();
-    const amount = body.amount || '100.00';
-    const currency = body.currency || 'ZAR';
+    amount = body.amount || '100.00';
+    currency = body.currency || 'ZAR';
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Invalid request body' }, 
+      { status: 400 }
+    );
+  }
 
-    const entityId = process.env.PEACH_ENTITY_ID;
-    const authToken = process.env.PEACH_SECRET_TOKEN;
+  // Step 2: Get environment variables safely
+  const entityId = process.env.PEACH_ENTITY_ID;
+  const authToken = process.env.PEACH_SECRET_TOKEN;
 
-    // Build the request
-    const peachPayload = {
-      amount: amount,
-      currency: currency,
-      entityid: entityId || '',
-      paymentType: 'DB',
-      testMode: '1',
-    };
+  if (!entityId) {
+    return NextResponse.json(
+      { error: 'Server configuration error', details: 'PEACH_ENTITY_ID missing' },
+      { status: 500 }
+    );
+  }
 
-    // Make the API call
+  if (!authToken) {
+    return NextResponse.json(
+      { error: 'Server configuration error', details: 'PEACH_SECRET_TOKEN missing' },
+      { status: 500 }
+    );
+  }
+
+  // Step 3: Make the Peach Payments API call
+  try {
     const peachResponse = await fetch('https://test.peachpayments.com/v1/checkouts', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${authToken || ''}`,
+        'Authorization': `Bearer ${authToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(peachPayload),
+      body: JSON.stringify({
+        amount: amount,
+        currency: currency,
+        entityid: entityId,
+        paymentType: 'DB',
+        testMode: '1',
+      }),
     });
 
     const peachData = await peachResponse.json();
 
-    // Check if Peach returned an error
     if (!peachResponse.ok) {
-      return NextResponse.json({ 
-        error: 'Payment gateway error',
-        message: peachData.description || 'Failed to initialize'
-      }, { status: peachResponse.status });
+      return NextResponse.json(
+        { 
+          error: 'Payment gateway error',
+          message: peachData.description || 'Failed to initialize payment',
+          peachResponse: peachData
+        }, 
+        { status: peachResponse.status }
+      );
     }
 
-    // Return the checkout ID
+    if (!peachData.id) {
+      return NextResponse.json(
+        { error: 'No checkout ID returned', response: peachData },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({ checkoutId: peachData.id });
 
-  } catch (error) {
-    // Catch any unexpected errors
-    return NextResponse.json({ 
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+  } catch (fetchError) {
+    return NextResponse.json(
+      { 
+        error: 'Network error',
+        message: fetchError instanceof Error ? fetchError.message : 'Unknown network error'
+      },
+      { status: 500 }
+    );
   }
 }
