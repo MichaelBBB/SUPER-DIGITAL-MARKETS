@@ -1,79 +1,172 @@
-09:34:14.711 Running build in Washington, D.C., USA (East) – iad1
-09:34:14.712 Build machine configuration: 2 cores, 8 GB
-09:34:14.751 Cloning github.com/MichaelBBB/SUPER-DIGITAL-MARKETS (Branch: main, Commit: b776c7b)
-09:34:14.752 Skipping build cache, deployment was triggered without cache.
-09:34:15.148 Cloning completed: 397.000ms
-09:34:15.456 Running "vercel build"
-09:34:15.472 Vercel CLI 59.3.0
-09:34:15.686 Installing dependencies...
-09:34:18.162 npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
-09:34:18.582 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
-09:34:18.651 npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
-09:34:27.456 
-09:34:27.457 added 527 packages in 12s
-09:34:27.458 
-09:34:27.458 170 packages are looking for funding
-09:34:27.459   run `npm fund` for details
-09:34:27.459 npm warn allow-scripts 2 packages have install scripts not yet covered by allowScripts:
-09:34:27.460 npm warn allow-scripts   sharp@0.34.5 (install: node install/check.js || npm run build)
-09:34:27.460 npm warn allow-scripts   unrs-resolver@1.11.1 (postinstall: napi-postinstall unrs-resolver 1.11.1 check)
-09:34:27.460 npm warn allow-scripts
-09:34:27.460 npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
-09:34:27.503 Detected Next.js version: 15.5.18
-09:34:27.508 Running "npm run build"
-09:34:27.669 
-09:34:27.670 > super-digital@0.1.0 build
-09:34:27.670 > next build
-09:34:27.670 
-09:34:28.856 Attention: Next.js now collects completely anonymous telemetry regarding usage.
-09:34:28.857 This information is used to shape Next.js' roadmap and prioritize features.
-09:34:28.857 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-09:34:28.857 https://nextjs.org/telemetry
-09:34:28.857 
-09:34:28.957    ▲ Next.js 15.5.18
-09:34:28.961 
-09:34:29.100    Creating an optimized production build ...
-09:34:40.941  ✓ Compiled successfully in 9.5s
-09:34:40.944    Linting and checking validity of types ...
-09:34:45.109    Collecting page data ...
-09:34:46.362    Generating static pages (0/20) ...
-09:34:47.120    Generating static pages (5/20) 
-09:34:47.122    Generating static pages (10/20) 
-09:34:47.178    Generating static pages (15/20) 
-09:34:47.279  ✓ Generating static pages (20/20)
-09:34:47.580    Finalizing page optimization ...
-09:34:47.580    Collecting build traces ...
-09:34:51.621 
-09:34:51.624 Route (app)                                      Size  First Load JS
-09:34:51.624 ┌ ○ /                                         2.78 kB         109 kB
-09:34:51.624 ├ ○ /_not-found                                 148 B         103 kB
-09:34:51.624 ├ ○ /admin/sales                              1.22 kB         104 kB
-09:34:51.624 ├ ƒ /api                                        148 B         103 kB
-09:34:51.624 ├ ƒ /api/checkout                               148 B         103 kB
-09:34:51.624 ├ ƒ /api/create-payment                         148 B         103 kB
-09:34:51.624 ├ ƒ /api/peach-checkout                         148 B         103 kB
-09:34:51.624 ├ ƒ /api/peach/create-checkout                  148 B         103 kB
-09:34:51.624 ├ ƒ /api/sales                                  148 B         103 kB
-09:34:51.624 ├ ƒ /api/webhooks/peach                         148 B         103 kB
-09:34:51.624 ├ ○ /checkout                                  3.2 kB         109 kB
-09:34:51.624 ├ ○ /checkout/components/app/payment-methods  3.18 kB         109 kB
-09:34:51.624 ├ ƒ /payment                                   3.4 kB         109 kB
-09:34:51.626 ├ ○ /payment/success                            553 B         106 kB
-09:34:51.626 ├ ○ /products                                 3.37 kB         109 kB
-09:34:51.626 ├ ○ /robots.txt                                 148 B         103 kB
-09:34:51.626 ├ ○ /sitemap.xml                                148 B         103 kB
-09:34:51.626 └ ○ /success                                  2.31 kB         108 kB
-09:34:51.626 + First Load JS shared by all                  102 kB
-09:34:51.627   ├ chunks/255-4f84124391a7dac4.js            46.2 kB
-09:34:51.627   ├ chunks/4bd1b696-c023c6e3521b1417.js       54.2 kB
-09:34:51.627   └ other shared chunks (total)               1.92 kB
-09:34:51.627 
-09:34:51.628 
-09:34:51.628 ○  (Static)   prerendered as static content
-09:34:51.628 ƒ  (Dynamic)  server-rendered on demand
-09:34:51.628 
-09:34:51.764 Traced Next.js server files in: 42.219ms
-09:34:51.967 Created all serverless functions in: 202.437ms
-09:34:52.001 Collected static files (public/, static/, .next/static): 29.528ms
-09:34:52.123 Build Completed in /vercel/output [36s]
-09:34:52.143 Deploying outputs...
+// src/app/payment/PaymentForm.tsx
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { MessageCircle, Copy, Check, Zap } from "lucide-react";
+
+declare global {
+  interface Window {
+    PeachPayments?: {
+      createWidget: (config: { checkoutId: string; selector: string; style?: any }) => void;
+    };
+  }
+}
+
+export default function PaymentForm({ 
+  initialAmount, 
+  initialItem, 
+  whatsappNumber 
+}: { 
+  initialAmount: string; 
+  initialItem: string; 
+  whatsappNumber: string; 
+}) {
+  const [amount] = useState(initialAmount);
+  const [itemName] = useState(initialItem);
+  const [checkoutId, setCheckoutId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initialize checkout
+  useEffect(() => {
+    const initCheckout = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch('/api/peach-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            amount: (parseFloat(amount) * 18.5).toFixed(2),
+            currency: 'ZAR',
+            itemName: itemName
+          }),
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          setError(data.error || 'Failed to initialize');
+          return;
+        }
+        
+        setCheckoutId(data.checkoutId);
+      } catch (err) {
+        setError('Network error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initCheckout();
+  }, [amount, itemName]);
+
+  // Load Peach widget
+  useEffect(() => {
+    if (checkoutId && !error) {
+      const script = document.createElement('script');
+      script.src = `https://test.peachpayments.com/checkout/v1/widget.js?entityId=${process.env.NEXT_PUBLIC_PEACH_ENTITY_ID}`;
+      script.async = true;
+      
+      script.onload = () => {
+        if (window.PeachPayments) {
+          window.PeachPayments.createWidget({
+            checkoutId: checkoutId,
+            selector: '#peach-widget',
+            style: { primaryColor: '#10b981' } // Green to match your design
+          });
+        }
+      };
+      
+      script.onerror = () => {
+        setError('Failed to load payment widget');
+      };
+      
+      document.body.appendChild(script);
+    }
+  }, [checkoutId, error]);
+
+  const handleCopyDetails = () => {
+    const text = `Bank: Capitec\nAcc: 1975933441\nRef: ${itemName}`;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const waMessage = `Hi! I want to buy *${itemName}* for $${amount}.`;
+  const waLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(waMessage)}`;
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-6">
+          <Link href="/products" className="text-gray-400 hover:text-white">← Back</Link>
+        </div>
+
+        <h1 className="text-3xl font-bold mb-8">How to Pay</h1>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Option 1: Instant Pay */}
+          <div className="border-2 border-green-500 bg-gray-800 rounded-lg p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Zap className="w-6 h-6 text-yellow-400" />
+              <h2 className="text-xl font-bold text-green-400">Option 1: Instant Pay (Recommended)</h2>
+            </div>
+            
+            <p className="text-gray-300 mb-6">
+              Pay securely via Card or Instant EFT. Funds go directly to Capitec. No screenshots needed. Product delivered instantly.
+            </p>
+
+            <div className="text-3xl font-bold mb-6">${amount} USD</div>
+
+            {loading ? (
+              <button disabled className="w-full bg-green-600 text-white py-4 rounded font-bold">
+                Loading...
+              </button>
+            ) : error ? (
+              <a 
+                href={waLink}
+                target="_blank"
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded font-bold flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-5 h-5" />
+                Use WhatsApp Instead
+              </a>
+            ) : (
+              <div id="peach-widget" />
+            )}
+
+            <p className="text-xs text-gray-400 mt-4 text-center">Secured by Peach Payments</p>
+          </div>
+
+          {/* Option 2: Manual Transfer */}
+          <div className="border border-gray-700 bg-gray-800 rounded-lg p-6 opacity-75">
+            <h2 className="text-xl font-bold text-gray-400 mb-2">Option 2: Manual Transfer</h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Only use this if card payment fails. Requires manual verification.
+            </p>
+
+            <div className="bg-gray-900 p-4 rounded mb-4">
+              <div className="text-sm space-y-2">
+                <div><span className="text-gray-400">Bank:</span> <span className="text-white">Capitec</span></div>
+                <div><span className="text-gray-400">Acc:</span> <span className="text-white">1975933441</span></div>
+                <div><span className="text-gray-400">Ref:</span> <span className="text-white">{itemName}</span></div>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleCopyDetails}
+              className="w-full border border-gray-600 hover:border-gray-500 text-gray-300 py-3 rounded font-medium flex items-center justify-center gap-2 transition"
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {copied ? "Copied!" : "Copy Details"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
