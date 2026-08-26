@@ -29,11 +29,17 @@ export default function PaymentForm({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log(' Starting checkout initialization...');
+    
     const initCheckout = async () => {
       try {
         setLoading(true);
-        const zAmount = (parseFloat(amount) * 18.5).toFixed(2);
+        setError(null);
         
+        const zAmount = (parseFloat(amount) * 18.5).toFixed(2);
+        console.log(' Converting amount:', amount, 'USD ->', zAmount, 'ZAR');
+        
+        console.log('📡 Calling /api/peach-checkout...');
         const res = await fetch('/api/peach-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -43,16 +49,26 @@ export default function PaymentForm({
           }),
         });
         
-        const data = await res.json();
+        console.log('📥 Response received:', res.status, res.ok);
         
-        if (res.ok && data.checkoutId) {
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error('❌ API Error:', errorData);
+          setError(errorData.error || 'Payment unavailable');
+          return;
+        }
+        
+        const data = await res.json();
+        console.log('✅ Checkout ID received:', data.checkoutId);
+        
+        if (data.checkoutId) {
           setCheckoutId(data.checkoutId);
         } else {
-          setError('Payment unavailable');
+          setError('No checkout ID returned');
         }
       } catch (err) {
-        console.error(err);
-        setError('Network error');
+        console.error(' Network error:', err);
+        setError('Network error - check console');
       } finally {
         setLoading(false);
       }
@@ -62,19 +78,31 @@ export default function PaymentForm({
   }, [amount]);
 
   useEffect(() => {
-    if (checkoutId && typeof window !== 'undefined') {
+    if (checkoutId) {
+      console.log('🎯 Loading Peach widget with checkoutId:', checkoutId);
+      
       const script = document.createElement('script');
       script.src = `https://test.peachpayments.com/checkout/v1/widget.js?entityId=${process.env.NEXT_PUBLIC_PEACH_ENTITY_ID}`;
       script.async = true;
       
       script.onload = () => {
+        console.log(' Peach script loaded');
         if ((window as any).PeachPayments) {
+          console.log('🎨 Creating widget...');
           (window as any).PeachPayments.createWidget({
             checkoutId: checkoutId,
             selector: '#peach-widget',
             style: { primaryColor: '#10b981' }
           });
+        } else {
+          console.error('❌ PeachPayments object not found');
+          setError('Failed to load payment widget');
         }
+      };
+      
+      script.onerror = () => {
+        console.error('❌ Failed to load Peach script');
+        setError('Failed to load payment script');
       };
       
       document.body.appendChild(script);
@@ -116,7 +144,7 @@ export default function PaymentForm({
             {loading ? (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-                <p className="text-gray-400 mt-2">Loading payment gateway...</p>
+                <p className="text-gray-400 mt-2">Initializing payment...</p>
               </div>
             ) : error ? (
               <div className="text-center">
