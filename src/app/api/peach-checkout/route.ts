@@ -2,18 +2,18 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { amount, currency } = body;
+  const body = await request.json();
+  const { amount, currency } = body;
 
-    const response = await fetch('https://test.peachpayments.com/v1/checkouts', {
+  try {
+    const peachResponse = await fetch('https://test.peachpayments.com/v1/checkouts', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.PEACH_SECRET_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: amount.toString(),
+        amount: amount,
         currency: currency || 'ZAR',
         entityid: process.env.PEACH_ENTITY_ID,
         paymentType: 'DB',
@@ -21,15 +21,15 @@ export async function POST(request: Request) {
       }),
     });
 
-    const data = await response.json();
+    const data = await peachResponse.json();
 
-    if (!response.ok) {
-      return NextResponse.json({ error: 'Failed to initialize' }, { status: response.status });
+    if (!peachResponse.ok) {
+      return NextResponse.json({ error: 'Failed' }, { status: 500 });
     }
 
     return NextResponse.json({ checkoutId: data.id });
-
+    
   } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
