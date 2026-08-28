@@ -9,23 +9,13 @@ export default async function PaymentPage({
 }) {
   const params = await searchParams;
   
-  const amount = params.amount || "54.99";
-  const item = params.item || "Digital Product";
-  const whatsappNumber = process.env.WHATSAPP_NUMBER || "27821234567";
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-gray-600 font-medium">Loading secure checkout...</div>
-        </div>
-      }>
-        <PaymentForm 
-          initialAmount={amount}
-          initialItem={item}
-          whatsappNumber={whatsappNumber}
-        />
-      </Suspense>
-    </div>
+    <Suspense fallback={<div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">Loading...</div>}>
+      <PaymentForm 
+        initialAmount={params.amount || "54.99"}
+        initialItem={params.item || "Digital Product"}
+        whatsappNumber={process.env.WHATSAPP_NUMBER || "27821234567"}
+      />
+    </Suspense>
   );
 }
