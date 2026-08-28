@@ -1,15 +1,17 @@
 // src/app/api/peach-checkout/route.ts
 import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid'; // Install: npm install uuid @types/uuid
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const amountZAR = parseFloat(body.amount) * 100; // Convert to cents (integer)
+    const amountZAR = parseFloat(body.amount);
     
-    // Generate unique transaction ID and nonce
-    const merchantTransactionId = `SDM-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const nonce = uuidv4();
+    // Convert to cents (integer) as required by Peach
+    const amountInCents = Math.round(amountZAR * 100);
+    
+    // Generate unique IDs
+    const merchantTransactionId = `SDM-${Date.now()}`;
+    const nonce = `nonce-${Math.random().toString(36).substring(2, 15)}`;
     
     // Your LIVE credentials
     const entityId = "8acda4cb9e1b546a019e1b5b39ee001c";
@@ -17,10 +19,14 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
     if (!authToken) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+      console.error('❌ PEACH_SECRET_TOKEN is missing');
+      return NextResponse.json({ 
+        error: 'Server configuration error',
+        message: 'Payment token not configured'
+      }, { status: 500 });
     }
 
-    // ✅ CORRECT Peach Payments v2 API endpoint
+    // ✅ CORRECT v2 API endpoint per Peach documentation
     const response = await fetch('https://secure.peachpayments.com/v2/checkout', {
       method: 'POST',
       headers: {
@@ -30,12 +36,12 @@ export async function POST(request: Request) {
         'accept': 'application/json',
       },
       body: JSON.stringify({
-        // ✅ Dot notation for authentication
+        // ✅ Dot notation for authentication (REQUIRED by Peach)
         'authentication.entityId': entityId,
         
-        // ✅ Required fields per Peach docs
+        // ✅ Required fields per Peach v2 API
         merchantTransactionId: merchantTransactionId,
-        amount: Math.round(amountZAR), // Integer in cents
+        amount: amountInCents,
         currency: body.currency || 'ZAR',
         paymentType: 'DB',
         nonce: nonce,
@@ -45,33 +51,37 @@ export async function POST(request: Request) {
         cancelUrl: `${baseUrl}/payment/cancelled`,
         notificationUrl: `${baseUrl}/api/webhooks/peach`,
         
-        // ✅ Optional but recommended
+        // ✅ Additional required fields
         forceDefaultMethod: false,
       }),
     });
 
     const data = await response.json();
+    console.log('Peach API Response:', { status: response.status, ok: response.ok, data });
 
     if (!response.ok) {
       console.error('❌ Peach API Error:', data);
       return NextResponse.json({ 
         error: data.message || 'Payment initialization failed',
-        details: data 
+        details: data.description || 'Unknown error'
       }, { status: response.status });
     }
 
-    // Peach v2 returns { id: "checkout_id" }
     if (!data.id) {
-      return NextResponse.json({ error: 'No checkout ID returned', response: data }, { status: 500 });
+      console.error('❌ No checkout ID in response:', data);
+      return NextResponse.json({ 
+        error: 'No checkout ID returned',
+        response: data 
+      }, { status: 500 });
     }
 
     return NextResponse.json({ checkoutId: data.id });
 
   } catch (error: any) {
-    console.error('💥 API Route Error:', error);
+    console.error('💥 API Route Crash:', error);
     return NextResponse.json({ 
-      error: 'Internal Server Error',
-      message: error.message 
+      error: 'Failed to connect to payment gateway. Check Entity ID.',
+      message: error.message || 'Unknown error'
     }, { status: 500 });
   }
 }
