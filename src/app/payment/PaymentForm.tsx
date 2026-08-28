@@ -28,85 +28,80 @@ export default function PaymentForm({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 1. Get Checkout ID from API
   useEffect(() => {
-    console.log(' Starting checkout initialization...');
-    
     const initCheckout = async () => {
       try {
         setLoading(true);
-        setError(null);
-        
         const zAmount = (parseFloat(amount) * 18.5).toFixed(2);
-        console.log(' Converting amount:', amount, 'USD ->', zAmount, 'ZAR');
         
-        console.log('📡 Calling /api/peach-checkout...');
         const res = await fetch('/api/peach-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            amount: zAmount,
-            currency: 'ZAR'
-          }),
+          body: JSON.stringify({ amount: zAmount, currency: 'ZAR' }),
         });
         
-        console.log('📥 Response received:', res.status, res.ok);
-        
-        if (!res.ok) {
-          const errorData = await res.json();
-          console.error('❌ API Error:', errorData);
-          setError(errorData.error || 'Payment unavailable');
-          return;
-        }
-        
         const data = await res.json();
-        console.log('✅ Checkout ID received:', data.checkoutId);
         
-        if (data.checkoutId) {
+        if (res.ok && data.checkoutId) {
           setCheckoutId(data.checkoutId);
         } else {
-          setError('No checkout ID returned');
+          setError(data.error || 'Payment unavailable');
         }
       } catch (err) {
-        console.error(' Network error:', err);
-        setError('Network error - check console');
+        setError('Network error');
       } finally {
         setLoading(false);
       }
     };
-
     initCheckout();
   }, [amount]);
 
+  // 2. Load Peach Widget Script - LIVE MODE
   useEffect(() => {
-    if (checkoutId) {
-      console.log('🎯 Loading Peach widget with checkoutId:', checkoutId);
-      
-      const script = document.createElement('script');
-      script.src = `https://test.peachpayments.com/checkout/v1/widget.js?entityId=${process.env.NEXT_PUBLIC_PEACH_ENTITY_ID}`;
-      script.async = true;
-      
-      script.onload = () => {
-        console.log(' Peach script loaded');
-        if ((window as any).PeachPayments) {
-          console.log('🎨 Creating widget...');
+    if (!checkoutId) return;
+
+    // ⚠️ REPLACE WITH YOUR ACTUAL LIVE ENTITY ID ️
+    const entityId = "8a8294174b7ecb28014b36c577015263"; //  PUT YOUR LIVE ID HERE
+    
+    console.log("🚀 Loading LIVE Peach Script for Entity:", entityId);
+    
+    const script = document.createElement('script');
+    // ✅ LIVE URL (NO 'test.' prefix)
+    script.src = `https://peachpayments.com/checkout/v1/widget.js?entityId=${entityId}`;
+    script.async = true;
+    script.id = "peach-payments-script";
+    
+    script.onload = () => {
+      console.log("✅ Peach Script Loaded!");
+      if ((window as any).PeachPayments) {
+        console.log("🎨 Initializing Widget...");
+        try {
           (window as any).PeachPayments.createWidget({
             checkoutId: checkoutId,
             selector: '#peach-widget',
             style: { primaryColor: '#10b981' }
           });
-        } else {
-          console.error('❌ PeachPayments object not found');
-          setError('Failed to load payment widget');
+        } catch (e) {
+          console.error("Widget Init Error:", e);
+          setError("Widget failed to initialize.");
         }
-      };
-      
-      script.onerror = () => {
-        console.error('❌ Failed to load Peach script');
-        setError('Failed to load payment script');
-      };
-      
-      document.body.appendChild(script);
-    }
+      } else {
+        console.error("❌ window.PeachPayments is undefined");
+        setError("Payment system failed to load.");
+      }
+    };
+    
+    script.onerror = () => {
+      console.error("❌ Failed to load script from:", script.src);
+      setError("Failed to connect to payment gateway. Check Entity ID.");
+    };
+    
+    document.body.appendChild(script);
+    return () => {
+      const existing = document.getElementById("peach-payments-script");
+      if (existing) existing.remove();
+    };
   }, [checkoutId]);
 
   const handleCopy = () => {
@@ -144,18 +139,21 @@ export default function PaymentForm({
             {loading ? (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-                <p className="text-gray-400 mt-2">Initializing payment...</p>
+                <p className="text-gray-400 mt-2">Connecting to Bank...</p>
               </div>
             ) : error ? (
               <div className="text-center">
-                <p className="text-red-400 mb-4">{error}</p>
+                <p className="text-red-400 mb-4 font-bold">{error}</p>
+                <p className="text-xs text-gray-500 mb-4">Check browser console (F12) for details</p>
                 <a href={waLink} target="_blank" className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-bold">
                   <MessageCircle className="w-5 h-5" />
                   Use WhatsApp Instead
                 </a>
               </div>
             ) : (
-              <div id="peach-widget" />
+              <div id="peach-widget" className="min-h-[300px] flex items-center justify-center">
+                <span className="text-gray-500 animate-pulse">Loading Secure Form...</span>
+              </div>
             )}
 
             <p className="text-xs text-gray-400 mt-4 text-center">Secured by Peach Payments</p>
