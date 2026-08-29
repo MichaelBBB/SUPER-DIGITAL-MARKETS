@@ -5,16 +5,16 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const amountZAR = parseFloat(body.amount);
-    const amountInCents = Math.round(amountZAR * 100);
+    const amountInCents = Math.round(amountZAR * 100); // Peach requires integer cents
     
     const merchantTransactionId = `SDM-${Date.now()}`;
     const nonce = `nonce-${Math.random().toString(36).substring(2, 15)}`;
     
-    // ✅ YOUR LIVE ENTITY ID (the one that never changed)
-    const entityId = "8acda4cb9e1b546a019e1b5b39ee001c";
+    // ✅ THIS ENTITY ID MATCHES YOUR ACCESS TOKEN
+    const entityId = "8acda4da9dd88496019e1b40cc0944d8";
     
-    // ✅ YOUR SECRET TOKEN from Checkout settings
-    const authToken = "58c4748b406945d8802cf0f7997456e0";
+    // ✅ THIS IS YOUR EXACT ACCESS TOKEN
+    const authToken = "OGFjZGE0ZGE5ZGQ4ODQ5NjAxOWUxYjQwY2MwOTQ0ZDR8SncrNWpqM01iRWpKRHRkYjN6Rnk=";
     
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
