@@ -4,39 +4,30 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const amountZAR = parseFloat(body.amount);
-    const amountInCents = Math.round(amountZAR * 100); // Peach requires integer cents
-    
-    const merchantTransactionId = `SDM-${Date.now()}`;
-    const nonce = `nonce-${Math.random().toString(36).substring(2, 15)}`;
-    
-    // ✅ THIS ENTITY ID MATCHES YOUR ACCESS TOKEN
-    const entityId = "8acda4da9dd88496019e1b40cc0944d8";
-    
-    // ✅ THIS IS YOUR EXACT ACCESS TOKEN
-    const authToken = "OGFjZGE0ZGE5ZGQ4ODQ5NjAxOWUxYjQwY2MwOTQ0ZDR8SncrNWpqM01iRWpKRHRkYjN6Rnk=";
-    
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
+    const amount = body.amount; // Already in ZAR from frontend conversion
+    const currency = body.currency || 'ZAR';
 
-    const response = await fetch('https://secure.peachpayments.com/v2/checkout', {
+    // ✅ YOUR LIVE ENTITY ID
+    const entityId = "8acda4cb9e1b546a019e1b5b39ee001c";
+    
+    // ✅ USE YOUR SECRET TOKEN (not the Access Token)
+    const authToken = "58c4748b406945d8802cf0f7997456e0";
+    
+    // ✅ CORRECT V1 ENDPOINT (not v2)
+    const apiUrl = "https://peachpayments.com/v1/checkouts";
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${authToken}`,
         'Content-Type': 'application/json',
-        'Referer': baseUrl,
-        'accept': 'application/json',
       },
       body: JSON.stringify({
-        'authentication.entityId': entityId,
-        merchantTransactionId: merchantTransactionId,
-        amount: amountInCents,
-        currency: body.currency || 'ZAR',
+        amount: amount,
+        currency: currency,
+        entityid: entityId, // lowercase 'd' as per v1 API
         paymentType: 'DB',
-        nonce: nonce,
-        shopperResultUrl: `${baseUrl}/payment/success`,
-        cancelUrl: `${baseUrl}/payment/cancelled`,
-        notificationUrl: `${baseUrl}/api/webhooks/peach`,
-        forceDefaultMethod: false,
+        testMode: '0', // 0 for Live, 1 for Test
       }),
     });
 
@@ -45,19 +36,18 @@ export async function POST(request: Request) {
     if (!response.ok) {
       console.error('❌ Peach API Error:', data);
       return NextResponse.json({ 
-        error: data.message || 'Payment initialization failed',
-        details: data.description || 'Unknown error'
+        error: data.description || 'Payment initialization failed'
       }, { status: response.status });
     }
 
     if (!data.id) {
-      return NextResponse.json({ error: 'No checkout ID returned', response: data }, { status: 500 });
+      return NextResponse.json({ error: 'No checkout ID returned' }, { status: 500 });
     }
 
     return NextResponse.json({ checkoutId: data.id });
 
   } catch (error: any) {
     console.error('💥 API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error', message: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
