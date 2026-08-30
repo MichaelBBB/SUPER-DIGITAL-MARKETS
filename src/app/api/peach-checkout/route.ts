@@ -4,79 +4,74 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const amount = body.amount;
-    const currency = body.currency || 'ZAR';
+    const amount = body?.amount || '100.00';
+    const currency = body?.currency || 'ZAR';
 
-    console.log(' Received request:', { amount, currency });
-
-    // Your credentials
     const entityId = "8acda4cb9e1b546a019e1b5b39ee001c";
     const authToken = "58c4748b406945d8802cf0f7997456e0";
     
-    console.log('🔑 Using credentials:', { 
-      entityId: entityId.substring(0, 8) + '...',
-      authToken: authToken.substring(0, 8) + '...'
-    });
+    // Try BOTH possible endpoints
+    const endpoints = [
+      "https://peachpayments.com/v1/checkouts",
+      "https://secure.peachpayments.com/v1/checkouts",
+      "https://test.peachpayments.com/v1/checkouts"
+    ];
 
-    // Try v1 endpoint first
-    const apiUrl = "https://peachpayments.com/v1/checkouts";
-    
-    console.log(' Calling API:', apiUrl);
+    for (const apiUrl of endpoints) {
+      try {
+        console.log(`Trying: ${apiUrl}`);
+        
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: amount,
+            currency: currency,
+            entityid: entityId,
+            paymentType: 'DB',
+            testMode: '0',
+          }),
+        });
 
-    const requestBody = {
-      amount: amount,
-      currency: currency,
-      entityid: entityId,
-      paymentType: 'DB',
-      testMode: '0',
-    };
-
-    console.log('📤 Request body:', JSON.stringify(requestBody, null, 2));
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    console.log('📥 Response status:', response.status);
-    console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
-
-    const responseData = await response.json();
-    console.log('📥 Response data:', JSON.stringify(responseData, null, 2));
-
-    if (!response.ok) {
-      console.error('❌ API call failed:', responseData);
-      return NextResponse.json({ 
-        error: responseData.description || 'Payment initialization failed',
-        debug: {
-          status: response.status,
-          data: responseData
+        const responseText = await response.text();
+        
+        // Check if response is HTML (error page)
+        if (responseText.trim().startsWith('<')) {
+          console.error(`❌ ${apiUrl} returned HTML instead of JSON`);
+          continue; // Try next endpoint
         }
-      }, { status: response.status });
+
+        const data = responseText ? JSON.parse(responseText) : {};
+
+        if (!response.ok) {
+          console.error(`❌ ${apiUrl} failed:`, data);
+          continue; // Try next endpoint
+        }
+
+        if (data.id) {
+          console.log(`✅ Success with ${apiUrl}`);
+          return NextResponse.json({ checkoutId: data.id });
+        }
+
+      } catch (endpointError) {
+        console.error(`Error with ${apiUrl}:`, endpointError);
+        continue; // Try next endpoint
+      }
     }
 
-    if (!responseData.id) {
-      console.error('❌ No checkout ID in response:', responseData);
-      return NextResponse.json({ 
-        error: 'No checkout ID returned',
-        debug: responseData
-      }, { status: 500 });
-    }
-
-    console.log('✅ Success! Checkout ID:', responseData.id);
-    return NextResponse.json({ checkoutId: responseData.id });
+    // All endpoints failed
+    return NextResponse.json({ 
+      error: 'All Peach Payments endpoints failed',
+      tried: endpoints
+    }, { status: 500 });
 
   } catch (error: any) {
-    console.error('💥 Unexpected error:', error);
-    console.error('Error stack:', error.stack);
     return NextResponse.json({ 
       error: 'Internal Server Error',
-      message: error.message,
-      stack: error.stack
+      message: error.message
     }, { status: 500 });
   }
 }
