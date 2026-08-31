@@ -2,6 +2,94 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const amountZAR = parseFloat(body.amount);
+    const amountInCents = Math.round(amountZAR * 100); // Peach requires integer cents
+    
+    const merchantTransactionId = `SDM-${Date.now()}`;
+    const nonce = `UNQ${Date.now()}${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    
+    // Your confirmed credentials from Peach Support
+    const entityId = "8acda4cb9e1b546a019e1b5b39ee001c";
+    const clientId = "1a870140ea12becc628b6e99369e98f0"; // Replace with your actual Client ID
+    const clientSecret = "Skl+MwgdPwiclcyjx4hjSPlhdbACow62nVmsjtXbDYbAxo5OPtLoNB19ERkYOVhCReykHWt6O9Q2G4M73rhvsw=="; // Replace with your actual Client Secret
+    const merchantId = "9e65f2c5950c4b8483ffbd225bd6f027"; // Replace with your actual Merchant ID
+    
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
+
+    // STEP 1: Generate OAuth Access Token
+    const tokenResponse = await fetch('https://dashboard.peachpayments.com/api/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': clientSecret, // Use Client Secret as X-API-Key per Peach docs
+      },
+      body: JSON.stringify({
+        clientId: clientId,
+        clientSecret: clientSecret,
+        merchantId: merchantId,
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      console.error('❌ Failed to get access token:', tokenData);
+      return NextResponse.json({ 
+        error: 'Failed to authenticate with Peach Payments',
+        details: tokenData
+      }, { status: 401 });
+    }
+
+    const accessToken = tokenData.access_token;
+
+    // STEP 2: Create Checkout using the Access Token
+    const checkoutResponse = await fetch('https://secure.peachpayments.com/v2/checkout', {
+      method: 'POST',
+      headers: {
+        'Referer': baseUrl,
+        'accept': 'application/json',
+        'authorization': `Bearer ${accessToken}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        currency: body.currency || 'ZAR',
+        forceDefaultMethod: false,
+        'authentication.entityId': entityId, // Dot notation required for v2 API
+        amount: amountInCents, // Integer in cents
+        merchantTransactionId: merchantTransactionId,
+        nonce: nonce,
+        shopperResultUrl: `${baseUrl}/payment/success`,
+        // Optional but recommended:
+        cancelUrl: `${baseUrl}/payment/cancelled`,
+        notificationUrl: `${baseUrl}/api/webhooks/peach`,
+      }),
+    });
+
+    const checkoutData = await checkoutResponse.json();
+
+    if (!checkoutResponse.ok || !checkoutData.checkoutId) {
+      console.error('❌ Failed to create checkout:', checkoutData);
+      return NextResponse.json({ 
+        error: checkoutData.message || 'Failed to create checkout',
+        details: checkoutData
+      }, { status: checkoutResponse.status });
+    }
+
+    return NextResponse.json({ checkoutId: checkoutData.checkoutId });
+
+  } catch (error: any) {
+    console.error('💥 API Error:', error);
+    return NextResponse.json({ 
+      error: 'Internal Server Error',
+      message: error.message
+    }, { status: 500 });
+  }
+}// src/app/api/peach-checkout/route.ts
+import { NextResponse } from 'next/server';
+
+export async function POST(request: Request) {
   // Never let this function crash - always return valid JSON
   try {
     let body;
