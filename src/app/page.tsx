@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import PaymentForm from './PaymentForm';
+
 
 export default async function PaymentPage({
   searchParams,
