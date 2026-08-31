@@ -1,4 +1,3 @@
-// src/app/payment/PaymentForm.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -28,11 +27,11 @@ export default function PaymentForm({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Get Checkout ID from API
   useEffect(() => {
     const initCheckout = async () => {
       try {
         setLoading(true);
+        setError(null);
         const zAmount = (parseFloat(amount) * 18.5).toFixed(2);
         
         const res = await fetch('/api/peach-checkout', {
@@ -57,44 +56,30 @@ export default function PaymentForm({
     initCheckout();
   }, [amount]);
 
-  // 2. Load Peach Widget Script - LIVE MODE
   useEffect(() => {
     if (!checkoutId) return;
 
-    // ⚠️ REPLACE WITH YOUR ACTUAL LIVE ENTITY ID ️
-    const entityId = "8a8294174b7ecb28014b36c577015263"; //  PUT YOUR LIVE ID HERE
-    
-    console.log("🚀 Loading LIVE Peach Script for Entity:", entityId);
+    const entityId = "8acda4cb9e1b546a019e1b5b39ee001c";
     
     const script = document.createElement('script');
-    // ✅ LIVE URL (NO 'test.' prefix)
     script.src = `https://peachpayments.com/checkout/v1/widget.js?entityId=${entityId}`;
     script.async = true;
     script.id = "peach-payments-script";
     
     script.onload = () => {
-      console.log("✅ Peach Script Loaded!");
       if ((window as any).PeachPayments) {
-        console.log("🎨 Initializing Widget...");
-        try {
-          (window as any).PeachPayments.createWidget({
-            checkoutId: checkoutId,
-            selector: '#peach-widget',
-            style: { primaryColor: '#10b981' }
-          });
-        } catch (e) {
-          console.error("Widget Init Error:", e);
-          setError("Widget failed to initialize.");
-        }
+        (window as any).PeachPayments.createWidget({
+          checkoutId: checkoutId,
+          selector: '#peach-widget',
+          style: { primaryColor: '#10b981' }
+        });
       } else {
-        console.error("❌ window.PeachPayments is undefined");
         setError("Payment system failed to load.");
       }
     };
     
     script.onerror = () => {
-      console.error("❌ Failed to load script from:", script.src);
-      setError("Failed to connect to payment gateway. Check Entity ID.");
+      setError("Failed to connect to payment gateway.");
     };
     
     document.body.appendChild(script);
@@ -144,7 +129,6 @@ export default function PaymentForm({
             ) : error ? (
               <div className="text-center">
                 <p className="text-red-400 mb-4 font-bold">{error}</p>
-                <p className="text-xs text-gray-500 mb-4">Check browser console (F12) for details</p>
                 <a href={waLink} target="_blank" className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-bold">
                   <MessageCircle className="w-5 h-5" />
                   Use WhatsApp Instead
