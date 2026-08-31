@@ -1,4 +1,3 @@
-// src/app/payment/page.tsx
 import { Suspense } from 'react';
 import PaymentForm from './PaymentForm';
 
