@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
-// Mock data for live sales tracker
+// Mock data for live sales tracker - ALL in USD now
 const initialCountryData = [
-  { country: 'South Africa', revenue: 45678, currency: 'R', flag: '🇦' },
-  { country: 'USA', revenue: 128470, currency: '$', flag: '🇺🇸' },
-  { country: 'India', revenue: 89234, currency: '₹', flag: '🇮🇳' },
-  { country: 'China', revenue: 156789, currency: '¥', flag: '🇳' },
+  { country: 'South Africa', revenue: 2456, currency: '$', flag: '🇿' },
+  { country: 'USA', revenue: 12847, currency: '$', flag: '🇺🇸' },
+  { country: 'India', revenue: 1092, currency: '$', flag: '🇳' }, // Converted to USD
+  { country: 'China', revenue: 2178, currency: '$', flag: '🇨🇳' }, // Converted to USD
 ];
 
 const mockBuyers = [
@@ -32,7 +32,7 @@ export default function HomePage() {
       setCountryData(prev => 
         prev.map(item => ({
           ...item,
-          revenue: item.revenue + Math.floor(Math.random() * 500) + 100
+          revenue: item.revenue + Math.floor(Math.random() * 50) + 10 // Smaller increments for USD
         }))
       );
     }, 3000); // Update every 3 seconds
@@ -149,7 +149,7 @@ export default function HomePage() {
             </div>
             
             <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500 transition-colors group">
-              <div className="text-4xl font-bold text-cyan-400 mb-2 group-hover:scale-110 transition-transform">$12,847</div>
+              <div className="text-4xl font-bold text-cyan-400 mb-2 group-hover:scale-110 transition-transform">$18,573</div>
               <div className="text-gray-400 font-medium">Revenue Today</div>
               <div className="mt-2 text-xs text-cyan-500 flex items-center gap-1">
                 <span className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></span> +12% vs yesterday
@@ -175,11 +175,11 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Second Live Sales Tracker - By Country with Buyers */}
+      {/* Second Live Sales Tracker - By Country with Buyers (ALL IN USD) */}
       <div className="py-16 px-6 bg-black border-t border-gray-800">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-2">Live Revenue by Country</h2>
+            <h2 className="text-3xl font-bold text-white mb-2">Live Revenue by Country (USD)</h2>
             <p className="text-gray-400">Real-time earnings and recent buyers from each region</p>
           </div>
 
@@ -193,12 +193,12 @@ export default function HomePage() {
                       <span className="text-4xl">{country.flag}</span>
                       <div>
                         <h3 className="text-xl font-bold text-white">{country.country}</h3>
-                        <p className="text-sm text-gray-400">Live Revenue</p>
+                        <p className="text-sm text-gray-400">Live Revenue (USD)</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="text-3xl font-bold text-green-400">
-                        {country.currency}{country.revenue.toLocaleString()}
+                        ${country.revenue.toLocaleString()}
                       </div>
                       <div className="text-xs text-green-500 flex items-center justify-end gap-1 mt-1">
                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
@@ -245,30 +245,6 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Footer CTA */}
-      <div className="py-20 px-6 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-cyan-900/20 border-t border-gray-800">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">Ready to Start Selling?</h2>
-          <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-            Join thousands of successful digital entrepreneurs. List your products, accept payments globally, and deliver instantly.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/products" 
-              className="px-8 py-4 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full font-bold text-lg shadow-xl shadow-cyan-600/30 transition-all transform hover:-translate-y-1"
-            >
-              Browse Products
-            </Link>
-            <Link 
-              href="/payment?item=Starter+Package&amount=29.99" 
-              className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold text-lg shadow-xl shadow-green-600/30 transition-all transform hover:-translate-y-1"
-            >
-              Get Started Now
-            </Link>
           </div>
         </div>
       </div>
