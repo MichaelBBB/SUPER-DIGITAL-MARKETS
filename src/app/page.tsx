@@ -1,11 +1,13 @@
+'use client'; // ️ CRITICAL: Must be at the very top for useState/useEffect to work
+
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 // Mock data for live sales tracker
 const initialCountryData = [
   { country: 'South Africa', revenue: 45678, currency: 'R', flag: '🇦' },
-  { country: 'USA', revenue: 128470, currency: '$', flag: '🇸' },
-  { country: 'India', revenue: 89234, currency: '', flag: '🇮🇳' },
+  { country: 'USA', revenue: 128470, currency: '$', flag: '🇺🇸' },
+  { country: 'India', revenue: 89234, currency: '₹', flag: '🇮🇳' },
   { country: 'China', revenue: 156789, currency: '¥', flag: '🇳' },
 ];
 
