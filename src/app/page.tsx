@@ -1,4 +1,10 @@
+"use client";
+
+import { useRouter } from 'next/navigation';
+
 export default function HomePage() {
+  const router = useRouter();
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Navigation */}
@@ -12,9 +18,9 @@ export default function HomePage() {
           </div>
           
           <div className="hidden md:flex items-center gap-8">
-            <a href="#" className="text-gray-300 hover:text-white">Home</a>
-            <a href="/products" className="text-gray-300 hover:text-white">Products</a>
-            <a href="#" className="text-gray-300 hover:text-white">Checkout</a>
+            <button onClick={() => router.push('/')} className="text-gray-300 hover:text-white">Home</button>
+            <button onClick={() => router.push('/products')} className="text-gray-300 hover:text-white">Products</button>
+            <button onClick={() => router.push('/checkout')} className="text-gray-300 hover:text-white">Checkout</button>
           </div>
           
           <div className="flex items-center gap-4">
@@ -22,7 +28,10 @@ export default function HomePage() {
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-xs text-green-400">LIVE</span>
             </div>
-            <button className="px-6 py-2 bg-cyan-500 hover:bg-cyan-600 rounded-full font-semibold">
+            <button 
+              onClick={() => router.push('/products')}
+              className="px-6 py-2 bg-cyan-500 hover:bg-cyan-600 rounded-full font-semibold"
+            >
               Shop Now
             </button>
           </div>
@@ -61,12 +70,18 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/products" className="px-8 py-4 bg-cyan-500 hover:bg-cyan-600 rounded-full font-bold text-lg transition">
+            <button 
+              onClick={() => router.push('/products')}
+              className="px-8 py-4 bg-cyan-500 hover:bg-cyan-600 rounded-full font-bold text-lg transition"
+            >
               Browse Products
-            </a>
-            <a href="/payment?item=Test&amount=10.99" className="px-8 py-4 bg-green-600 hover:bg-green-700 rounded-full font-bold text-lg transition">
+            </button>
+            <button 
+              onClick={() => router.push('/payment', { query: { item: 'Test', amount: '10.99' } })}
+              className="px-8 py-4 bg-green-600 hover:bg-green-700 rounded-full font-bold text-lg transition"
+            >
               Test Payment
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -92,7 +107,7 @@ export default function HomePage() {
           
           <div className="text-center p-6">
             <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">🌍</span>
+              <span className="text-3xl"></span>
             </div>
             <h3 className="text-xl font-bold mb-2">Global Marketplace</h3>
             <p className="text-gray-400">Trusted by buyers across 3 continents</p>
