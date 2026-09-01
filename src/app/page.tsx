@@ -1,6 +1,53 @@
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+
+// Mock data for live sales tracker
+const initialCountryData = [
+  { country: 'South Africa', revenue: 45678, currency: 'R', flag: '🇦' },
+  { country: 'USA', revenue: 128470, currency: '$', flag: '🇸' },
+  { country: 'India', revenue: 89234, currency: '', flag: '🇮🇳' },
+  { country: 'China', revenue: 156789, currency: '¥', flag: '🇳' },
+];
+
+const mockBuyers = [
+  { name: 'Thabo M.', product: 'AI Writing Assistant', country: 'South Africa' },
+  { name: 'Sarah J.', product: 'Video Editor Pro', country: 'USA' },
+  { name: 'Raj P.', product: 'Photo Enhancement Suite', country: 'India' },
+  { name: 'Li W.', product: 'Code Generator AI', country: 'China' },
+  { name: 'Nomsa K.', product: 'Social Media Toolkit', country: 'South Africa' },
+  { name: 'Mike R.', product: 'AI Writing Assistant', country: 'USA' },
+  { name: 'Priya S.', product: 'Logo Maker Pro', country: 'India' },
+  { name: 'Zhang L.', product: 'Video Editor Pro', country: 'China' },
+];
 
 export default function HomePage() {
+  const [countryData, setCountryData] = useState(initialCountryData);
+  const [recentBuyers, setRecentBuyers] = useState(mockBuyers.slice(0, 4));
+
+  // Simulate live revenue updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountryData(prev => 
+        prev.map(item => ({
+          ...item,
+          revenue: item.revenue + Math.floor(Math.random() * 500) + 100
+        }))
+      );
+    }, 3000); // Update every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Simulate new buyers appearing
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomBuyer = mockBuyers[Math.floor(Math.random() * mockBuyers.length)];
+      setRecentBuyers(prev => [randomBuyer, ...prev.slice(0, 3)]);
+    }, 5000); // New buyer every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Navigation */}
@@ -82,7 +129,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Live Sales Tracker Section - FIXED & VISIBLE */}
+      {/* First Live Sales Tracker - Overall Stats */}
       <div className="py-16 px-6 bg-gray-900 border-t border-gray-800">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
@@ -126,31 +173,100 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Features Section */}
-      <div className="py-20 px-6 bg-black">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
-          <div className="text-center p-8 bg-gray-900 rounded-2xl border border-gray-800 hover:border-cyan-500/50 transition-colors">
-            <div className="w-20 h-20 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl">🚀</span>
-            </div>
-            <h3 className="text-2xl font-bold mb-3 text-white">Instant Delivery</h3>
-            <p className="text-gray-400 leading-relaxed">Receive your digital products immediately after payment confirmation. No waiting, no delays.</p>
+      {/* Second Live Sales Tracker - By Country with Buyers */}
+      <div className="py-16 px-6 bg-black border-t border-gray-800">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-white mb-2">Live Revenue by Country</h2>
+            <p className="text-gray-400">Real-time earnings and recent buyers from each region</p>
           </div>
-          
-          <div className="text-center p-8 bg-gray-900 rounded-2xl border border-gray-800 hover:border-green-500/50 transition-colors">
-            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl">💳</span>
-            </div>
-            <h3 className="text-2xl font-bold mb-3 text-white">Secure Payments</h3>
-            <p className="text-gray-400 leading-relaxed">Pay via Card, Instant EFT, or WhatsApp. Your transactions are encrypted and secure.</p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {countryData.map((country, index) => (
+              <div key={country.country} className="bg-gray-900 rounded-2xl border border-gray-700 overflow-hidden hover:border-cyan-500/50 transition-colors">
+                {/* Country Header */}
+                <div className="p-6 bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-4xl">{country.flag}</span>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">{country.country}</h3>
+                        <p className="text-sm text-gray-400">Live Revenue</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-green-400">
+                        {country.currency}{country.revenue.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-green-500 flex items-center justify-end gap-1 mt-1">
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        Updating live
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Buyers */}
+                <div className="p-6">
+                  <h4 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></span>
+                    Recent Buyers
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    {recentBuyers
+                      .filter(buyer => buyer.country === country.country)
+                      .slice(0, 3)
+                      .map((buyer, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-bold text-cyan-400">{buyer.name.charAt(0)}</span>
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-white">{buyer.name}</div>
+                              <div className="text-xs text-gray-400">{buyer.product}</div>
+                            </div>
+                          </div>
+                          <div className="text-xs text-green-400 font-medium">
+                            Just now
+                          </div>
+                        </div>
+                      ))}
+                    
+                    {recentBuyers.filter(buyer => buyer.country === country.country).length === 0 && (
+                      <div className="text-center py-4 text-gray-500 text-sm">
+                        Waiting for next purchase...
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          
-          <div className="text-center p-8 bg-gray-900 rounded-2xl border border-gray-800 hover:border-yellow-500/50 transition-colors">
-            <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl"></span>
-            </div>
-            <h3 className="text-2xl font-bold mb-3 text-white">Global Access</h3>
-            <p className="text-gray-400 leading-relaxed">Trusted by buyers across USA, India, China, and South Africa. Join thousands of satisfied customers.</p>
+        </div>
+      </div>
+
+      {/* Footer CTA */}
+      <div className="py-20 px-6 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-cyan-900/20 border-t border-gray-800">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">Ready to Start Selling?</h2>
+          <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+            Join thousands of successful digital entrepreneurs. List your products, accept payments globally, and deliver instantly.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link 
+              href="/products" 
+              className="px-8 py-4 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full font-bold text-lg shadow-xl shadow-cyan-600/30 transition-all transform hover:-translate-y-1"
+            >
+              Browse Products
+            </Link>
+            <Link 
+              href="/payment?item=Starter+Package&amount=29.99" 
+              className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-full font-bold text-lg shadow-xl shadow-green-600/30 transition-all transform hover:-translate-y-1"
+            >
+              Get Started Now
+            </Link>
           </div>
         </div>
       </div>
