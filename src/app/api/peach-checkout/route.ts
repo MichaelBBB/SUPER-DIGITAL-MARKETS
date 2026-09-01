@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-// Force longer timeout
+// Force longer timeout for payment gateways
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   const merchantTransactionId = `SDM-${Date.now()}`;
   const nonce = `UNQ${Date.now()}${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
   
-  // ✅ LIVE CONFIGURATION
+  // ✅ LIVE CONFIGURATION WITH NEW KEYS
   const CONFIG = {
     entityId: "8acda4cb9e1b546a019e1b5b39ee001c",
     clientId: "c7ee4c96fac5286e2da7b1a5822a80", 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
   console.log('🚀 [START] Initiating Live Payment Request');
   console.log(' ClientID:', CONFIG.clientId);
-  console.log('🌐 Target:', CONFIG.tokenUrl);
+  console.log(' Target:', CONFIG.tokenUrl);
 
   const tokenPayload = JSON.stringify({
     clientId: CONFIG.clientId,
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
     console.log('✅ [TOKEN] Success! Token acquired.');
 
     // STEP 2: Create Checkout
-    console.log('💳 [CHECKOUT] Creating Checkout...');
+    console.log(' [CHECKOUT] Creating Checkout...');
     
     const checkoutPayload = JSON.stringify({
       currency: 'ZAR',
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ checkoutId: checkoutData.checkoutId });
 
   } catch (error: any) {
-    console.error('💥 [CRITICAL] Network Error:', error.message);
+    console.error(' [CRITICAL] Network Error:', error.message);
     return NextResponse.json({ error: 'Network Error', message: error.message }, { status: 500 });
   }
 }
