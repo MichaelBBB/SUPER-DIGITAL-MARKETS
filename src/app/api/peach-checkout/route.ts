@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 
-// Force longer timeout for payment gateways
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
-  // 1. Parse Input
   let bodyData;
   try {
     bodyData = await request.json();
@@ -17,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
   }
 
-  // Convert USD to ZAR (approx rate) then to Cents
+  // Convert USD to ZAR then to Cents
   const exchangeRate = 18.50; 
   const amountZAR = amountUSD * exchangeRate;
   const amountInCents = Math.round(amountZAR * 100);
@@ -25,13 +23,11 @@ export async function POST(request: Request) {
   const merchantTransactionId = `SDM-${Date.now()}`;
   const nonce = `UNQ${Date.now()}${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
   
-  // ⚠️ CRITICAL: Ensure these match your Peach Dashboard EXACTLY
-  // If your dashboard says "Test", use the Test URLs. If "Live", use Live URLs.
-  // Based on your previous success with cURL, we assume these are correct.
+  // ✅ UPDATED WITH YOUR NEW REGENERATED KEYS
   const CONFIG = {
     entityId: "8acda4cb9e1b546a019e1b5b39ee001c",
-    clientId: "482b18ada7a76c073840eba492cbe7",
-    clientSecret: "XcQNWhy52Bqbe1i9mAseFg+TzKI5YW3WjKJEUPKB5FMWjPvG0cdyX64bkw8FqDAazrZXnIokvWUn9AlX1PeXew==",
+    clientId: "c7ee4c96fac5286e2da7b1a5822a80", // ← NEW CLIENT ID
+    clientSecret: "gtr2DG1TLo4N8YDwMnD6R1/tnMmLziJee88IJtlkJbccy46xi476gkMzSlOBWPkynLlk3vKvZspDpJHN3R6yXA==", // ← NEW CLIENT SECRET
     merchantId: "9e65f2c5950c4b8483ffbd225bd6f027",
     tokenUrl: "https://dashboard.peachpayments.com/api/oauth/token",
     checkoutUrl: "https://secure.peachpayments.com/v2/checkout"
@@ -39,9 +35,8 @@ export async function POST(request: Request) {
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-  console.log(' [RAW] Attempting Token Generation...');
+  console.log('🔑 [Peach API] Attempting Token Generation with NEW keys...');
 
-  // 2. STEP 1: Get Token (Raw Fetch)
   const tokenPayload = JSON.stringify({
     clientId: CONFIG.clientId,
     clientSecret: CONFIG.clientSecret,
@@ -55,10 +50,9 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
         'X-API-Key': CONFIG.clientSecret,
         'Accept': 'application/json',
-        'User-Agent': 'SuperDigitalMarkets/1.0' // Some gateways require a User-Agent
+        'User-Agent': 'SuperDigitalMarkets/1.0'
       },
       body: tokenPayload,
-      // Disable caching to ensure fresh token
       cache: 'no-store' 
     });
 
@@ -67,27 +61,26 @@ export async function POST(request: Request) {
     try {
       tokenData = JSON.parse(tokenText);
     } catch (e) {
-      console.error('❌ [RAW] Token response was not JSON:', tokenText);
+      console.error(' [Peach API] Token response was not JSON:', tokenText.substring(0, 200));
       return NextResponse.json({ 
-        error: 'Peach returned invalid JSON for token', 
-        rawResponse: tokenText 
+        error: 'Peach returned invalid response', 
+        rawResponse: tokenText.substring(0, 200)
       }, { status: 502 });
     }
 
     if (!tokenRes.ok || !tokenData.access_token) {
-      console.error(' [RAW] Token Auth Failed:', tokenRes.status, tokenData);
+      console.error('❌ [Peach API] Token Auth Failed:', tokenRes.status, tokenData);
       return NextResponse.json({ 
-        error: 'Authentication Failed', 
+        error: 'Authentication Failed - Check Credentials', 
         details: tokenData,
         status: tokenRes.status 
       }, { status: 401 });
     }
 
     const accessToken = tokenData.access_token;
-    console.log('✅ [RAW] Token Received');
+    console.log('✅ [Peach API] Token Received Successfully');
 
-    // 3. STEP 2: Create Checkout (Raw Fetch)
-    console.log('💳 [RAW] Creating Checkout...');
+    console.log('💳 [Peach API] Creating Checkout...');
     
     const checkoutPayload = JSON.stringify({
       currency: 'ZAR',
@@ -119,15 +112,15 @@ export async function POST(request: Request) {
     try {
       checkoutData = JSON.parse(checkoutText);
     } catch (e) {
-      console.error('❌ [RAW] Checkout response was not JSON:', checkoutText);
+      console.error('❌ [Peach API] Checkout response was not JSON:', checkoutText.substring(0, 200));
       return NextResponse.json({ 
-        error: 'Peach returned invalid JSON for checkout', 
-        rawResponse: checkoutText 
+        error: 'Peach returned invalid checkout response', 
+        rawResponse: checkoutText.substring(0, 200)
       }, { status: 502 });
     }
 
     if (!checkoutRes.ok || !checkoutData.checkoutId) {
-      console.error('❌ [RAW] Checkout Failed:', checkoutRes.status, checkoutData);
+      console.error('❌ [Peach API] Checkout Failed:', checkoutRes.status, checkoutData);
       return NextResponse.json({ 
         error: 'Checkout Creation Failed', 
         details: checkoutData,
@@ -135,11 +128,11 @@ export async function POST(request: Request) {
       }, { status: checkoutRes.status });
     }
 
-    console.log('✅ [RAW] Checkout ID:', checkoutData.checkoutId);
+    console.log('✅ [Peach API] Checkout ID:', checkoutData.checkoutId);
     return NextResponse.json({ checkoutId: checkoutData.checkoutId });
 
   } catch (error: any) {
-    console.error('💥 [RAW] Critical System Error:', error.message);
+    console.error('💥 [Peach API] Critical System Error:', error.message);
     return NextResponse.json({ 
       error: 'Gateway Connection Error', 
       message: error.message 
