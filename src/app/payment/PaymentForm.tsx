@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MessageCircle, Copy, Check, Zap, AlertCircle, RefreshCw } from "lucide-react";
 
@@ -26,9 +26,9 @@ export default function PaymentForm({
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [widgetLoaded, setWidgetLoaded] = useState(false);
-  const widgetContainerRef = useRef<HTMLDivElement>(null);
+  const [widgetReady, setWidgetReady] = useState(false);
 
+  // Step 1: Get the Checkout ID from our API
   useEffect(() => {
     const initCheckout = async () => {
       try {
@@ -36,7 +36,7 @@ export default function PaymentForm({
         setError(null);
         const zAmount = (parseFloat(amount) * 18.5).toFixed(2);
         
-        console.log('🚀 [PaymentForm] Initiating payment for:', zAmount, 'ZAR');
+        console.log('🚀 Fetching checkout for:', zAmount);
         
         const res = await fetch('/api/peach-checkout', {
           method: 'POST',
@@ -45,18 +45,17 @@ export default function PaymentForm({
         });
         
         const data = await res.json();
-        console.log('📡 [PaymentForm] API Response:', res.status, data);
         
         if (res.ok && data.checkoutId) {
-          console.log('✅ [PaymentForm] Checkout ID received:', data.checkoutId);
+          console.log('✅ Checkout ID Received:', data.checkoutId);
           setCheckoutId(data.checkoutId);
         } else {
-          setError(data.error || 'Payment unavailable');
-          console.error('❌ [PaymentForm] Payment initialization failed:', data);
+          console.error('❌ API Error:', data);
+          setError(data.error || 'Failed to initialize payment');
         }
       } catch (err) {
-        setError('Network error connecting to payment service');
-        console.error('🌐 [PaymentForm] Network error:', err);
+        console.error(' Network Error:', err);
+        setError('Network connection failed');
       } finally {
         setLoading(false);
       }
@@ -64,63 +63,63 @@ export default function PaymentForm({
     initCheckout();
   }, [amount]);
 
+  // Step 2: Load the Peach Script and Create Widget
   useEffect(() => {
-    if (!checkoutId || widgetLoaded) return;
+    if (!checkoutId) return;
 
-    console.log('🔧 [PaymentForm] Loading Peach Payments widget with ID:', checkoutId);
-
-    const entityId = "8acda4cb9e1b546a019e1b5b39ee001c";
-    
-    // Remove any existing script first to avoid duplicates
-    const existingScript = document.getElementById("peach-payments-script");
-    if (existingScript) {
-      existingScript.remove();
+    // Prevent double loading
+    if (document.getElementById("peach-script")) {
+      console.log('Script already exists, initializing widget...');
+      initWidget(checkoutId);
+      return;
     }
 
+    console.log('📜 Loading Peach Payments Script...');
     const script = document.createElement('script');
-    script.src = `https://peachpayments.com/checkout/v1/widget.js?entityId=${entityId}`;
+    script.src = "https://peachpayments.com/checkout/v1/widget.js?entityId=8acda4cb9e1b546a019e1b5b39ee001c";
+    script.id = "peach-script";
     script.async = true;
-    script.id = "peach-payments-script";
     
     script.onload = () => {
-      console.log('✅ [PaymentForm] Peach Payments script loaded successfully');
-      
-      if ((window as any).PeachPayments) {
-        console.log('✅ [PaymentForm] PeachPayments object found, creating widget...');
-        
-        try {
-          (window as any).PeachPayments.createWidget({
-            checkoutId: checkoutId,
-            selector: '#peach-widget',
-            style: { 
-              primaryColor: '#10b981',
-              backgroundColor: '#1f2937',
-              textColor: '#ffffff'
-            }
-          });
-          setWidgetLoaded(true);
-          console.log('✅ [PaymentForm] Widget created successfully');
-        } catch (widgetError) {
-          console.error('❌ [PaymentForm] Widget creation failed:', widgetError);
-          setError("Payment widget failed to initialize.");
-        }
-      } else {
-        console.error(' [PaymentForm] PeachPayments object not found after script load');
-        setError("Payment system failed to load.");
-      }
+      console.log('✅ Script Loaded. Initializing Widget...');
+      initWidget(checkoutId);
     };
-    
+
     script.onerror = () => {
-      console.error('❌ [PaymentForm] Failed to load Peach Payments script');
-      setError("Failed to connect to payment gateway.");
+      console.error('❌ Script Failed to Load');
+      setError("Could not load payment security script. Please try again.");
+      setLoading(false);
     };
-    
+
     document.body.appendChild(script);
-    
-    return () => {
-      // Cleanup not needed on every render, only on unmount if necessary
-    };
-  }, [checkoutId, widgetLoaded]);
+  }, [checkoutId]);
+
+  const initWidget = (id: string) => {
+    if ((window as any).PeachPayments) {
+      try {
+        (window as any).PeachPayments.createWidget({
+          checkoutId: id,
+          selector: '#peach-widget-container', // Target this specific ID
+          style: {
+            primaryColor: '#10b981', // Green
+            backgroundColor: '#1f2937', // Dark Gray
+            textColor: '#ffffff'
+          }
+        });
+        setWidgetReady(true);
+        setLoading(false);
+        console.log('✅ Widget Created Successfully');
+      } catch (e) {
+        console.error('❌ Widget Creation Error:', e);
+        setError("Payment form failed to render.");
+        setLoading(false);
+      }
+    } else {
+      console.error('❌ PeachPayments object missing');
+      setError("Payment system not ready.");
+      setLoading(false);
+    }
+  };
 
   const handleRetry = () => {
     window.location.reload();
@@ -145,70 +144,58 @@ export default function PaymentForm({
         <h1 className="text-3xl font-bold mb-8">How to Pay</h1>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Option 1 */}
-          <div className="border-2 border-green-500 bg-gray-800 rounded-lg p-6">
+          {/* Option 1: Card Payment */}
+          <div className="border-2 border-green-500 bg-gray-800 rounded-lg p-6 relative">
             <div className="flex items-center gap-2 mb-4">
               <Zap className="w-6 h-6 text-yellow-400" />
-              <h2 className="text-xl font-bold text-green-400">Option 1: Instant Pay (Recommended)</h2>
+              <h2 className="text-xl font-bold text-green-400">Option 1: Instant Pay</h2>
             </div>
             
-            <p className="text-gray-300 mb-6">
-              Pay securely via Card or Instant EFT. Funds go directly to Capitec. No screenshots needed. Product delivered instantly.
+            <p className="text-gray-300 mb-6 text-sm">
+              Pay securely via Card or Instant EFT. Funds go directly to Capitec.
             </p>
 
             <div className="text-3xl font-bold mb-6">${amount} USD</div>
 
             {loading ? (
-              <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-                <p className="text-gray-400 mt-2">Connecting to Bank...</p>
+              <div className="h-[300px] flex flex-col items-center justify-center bg-gray-900/50 rounded-lg">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mb-4"></div>
+                <p className="text-gray-400 animate-pulse">Connecting to Secure Bank...</p>
               </div>
             ) : error ? (
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-red-400 mb-4">
-                  <AlertCircle className="w-5 h-5" />
-                  <p className="font-bold">{error}</p>
-                </div>
-                
-                <div className="flex flex-col gap-3">
-                  <button 
-                    onClick={handleRetry}
-                    className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded font-bold transition"
-                  >
-                    <RefreshCw className="w-5 h-5" />
-                    Try Again
-                  </button>
-                  
-                  <a href={waLink} target="_blank" className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-bold transition">
-                    <MessageCircle className="w-5 h-5" />
-                    Use WhatsApp Instead
-                  </a>
-                </div>
+              <div className="h-[300px] flex flex-col items-center justify-center bg-red-900/10 rounded-lg border border-red-500/20">
+                <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+                <p className="text-red-400 font-bold mb-6">{error}</p>
+                <button 
+                  onClick={handleRetry}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-bold flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" /> Try Again
+                </button>
               </div>
             ) : (
-              <div id="peach-widget" ref={widgetContainerRef} className="min-h-[300px] flex items-center justify-center bg-gray-800 rounded-lg">
-                {!widgetLoaded && (
-                  <span className="text-gray-500 animate-pulse">Loading Secure Payment Form...</span>
-                )}
+              // THE WIDGET CONTAINER
+              <div id="peach-widget-container" className="min-h-[300px] bg-gray-900 rounded-lg overflow-hidden">
+                {!widgetReady && <div className="p-4 text-center text-gray-500">Loading Secure Form...</div>}
               </div>
             )}
 
-            <p className="text-xs text-gray-400 mt-4 text-center">Secured by Peach Payments</p>
+            <p className="text-xs text-gray-500 mt-4 text-center">Secured by Peach Payments</p>
           </div>
 
-          {/* Option 2 */}
+          {/* Option 2: Manual Transfer */}
           <div className="border border-gray-700 bg-gray-800 rounded-lg p-6">
             <h2 className="text-xl font-bold text-gray-400 mb-2">Option 2: Manual Transfer</h2>
-            <p className="text-gray-400 text-sm mb-6">Only use this if card payment fails. Requires manual verification.</p>
+            <p className="text-gray-400 text-sm mb-6">Use this if card payment fails.</p>
 
-            <div className="bg-gray-900 p-4 rounded mb-4 text-sm space-y-2">
-              <div><span className="text-gray-400">Bank:</span> <span className="text-white">Capitec</span></div>
-              <div><span className="text-gray-400">Acc:</span> <span className="text-white">1975933441</span></div>
-              <div><span className="text-gray-400">Ref:</span> <span className="text-white">{initialItem}</span></div>
+            <div className="bg-gray-900 p-4 rounded mb-4 text-sm space-y-2 font-mono">
+              <div><span className="text-gray-500">Bank:</span> <span className="text-white">Capitec</span></div>
+              <div><span className="text-gray-500">Acc:</span> <span className="text-white">1975933441</span></div>
+              <div><span className="text-gray-500">Ref:</span> <span className="text-cyan-400">{initialItem}</span></div>
             </div>
 
-            <button onClick={handleCopy} className="w-full border border-gray-600 hover:border-gray-500 text-gray-300 py-3 rounded font-medium flex items-center justify-center gap-2">
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            <button onClick={handleCopy} className="w-full border border-gray-600 hover:border-gray-400 text-gray-300 py-3 rounded font-medium flex items-center justify-center gap-2 transition">
+              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
               {copied ? "Copied!" : "Copy Details"}
             </button>
           </div>
