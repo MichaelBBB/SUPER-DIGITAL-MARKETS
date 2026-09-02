@@ -31,10 +31,11 @@ export async function POST(request: Request) {
     checkoutUrl: "https://secure.peachpayments.com/v2/checkout"
   };
 
-  // ⚠️ CRITICAL: This MUST match your live domain exactly
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
+  // ⚠️ CRITICAL FIX: HARDCODE THE EXACT URL PEACH EXPECTS
+  // Do NOT use process.env here. It must match their allowlist exactly.
+  const ALLOWED_REFERER = 'https://super-digital-markets-co9n.vercel.app';
 
-  console.log('🚀 [START] Initiating Payment (Fixed Payload & Headers)');
+  console.log('🚀 [START] Initiating Payment with Hardcoded Referer');
 
   // STEP 1: Get Token
   const tokenPayload = JSON.stringify({
@@ -56,8 +57,7 @@ export async function POST(request: Request) {
     });
 
     const tokenText = await tokenRes.text();
-    console.log(' [TOKEN] Status:', tokenRes.status);
-
+    
     if (!tokenRes.ok) {
       console.error(' [TOKEN] Failed:', tokenText);
       return NextResponse.json({ error: 'Auth Failed', details: tokenText }, { status: 401 });
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     // STEP 2: Create Checkout
     console.log('💳 [CHECKOUT] Creating Session...');
     
-    // ⚠️ CRITICAL FIX: Use NESTED OBJECT for authentication, not dot notation
+    // ⚠️ PAYLOAD STRUCTURE: Nested 'authentication' object as per Peach Curl
     const checkoutPayload = JSON.stringify({
       authentication: {
         entityId: CONFIG.entityId
@@ -83,9 +83,9 @@ export async function POST(request: Request) {
       currency: 'ZAR',
       merchantTransactionId: merchantTransactionId,
       nonce: nonce,
-      shopperResultUrl: `${baseUrl}/payment/success`,
-      cancelUrl: `${baseUrl}/payment/cancelled`,
-      notificationUrl: `${baseUrl}/api/webhooks/peach`,
+      shopperResultUrl: `${ALLOWED_REFERER}/payment/success`,
+      cancelUrl: `${ALLOWED_REFERER}/payment/cancelled`,
+      notificationUrl: `${ALLOWED_REFERER}/api/webhooks/peach`,
       forceDefaultMethod: false
     });
 
@@ -95,8 +95,8 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${accessToken}`,
-        // ⚠️ CRITICAL FIX: Referer header is MANDATORY per Peach Support
-        'Referer': baseUrl, 
+        // ⚠️ CRITICAL: HARDCODED REFERER HEADER (Mandatory per Peach)
+        'Referer': ALLOWED_REFERER, 
       },
       body: checkoutPayload,
       cache: 'no-store',
@@ -105,10 +105,15 @@ export async function POST(request: Request) {
 
     const checkoutText = await checkoutRes.text();
     console.log(' [CHECKOUT] Status:', checkoutRes.status);
-    console.log('📡 [CHECKOUT] Body:', checkoutText);
+    
+    // Log the full response for debugging if it fails again
+    if (!checkoutRes.ok) {
+      console.error('❌ [CHECKOUT] FAILED RESPONSE:', checkoutText);
+    } else {
+      console.log('✅ [CHECKOUT] Success Body:', checkoutText);
+    }
 
     if (!checkoutRes.ok) {
-      console.error('❌ [CHECKOUT] Failed:', checkoutText);
       return NextResponse.json({ 
         error: 'Checkout Failed', 
         status: checkoutRes.status,
