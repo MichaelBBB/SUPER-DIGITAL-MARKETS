@@ -2,15 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { MessageCircle, Copy, Check, Zap, AlertCircle, RefreshCw } from "lucide-react";
-
-declare global {
-  interface Window {
-    PeachPayments?: {
-      createWidget: (config: { checkoutId: string; selector: string; style?: any }) => void;
-    };
-  }
-}
+import { MessageCircle, Copy, Check, Zap, AlertCircle, RefreshCw, ExternalLink } from "lucide-react";
 
 export default function PaymentForm({ 
   initialAmount, 
@@ -26,9 +18,7 @@ export default function PaymentForm({
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [widgetReady, setWidgetReady] = useState(false);
 
-  // Step 1: Get the Checkout ID from our API
   useEffect(() => {
     const initCheckout = async () => {
       try {
@@ -63,64 +53,6 @@ export default function PaymentForm({
     initCheckout();
   }, [amount]);
 
-  // Step 2: Load the Peach Script and Create Widget
-  useEffect(() => {
-    if (!checkoutId) return;
-
-    // Prevent double loading
-    if (document.getElementById("peach-script")) {
-      console.log('Script already exists, initializing widget...');
-      initWidget(checkoutId);
-      return;
-    }
-
-    console.log('📜 Loading Peach Payments Script...');
-    const script = document.createElement('script');
-    script.src = "https://peachpayments.com/checkout/v1/widget.js?entityId=8acda4cb9e1b546a019e1b5b39ee001c";
-    script.id = "peach-script";
-    script.async = true;
-    
-    script.onload = () => {
-      console.log('✅ Script Loaded. Initializing Widget...');
-      initWidget(checkoutId);
-    };
-
-    script.onerror = () => {
-      console.error('❌ Script Failed to Load');
-      setError("Could not load payment security script. Please try again.");
-      setLoading(false);
-    };
-
-    document.body.appendChild(script);
-  }, [checkoutId]);
-
-  const initWidget = (id: string) => {
-    if ((window as any).PeachPayments) {
-      try {
-        (window as any).PeachPayments.createWidget({
-          checkoutId: id,
-          selector: '#peach-widget-container', // Target this specific ID
-          style: {
-            primaryColor: '#10b981', // Green
-            backgroundColor: '#1f2937', // Dark Gray
-            textColor: '#ffffff'
-          }
-        });
-        setWidgetReady(true);
-        setLoading(false);
-        console.log('✅ Widget Created Successfully');
-      } catch (e) {
-        console.error('❌ Widget Creation Error:', e);
-        setError("Payment form failed to render.");
-        setLoading(false);
-      }
-    } else {
-      console.error('❌ PeachPayments object missing');
-      setError("Payment system not ready.");
-      setLoading(false);
-    }
-  };
-
   const handleRetry = () => {
     window.location.reload();
   };
@@ -133,6 +65,9 @@ export default function PaymentForm({
   };
 
   const waLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hi! Buy *${initialItem}* $${amount}`)}`;
+  
+  // Direct link to Peach Payments hosted page using our Checkout ID
+  const peachPaymentUrl = checkoutId ? `https://secure.peachpayments.com/v2/checkout/${checkoutId}` : '#';
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
@@ -145,7 +80,7 @@ export default function PaymentForm({
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Option 1: Card Payment */}
-          <div className="border-2 border-green-500 bg-gray-800 rounded-lg p-6 relative">
+          <div className="border-2 border-green-500 bg-gray-800 rounded-lg p-6">
             <div className="flex items-center gap-2 mb-4">
               <Zap className="w-6 h-6 text-yellow-400" />
               <h2 className="text-xl font-bold text-green-400">Option 1: Instant Pay</h2>
@@ -173,10 +108,26 @@ export default function PaymentForm({
                   <RefreshCw className="w-4 h-4" /> Try Again
                 </button>
               </div>
+            ) : checkoutId ? (
+              <div className="h-[300px] flex flex-col items-center justify-center bg-green-900/10 rounded-lg border border-green-500/20">
+                <Check className="w-12 h-12 text-green-500 mb-4" />
+                <p className="text-green-400 font-bold mb-2">Payment Session Ready!</p>
+                <p className="text-gray-400 text-sm mb-6">Checkout ID: {checkoutId.substring(0, 8)}...</p>
+                
+                <a 
+                  href={peachPaymentUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 transition transform hover:scale-105"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                  Proceed to Secure Payment
+                </a>
+                <p className="text-xs text-gray-500 mt-4">Opens in new tab</p>
+              </div>
             ) : (
-              // THE WIDGET CONTAINER
-              <div id="peach-widget-container" className="min-h-[300px] bg-gray-900 rounded-lg overflow-hidden">
-                {!widgetReady && <div className="p-4 text-center text-gray-500">Loading Secure Form...</div>}
+              <div className="h-[300px] flex items-center justify-center">
+                <p className="text-gray-500">No checkout ID available.</p>
               </div>
             )}
 
