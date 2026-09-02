@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// Force longer timeout for payment gateways
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
@@ -23,7 +22,6 @@ export async function POST(request: Request) {
   const merchantTransactionId = `SDM-${Date.now()}`;
   const nonce = `UNQ${Date.now()}${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
   
-  // ✅ LIVE CONFIGURATION WITH NEW KEYS
   const CONFIG = {
     entityId: "8acda4cb9e1b546a019e1b5b39ee001c",
     clientId: "c7ee4c96fac5286e2da7b1a5822a80", 
@@ -33,12 +31,12 @@ export async function POST(request: Request) {
     checkoutUrl: "https://secure.peachpayments.com/v2/checkout"
   };
 
+  // ⚠️ CRITICAL: This MUST match your live domain exactly
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://super-digital-markets-co9n.vercel.app';
 
-  console.log('🚀 [START] Initiating Live Payment Request');
-  console.log(' ClientID:', CONFIG.clientId);
-  console.log(' Target:', CONFIG.tokenUrl);
+  console.log('🚀 [START] Initiating Payment (Fixed Payload & Headers)');
 
+  // STEP 1: Get Token
   const tokenPayload = JSON.stringify({
     clientId: CONFIG.clientId,
     clientSecret: CONFIG.clientSecret,
@@ -46,64 +44,49 @@ export async function POST(request: Request) {
   });
 
   try {
-    // STEP 1: Get Token with EXPLICIT HEADERS
     const tokenRes = await fetch(CONFIG.tokenUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-API-Key': CONFIG.clientSecret,
-        'User-Agent': 'SuperDigitalMarkets-Node/1.0',
-        'Connection': 'keep-alive'
       },
       body: tokenPayload,
       cache: 'no-store',
-      next: { revalidate: 0 } // Disable Next.js caching
+      next: { revalidate: 0 }
     });
 
     const tokenText = await tokenRes.text();
-    
     console.log(' [TOKEN] Status:', tokenRes.status);
-    console.log('📡 [TOKEN] Raw Body:', tokenText); // <--- THIS IS THE KEY LOG
 
     if (!tokenRes.ok) {
-      console.error(' [TOKEN] Authentication Failed!');
-      return NextResponse.json({ 
-        error: 'Authentication Failed', 
-        status: tokenRes.status,
-        response: tokenText 
-      }, { status: 401 });
+      console.error(' [TOKEN] Failed:', tokenText);
+      return NextResponse.json({ error: 'Auth Failed', details: tokenText }, { status: 401 });
     }
 
-    let tokenData;
-    try {
-      tokenData = JSON.parse(tokenText);
-    } catch (e) {
-      console.error(' [TOKEN] Invalid JSON Response');
-      return NextResponse.json({ error: 'Invalid Response from Peach' }, { status: 502 });
-    }
-
+    const tokenData = JSON.parse(tokenText);
     if (!tokenData.access_token) {
-      console.error('❌ [TOKEN] No Access Token in Response');
-      return NextResponse.json({ error: 'No Token Received', details: tokenData }, { status: 401 });
+      return NextResponse.json({ error: 'No Token', details: tokenData }, { status: 401 });
     }
 
     const accessToken = tokenData.access_token;
-    console.log('✅ [TOKEN] Success! Token acquired.');
+    console.log('✅ [TOKEN] Success');
 
     // STEP 2: Create Checkout
-    console.log(' [CHECKOUT] Creating Checkout...');
+    console.log('💳 [CHECKOUT] Creating Session...');
     
+    // ⚠️ CRITICAL FIX: Use NESTED OBJECT for authentication, not dot notation
     const checkoutPayload = JSON.stringify({
-      currency: 'ZAR',
-      forceDefaultMethod: false,
-      'authentication.entityId': CONFIG.entityId,
+      authentication: {
+        entityId: CONFIG.entityId
+      },
       amount: amountInCents,
+      currency: 'ZAR',
       merchantTransactionId: merchantTransactionId,
       nonce: nonce,
       shopperResultUrl: `${baseUrl}/payment/success`,
       cancelUrl: `${baseUrl}/payment/cancelled`,
-      notificationUrl: `${baseUrl}/api/webhooks/peach`
+      notificationUrl: `${baseUrl}/api/webhooks/peach`,
+      forceDefaultMethod: false
     });
 
     const checkoutRes = await fetch(CONFIG.checkoutUrl, {
@@ -112,9 +95,8 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${accessToken}`,
-        'Referer': baseUrl,
-        'User-Agent': 'SuperDigitalMarkets-Node/1.0',
-        'Connection': 'keep-alive'
+        // ⚠️ CRITICAL FIX: Referer header is MANDATORY per Peach Support
+        'Referer': baseUrl, 
       },
       body: checkoutPayload,
       cache: 'no-store',
@@ -122,11 +104,11 @@ export async function POST(request: Request) {
     });
 
     const checkoutText = await checkoutRes.text();
-    console.log('📡 [CHECKOUT] Status:', checkoutRes.status);
-    console.log('📡 [CHECKOUT] Raw Body:', checkoutText); // <--- KEY LOG #2
+    console.log(' [CHECKOUT] Status:', checkoutRes.status);
+    console.log('📡 [CHECKOUT] Body:', checkoutText);
 
     if (!checkoutRes.ok) {
-      console.error('❌ [CHECKOUT] Failed!');
+      console.error('❌ [CHECKOUT] Failed:', checkoutText);
       return NextResponse.json({ 
         error: 'Checkout Failed', 
         status: checkoutRes.status,
@@ -134,12 +116,7 @@ export async function POST(request: Request) {
       }, { status: checkoutRes.status });
     }
 
-    let checkoutData;
-    try {
-      checkoutData = JSON.parse(checkoutText);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid Checkout JSON' }, { status: 502 });
-    }
+    const checkoutData = JSON.parse(checkoutText);
 
     if (!checkoutData.checkoutId) {
       return NextResponse.json({ error: 'No Checkout ID', details: checkoutData }, { status: 500 });
@@ -149,7 +126,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ checkoutId: checkoutData.checkoutId });
 
   } catch (error: any) {
-    console.error(' [CRITICAL] Network Error:', error.message);
-    return NextResponse.json({ error: 'Network Error', message: error.message }, { status: 500 });
+    console.error(' [CRITICAL] Error:', error.message);
+    return NextResponse.json({ error: 'System Error', message: error.message }, { status: 500 });
   }
 }
