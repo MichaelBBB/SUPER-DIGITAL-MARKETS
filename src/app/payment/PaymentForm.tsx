@@ -66,8 +66,8 @@ export default function PaymentForm({
 
   const waLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hi! Buy *${initialItem}* $${amount}`)}`;
   
-  // Direct link to Peach Payments hosted page using our Checkout ID
-  const peachPaymentUrl = checkoutId ? `https://secure.peachpayments.com/v2/checkout/${checkoutId}` : '#';
+  // ✅ CORRECTED URL FORMAT FOR PEACH PAYMENTS
+  const peachPaymentUrl = checkoutId ? `https://secure.peachpayments.com/v2/checkout?checkoutId=${checkoutId}` : '#';
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
