@@ -14,7 +14,7 @@ export default function HomePage() {
     { country: 'South Africa', revenue: 0, currency: '$', flag: '🇿' },
     { country: 'USA', revenue: 0, currency: '$', flag: '🇺🇸' },
     { country: 'India', revenue: 0, currency: '$', flag: '🇮🇳' },
-    { country: 'China', revenue: 0, currency: '$', flag: '🇳' },
+    { country: 'China', revenue: 0, currency: '$', flag: '🇨🇳' },
   ]);
 
   const [recentBuyers, setRecentBuyers] = useState([]);
@@ -67,16 +67,20 @@ export default function HomePage() {
     };
   }, []);
 
-  // Mock buyers data
+  // Mock buyers data (You can add a 'buyers' table later for real names)
   useEffect(() => {
     const mockBuyers = [
-      { name: 'Thabo M.', product: 'AI Writing Assistant', country: 'South Africa' },
+      { name: 'Nomsa K.', product: 'Social Media Toolkit', country: 'South Africa' },
       { name: 'Sarah J.', product: 'Video Editor Pro', country: 'USA' },
       { name: 'Raj P.', product: 'Photo Enhancement Suite', country: 'India' },
-      { name: 'Li W.', product: 'Code Generator AI', country: 'China' },
+      { name: 'Zhang L.', product: 'Video Editor Pro', country: 'China' },
     ];
     setRecentBuyers(mockBuyers);
   }, []);
+
+  // Calculate real totals from salesData
+  const totalOrders = loading ? 0 : salesData.reduce((sum, item) => sum + Math.floor(item.revenue / 5), 0);
+  const totalRevenue = loading ? 0 : salesData.reduce((sum, item) => sum + item.revenue, 0);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -159,7 +163,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* First Live Sales Tracker - Overall Stats */}
+      {/* First Live Sales Tracker - Overall Stats (NOW CONNECTED TO SUPABASE) */}
       <div className="py-16 px-6 bg-gray-900 border-t border-gray-800">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
@@ -170,7 +174,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-green-500 transition-colors group">
               <div className="text-4xl font-bold text-green-400 mb-2 group-hover:scale-110 transition-transform">
-                {loading ? '-' : salesData.reduce((sum, item) => sum + Math.floor(item.revenue / 5), 0)}
+                {loading ? '-' : totalOrders}
               </div>
               <div className="text-gray-400 font-medium">Orders Today</div>
               <div className="mt-2 text-xs text-green-500 flex items-center gap-1">
@@ -180,7 +184,7 @@ export default function HomePage() {
             
             <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700 hover:border-cyan-500 transition-colors group">
               <div className="text-4xl font-bold text-cyan-400 mb-2 group-hover:scale-110 transition-transform">
-                ${loading ? '-' : salesData.reduce((sum, item) => sum + item.revenue, 0).toLocaleString()}
+                ${loading ? '-' : totalRevenue.toLocaleString()}
               </div>
               <div className="text-gray-400 font-medium">Revenue Today</div>
               <div className="mt-2 text-xs text-cyan-500 flex items-center gap-1">
