@@ -4,6 +4,13 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
+// Define the type for our buyer data
+interface Buyer {
+  name: string;
+  product: string;
+  country: string;
+}
+
 // Initialize Supabase Client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -17,7 +24,8 @@ export default function HomePage() {
     { country: 'China', revenue: 0, currency: '$', flag: '🇨🇳' },
   ]);
 
-  const [recentBuyers, setRecentBuyers] = useState([]);
+  // ✅ FIXED: Added <Buyer[]> type definition here
+  const [recentBuyers, setRecentBuyers] = useState<Buyer[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch real sales data from Supabase
@@ -67,9 +75,9 @@ export default function HomePage() {
     };
   }, []);
 
-  // Mock buyers data (You can add a 'buyers' table later for real names)
+  // Mock buyers data
   useEffect(() => {
-    const mockBuyers = [
+    const mockBuyers: Buyer[] = [
       { name: 'Nomsa K.', product: 'Social Media Toolkit', country: 'South Africa' },
       { name: 'Sarah J.', product: 'Video Editor Pro', country: 'USA' },
       { name: 'Raj P.', product: 'Photo Enhancement Suite', country: 'India' },
@@ -253,9 +261,9 @@ export default function HomePage() {
                   
                   <div className="space-y-3">
                     {recentBuyers
-                      .filter((buyer: any) => buyer.country === country.country)
+                      .filter((buyer) => buyer.country === country.country)
                       .slice(0, 3)
-                      .map((buyer: any, idx: number) => (
+                      .map((buyer, idx) => (
                         <div key={idx} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition-colors">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center">
@@ -272,7 +280,7 @@ export default function HomePage() {
                         </div>
                       ))}
                     
-                    {recentBuyers.filter((buyer: any) => buyer.country === country.country).length === 0 && (
+                    {recentBuyers.filter((buyer) => buyer.country === country.country).length === 0 && (
                       <div className="text-center py-4 text-gray-500 text-sm">
                         Waiting for next purchase...
                       </div>
