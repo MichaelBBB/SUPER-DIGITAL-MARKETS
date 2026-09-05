@@ -24,55 +24,49 @@ export default function HomePage() {
     { country: 'China', revenue: 0, currency: '$', flag: '🇨🇳' },
   ]);
 
-  // ✅ FIXED: Added <Buyer[]> type definition here
   const [recentBuyers, setRecentBuyers] = useState<Buyer[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch real sales data from Supabase
-  useEffect(() => {
-    const fetchSalesData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch sales counts from your Supabase table
-        const { data, error } = await supabase
-          .from('sales_counts')
-          .select('*');
+  const fetchSalesData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch sales counts from your Supabase table
+      const { data, error } = await supabase
+        .from('sales_counts')
+        .select('*');
 
-        if (error) throw error;
+      if (error) throw error;
 
-        if (data) {
-          // Update revenue based on real data (Assuming $5 per sale for demo)
-          setSalesData(prev => prev.map(item => {
-            const dbRegion = item.country.toLowerCase().replace(' ', '');
-            const regionData = data.find((d: any) => d.region.toLowerCase() === dbRegion);
-            
-            const count = regionData ? regionData.count : 0;
-            const revenue = count * 5; // Example: $5 per unit sold
-            
-            return { ...item, revenue };
-          }));
-        }
-      } catch (error) {
-        console.error('Error fetching sales data:', error);
-      } finally {
-        setLoading(false);
+      if (data) {
+        // Update revenue based on real data (Assuming $5 per sale for demo)
+        setSalesData(prev => prev.map(item => {
+          const dbRegion = item.country.toLowerCase().replace(' ', '');
+          const regionData = data.find((d: any) => d.region.toLowerCase() === dbRegion);
+          
+          const count = regionData ? regionData.count : 0;
+          const revenue = count * 5; // Example: $5 per unit sold
+          
+          return { ...item, revenue };
+        }));
       }
-    };
+    } catch (error) {
+      console.error('Error fetching sales data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchSalesData();
+  // Fetch data on mount and then every 5 seconds (Polling instead of Realtime)
+  useEffect(() => {
+    fetchSalesData(); // Initial fetch
+    
+    const interval = setInterval(() => {
+      fetchSalesData(); // Fetch every 5 seconds
+    }, 5000);
 
-    // Set up real-time subscription for live updates
-    const channel = supabase
-      .channel('sales-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sales_counts' }, () => {
-        fetchSalesData(); // Refresh data whenever table changes
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
   // Mock buyers data
