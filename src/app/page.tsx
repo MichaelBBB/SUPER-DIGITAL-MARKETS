@@ -29,7 +29,6 @@ export default function HomePage() {
   // Fetch real sales data from Supabase (Polling every 5s)
   useEffect(() => {
     if (!supabase) {
-      console.error('Supabase client not initialized. Check environment variables.');
       setLoading(false);
       return;
     }
@@ -45,7 +44,7 @@ export default function HomePage() {
 
         if (data && data.length > 0) {
           setSalesData(prev => prev.map(item => {
-            // ROBUST MATCHING: Normalize names (remove spaces, lowercase) to match DB
+            // ROBUST MATCHING: Normalize names (remove spaces, lowercase)
             const normalizedItemName = item.country.toLowerCase().replace(/\s/g, '');
             
             const regionData = data.find((d: any) => {
@@ -56,8 +55,6 @@ export default function HomePage() {
             const count = regionData ? regionData.count : 0;
             return { ...item, revenue: count * 5 }; // $5 per unit
           }));
-        } else {
-          console.warn('No data found in sales_counts table.');
         }
       } catch (error) {
         console.error('Fetch error:', error);
@@ -112,7 +109,7 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* HERO SECTION WITH EARTH BACKGROUND */}
+      {/* HERO SECTION - HAZE FIXED (Opacity adjusted to 85%) */}
       <div className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 w-full h-full z-0"
@@ -123,16 +120,18 @@ export default function HomePage() {
             backgroundColor: '#000000'
           }}
         >
-          <div className="absolute inset-0 bg-black/70"></div>
+          {/* CHANGED: Opacity set to 85% to remove haze but keep Earth visible */}
+          <div className="absolute inset-0 bg-black/85"></div>
         </div>
+        
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/50 border border-cyan-500/50 rounded-full mb-8 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/60 border border-cyan-500/50 rounded-full mb-8 backdrop-blur-md">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
             <span className="text-cyan-400 text-sm font-bold uppercase tracking-wider">Live Global Marketplace</span>
             <span className="text-gray-300 text-sm">•</span>
             <span className="text-gray-300 text-sm">USA • India • China • South Africa</span>
           </div>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight tracking-tight text-white drop-shadow-lg">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight tracking-tight text-white drop-shadow-2xl">
             The World's <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Top 30</span> <br />
             Digital Products <br />
