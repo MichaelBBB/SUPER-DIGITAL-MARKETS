@@ -18,8 +18,8 @@ interface Buyer {
 export default function HomePage() {
   const [salesData, setSalesData] = useState([
     { country: 'South Africa', revenue: 0, currency: '$', flag: '🇦' },
-    { country: 'USA', revenue: 0, currency: '$', flag: '🇺🇸' },
-    { country: 'India', revenue: 0, currency: '$', flag: '🇮' },
+    { country: 'USA', revenue: 0, currency: '$', flag: '🇺' },
+    { country: 'India', revenue: 0, currency: '$', flag: '🇮🇳' },
     { country: 'China', revenue: 0, currency: '$', flag: '🇨🇳' },
   ]);
 
@@ -90,7 +90,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center">
-              <span className="text-black font-bold text-sm">⚡</span>
+              <span className="text-black font-bold text-sm"></span>
             </div>
             <span className="text-xl font-bold tracking-tight">SUPER DIGITAL</span>
           </div>
@@ -109,7 +109,7 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* HERO SECTION - HAZE FIXED (Opacity adjusted to 85%) */}
+      {/* HERO SECTION - EARTH BRIGHTNESS RESTORED (Opacity 75%) */}
       <div className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 w-full h-full z-0"
@@ -120,8 +120,8 @@ export default function HomePage() {
             backgroundColor: '#000000'
           }}
         >
-          {/* CHANGED: Opacity set to 85% to remove haze but keep Earth visible */}
-          <div className="absolute inset-0 bg-black/85"></div>
+          {/* CHANGED: Opacity set to 75% to brighten the Earth while keeping text readable */}
+          <div className="absolute inset-0 bg-black/75"></div>
         </div>
         
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
