@@ -20,7 +20,7 @@ export default function HomePage() {
     { country: 'South Africa', revenue: 0, currency: '$', flag: '🇦' },
     { country: 'USA', revenue: 0, currency: '$', flag: '🇺🇸' },
     { country: 'India', revenue: 0, currency: '$', flag: '🇮' },
-    { country: 'China', revenue: 0, currency: '$', flag: '🇨' },
+    { country: 'China', revenue: 0, currency: '$', flag: '🇨🇳' },
   ]);
 
   const [recentBuyers, setRecentBuyers] = useState<Buyer[]>([]);
@@ -29,6 +29,7 @@ export default function HomePage() {
   // Fetch real sales data from Supabase (Polling every 5s)
   useEffect(() => {
     if (!supabase) {
+      console.error('Supabase client not initialized. Check environment variables.');
       setLoading(false);
       return;
     }
@@ -36,11 +37,15 @@ export default function HomePage() {
     const fetchSalesData = async () => {
       try {
         const { data, error } = await supabase.from('sales_counts').select('*');
-        if (error) throw error;
+        
+        if (error) {
+          console.error('Supabase Error:', error);
+          return;
+        }
 
         if (data && data.length > 0) {
           setSalesData(prev => prev.map(item => {
-            // ROBUST MATCHING: Normalize names (remove spaces, lowercase)
+            // ROBUST MATCHING: Normalize names (remove spaces, lowercase) to match DB
             const normalizedItemName = item.country.toLowerCase().replace(/\s/g, '');
             
             const regionData = data.find((d: any) => {
@@ -51,9 +56,11 @@ export default function HomePage() {
             const count = regionData ? regionData.count : 0;
             return { ...item, revenue: count * 5 }; // $5 per unit
           }));
+        } else {
+          console.warn('No data found in sales_counts table.');
         }
       } catch (error) {
-        console.error('Error fetching sales data:', error);
+        console.error('Fetch error:', error);
       } finally {
         setLoading(false);
       }
@@ -86,7 +93,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center">
-              <span className="text-black font-bold text-sm"></span>
+              <span className="text-black font-bold text-sm">⚡</span>
             </div>
             <span className="text-xl font-bold tracking-tight">SUPER DIGITAL</span>
           </div>
