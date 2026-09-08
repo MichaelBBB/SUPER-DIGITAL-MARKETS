@@ -20,59 +20,40 @@ export default function HomePage() {
     { country: 'South Africa', revenue: 0, currency: '$', flag: '🇦' },
     { country: 'USA', revenue: 0, currency: '$', flag: '🇺🇸' },
     { country: 'India', revenue: 0, currency: '$', flag: '🇮' },
-    { country: 'China', revenue: 0, currency: '$', flag: '🇨🇳' },
+    { country: 'China', revenue: 0, currency: '$', flag: '🇨' },
   ]);
 
   const [recentBuyers, setRecentBuyers] = useState<Buyer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [debugMsg, setDebugMsg] = useState(''); // For debugging
 
   // Fetch real sales data from Supabase (Polling every 5s)
   useEffect(() => {
     if (!supabase) {
-      setDebugMsg('Error: Supabase not initialized');
       setLoading(false);
       return;
     }
 
     const fetchSalesData = async () => {
       try {
-        setDebugMsg('Fetching data...');
         const { data, error } = await supabase.from('sales_counts').select('*');
-        
-        if (error) {
-          console.error('Supabase Error:', error);
-          setDebugMsg(`Error: ${error.message}`);
-          return;
-        }
-
-        setDebugMsg(`Found ${data?.length || 0} rows.`);
+        if (error) throw error;
 
         if (data && data.length > 0) {
           setSalesData(prev => prev.map(item => {
-            // ROBUST MATCHING: Normalize both names to lowercase and remove spaces
+            // ROBUST MATCHING: Normalize names (remove spaces, lowercase)
             const normalizedItemName = item.country.toLowerCase().replace(/\s/g, '');
             
-            // Find matching row in DB by normalizing DB name too
             const regionData = data.find((d: any) => {
               const normalizedDbName = d.region.toLowerCase().replace(/\s/g, '');
               return normalizedDbName === normalizedItemName;
             });
 
             const count = regionData ? regionData.count : 0;
-            // Debug log for first match
-            if (item.country === 'South Africa' && count === 0) {
-               console.log('No match found for South Africa. DB contains:', data.map((r:any) => r.region));
-            }
-            
             return { ...item, revenue: count * 5 }; // $5 per unit
           }));
-        } else {
-          setDebugMsg('Table is empty.');
         }
       } catch (error) {
-        console.error('Fetch error:', error);
-        setDebugMsg('Fetch failed.');
+        console.error('Error fetching sales data:', error);
       } finally {
         setLoading(false);
       }
@@ -100,19 +81,12 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      {/* Debug Bar (Remove after fixing) */}
-      {debugMsg && (
-        <div className="bg-yellow-900/50 text-yellow-200 text-xs p-2 text-center border-b border-yellow-700">
-          {debugMsg}
-        </div>
-      )}
-
       {/* Navigation */}
       <nav className="border-b border-gray-800 px-6 py-4 sticky top-0 z-50 bg-black/90 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center">
-              <span className="text-black font-bold text-sm">⚡</span>
+              <span className="text-black font-bold text-sm"></span>
             </div>
             <span className="text-xl font-bold tracking-tight">SUPER DIGITAL</span>
           </div>
@@ -131,7 +105,7 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* HERO SECTION */}
+      {/* HERO SECTION WITH EARTH BACKGROUND */}
       <div className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
         <div 
           className="absolute inset-0 w-full h-full z-0"
