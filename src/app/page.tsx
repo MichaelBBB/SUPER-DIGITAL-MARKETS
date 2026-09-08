@@ -17,10 +17,10 @@ interface Buyer {
 
 export default function HomePage() {
   const [salesData, setSalesData] = useState([
-    { country: 'South Africa', revenue: 0, currency: '$', flag: '🇿🇦' },
-    { country: 'USA', revenue: 0, currency: '$', flag: '🇺🇸' },
+    { country: 'South Africa', revenue: 0, currency: '$', flag: '🇦' },
+    { country: 'USA', revenue: 0, currency: '$', flag: '🇺' },
     { country: 'India', revenue: 0, currency: '$', flag: '🇮🇳' },
-    { country: 'China', revenue: 0, currency: '$', flag: '🇳' },
+    { country: 'China', revenue: 0, currency: '$', flag: '🇨🇳' },
   ]);
 
   const [recentBuyers, setRecentBuyers] = useState<Buyer[]>([]);
@@ -99,48 +99,54 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* ✅ HERO SECTION WITH EARTH BACKGROUND */}
-      <div className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
+      {/* ✅ HERO SECTION WITH FORCED EARTH BACKGROUND */}
+      <div className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-gray-900">
+        
+        {/* 1. Background Image Layer (Forced via Inline Style) */}
         <div 
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 w-full h-full z-0"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')"
+            backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundColor: '#0f172a' // Dark fallback if image fails
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black"></div>
+          {/* 2. Dark Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90"></div>
         </div>
 
-        {/* Content */}
+        {/* 3. Content Layer (Higher Z-Index) */}
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto mt-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/50 border border-cyan-500/50 rounded-full mb-8 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-black/60 border border-cyan-500/50 rounded-full mb-8 backdrop-blur-md shadow-lg">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
             <span className="text-cyan-400 text-sm font-bold uppercase tracking-wider">Live Global Marketplace</span>
             <span className="text-gray-300 text-sm">•</span>
             <span className="text-gray-300 text-sm">USA • India • China • South Africa</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight tracking-tight">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight tracking-tight drop-shadow-2xl">
             <span className="text-white block">The World's</span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 block">Top 30</span>
             <span className="text-white block">Digital Products</span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 block mt-2">Delivered Instantly.</span>
           </h1>
 
-          <p className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto mb-10 leading-relaxed">
+          <p className="text-gray-200 text-lg md:text-xl max-w-3xl mx-auto mb-10 leading-relaxed drop-shadow-md">
             From AI tools to creative software — shop in USD, pay your way, receive instantly. Trusted by buyers across 3 continents.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
             <Link 
               href="/products" 
-              className="w-full sm:w-auto px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold text-lg shadow-xl shadow-blue-600/30 transition-all transform hover:-translate-y-1 hover:shadow-2xl"
+              className="w-full sm:w-auto px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold text-lg shadow-xl shadow-blue-600/40 transition-all transform hover:-translate-y-1 hover:shadow-2xl"
             >
               Browse Products
             </Link>
             <Link 
               href="/payment?item=Test&amount=10.99" 
-              className="w-full sm:w-auto px-10 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-bold text-lg shadow-xl shadow-emerald-600/30 transition-all transform hover:-translate-y-1 hover:shadow-2xl"
+              className="w-full sm:w-auto px-10 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-bold text-lg shadow-xl shadow-emerald-600/40 transition-all transform hover:-translate-y-1 hover:shadow-2xl"
             >
               Test Payment
             </Link>
