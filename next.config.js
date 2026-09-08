@@ -7,8 +7,8 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            // Allows Peach Payments scripts, styles, frames, and WebSocket connections
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.peachpayments.com https://pnc43975.jscrambler.com https://cdn.peachpayments.com; style-src 'self' 'unsafe-inline' https://*.peachpayments.com https://fonts.googleapis.com; frame-src 'self' https://*.peachpayments.com https://secure.peachpayments.com; connect-src 'self' https://*.peachpayments.com wss://*.peachpayments.com; img-src 'self' data: https://*.peachpayments.com https://fonts.gstatic.com; font-src 'self' data: https://fonts.gstatic.com;",
+            // Added https://images.unsplash.com to img-src
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.peachpayments.com https://pnc43975.jscrambler.com https://cdn.peachpayments.com; style-src 'self' 'unsafe-inline' https://*.peachpayments.com https://fonts.googleapis.com; frame-src 'self' https://*.peachpayments.com https://secure.peachpayments.com; connect-src 'self' https://*.peachpayments.com wss://*.peachpayments.com; img-src 'self' data: https://*.peachpayments.com https://images.unsplash.com https://fonts.gstatic.com; font-src 'self' data: https://fonts.gstatic.com;",
           },
         ],
       },
