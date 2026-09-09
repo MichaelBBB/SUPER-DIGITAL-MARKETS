@@ -1,12 +1,10 @@
-export const dynamic = 'force-dynamic'; // Ensures this page never static-generates
-
-'use client';
+'use client'; // MUST BE THE FIRST LINE
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import PeachCheckout from '@/components/PeachCheckout';
 
-// Inner component that uses hooks
+// This component uses hooks, so it must be a Client Component
 function PaymentContent() {
   const searchParams = useSearchParams();
   const item = searchParams.get('item') || 'Digital Product';
@@ -56,9 +54,7 @@ function PaymentContent() {
           <PeachCheckout 
             amount={amount} 
             itemName={item}
-            onSuccess={(data) => {
-              console.log('Success:', data);
-            }}
+            onSuccess={(data) => console.log('Success:', data)}
             onError={(error) => {
               console.error('Error:', error);
               setApiError(error instanceof Error ? error.message : 'Payment failed');
@@ -91,7 +87,7 @@ function PaymentContent() {
   );
 }
 
-// Wrapper with Suspense
+// Wrapper with Suspense to satisfy Next.js requirements for useSearchParams
 export default function PaymentPage() {
   return (
     <Suspense fallback={
