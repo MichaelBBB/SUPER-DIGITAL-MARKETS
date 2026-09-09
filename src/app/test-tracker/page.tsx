@@ -14,16 +14,13 @@ export default function TestTrackerPage() {
   const [previousData, setPreviousData] = useState<any[]>([]);
   const [changedRows, setChangedRows] = useState<string[]>([]);
   
-  // CRITICAL FIX: Strictly control mounting to prevent ANY server-side render mismatch
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // This runs ONLY in the browser after hydration is complete
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    // CRITICAL FIX: Do NOT run ANY logic until mounted is true
     if (!supabase || !mounted) return;
 
     const fetchData = async () => {
@@ -40,22 +37,27 @@ export default function TestTrackerPage() {
         if (!data || data.length === 0) {
           setStatus('WARNING: Table is Empty');
           setRawData([]);
-        } else {
-          setStatus(`SUCCESS: Found ${data.length} rows`);
-          
-          // Detect changes for visual feedback
-          const changes: string[] = [];
-          data.forEach((row: any) => {
-            const prevRow = previousData.find((p: any) => p.id === row.id);
-            if (prevRow && prevRow.count !== row.count) {
-              changes.push(`${row.region}: ${prevRow.count} → ${row.count}`);
-            }
-          });
-          
-          setChangedRows(changes);
-          setPreviousData(data);
-          setRawData(data);
+          console.warn('No data received from Supabase');
+          return;
         }
+
+        // DEBUG: Log the raw data to console so we can see exactly what keys are used
+        console.log('💰 RAW DATA RECEIVED:', data);
+
+        setStatus(`SUCCESS: Found ${data.length} rows`);
+        
+        // Detect changes for visual feedback
+        const changes: string[] = [];
+        data.forEach((row: any) => {
+          const prevRow = previousData.find((p: any) => p.id === row.id);
+          if (prevRow && prevRow.count !== row.count) {
+            changes.push(`${row.region || row.country}: ${prevRow.count} → ${row.count}`);
+          }
+        });
+        
+        setChangedRows(changes);
+        setPreviousData(data);
+        setRawData(data);
         
         setLastUpdated(new Date().toLocaleTimeString());
       } catch (err) {
@@ -64,19 +66,14 @@ export default function TestTrackerPage() {
       }
     };
 
-    // Initial fetch
     fetchData();
-    
-    // Poll every 3 seconds
     const interval = setInterval(fetchData, 3000); 
-    
     return () => clearInterval(interval);
-  }, [mounted]); // Dependency ensures this only runs after mount
+  }, [mounted]);
 
   const totalRevenue = rawData.reduce((sum, row) => sum + (row.count * 5), 0);
   const totalOrders = rawData.reduce((sum, row) => sum + row.count, 0);
 
-  // CRITICAL FIX: Render NOTHING until mounted to guarantee zero hydration mismatch
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-900 text-white p-8 font-mono flex items-center justify-center">
@@ -125,7 +122,7 @@ export default function TestTrackerPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {rawData.map((row: any, idx) => (
           <div key={idx} className="bg-gray-800 p-6 rounded-lg border border-gray-600 hover:border-cyan-500 transition-colors">
-            <h3 className="text-xl font-bold capitalize text-cyan-300 mb-2" suppressHydrationWarning>{row.region}</h3>
+            <h3 className="text-xl font-bold capitalize text-cyan-300 mb-2" suppressHydrationWarning>{row.region || row.country}</h3>
             <div className="space-y-2">
               <p className="text-sm text-gray-400">Count: <span className="text-white font-bold" suppressHydrationWarning>{row.count.toLocaleString()}</span></p>
               <p className="text-2xl font-bold text-green-400" suppressHydrationWarning>${(row.count * 5).toLocaleString()}</p>
