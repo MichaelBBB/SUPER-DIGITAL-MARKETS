@@ -13,14 +13,16 @@ export default function TestTrackerPage() {
   const [lastUpdated, setLastUpdated] = useState('Never');
   const [previousData, setPreviousData] = useState<any[]>([]);
   const [changedRows, setChangedRows] = useState<string[]>([]);
+  
+  // CORRECTION #1: Add a 'mounted' state to prevent server/client mismatch
   const [mounted, setMounted] = useState(false);
 
-  // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
+    // CORRECTION #2: Only run logic AFTER mounting to avoid hydration error
     if (!supabase || !mounted) return;
 
     const fetchData = async () => {
@@ -35,12 +37,12 @@ export default function TestTrackerPage() {
         }
 
         if (!data || data.length === 0) {
-          setStatus('WARNING: Table is Empty or No Rows Returned');
+          setStatus('WARNING: Table is Empty');
           setRawData([]);
         } else {
           setStatus(`SUCCESS: Found ${data.length} rows`);
           
-          // Check which rows changed
+          // Detect changes for visual feedback
           const changes: string[] = [];
           data.forEach((row: any) => {
             const prevRow = previousData.find((p: any) => p.id === row.id);
@@ -62,30 +64,27 @@ export default function TestTrackerPage() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 3000); // Update every 3 seconds
+    const interval = setInterval(fetchData, 3000); 
     return () => clearInterval(interval);
   }, [mounted]);
 
-  // Calculate totals
   const totalRevenue = rawData.reduce((sum, row) => sum + (row.count * 5), 0);
   const totalOrders = rawData.reduce((sum, row) => sum + row.count, 0);
 
+  // CORRECTION #3: Show a loading state until mounted to prevent mismatch
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-900 text-white p-8 font-mono flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p>Loading tracker...</p>
-        </div>
+        <div className="text-xl text-cyan-400 animate-pulse">Initializing Live Tracker...</div>
       </div>
     );
   }
 
   return (
+    // CORRECTION #4: Suppress hydration warnings for dynamic content
     <div className="min-h-screen bg-gray-900 text-white p-8 font-mono" suppressHydrationWarning>
       <h1 className="text-3xl font-bold mb-4 text-cyan-400">🧪 ISOLATED TRACKER TEST</h1>
       
-      {/* Status Bar */}
       <div className={`p-4 rounded mb-6 border ${status.includes('ERROR') ? 'bg-red-900/50 border-red-500' : status.includes('WARNING') ? 'bg-yellow-900/50 border-yellow-500' : 'bg-green-900/50 border-green-500'}`} suppressHydrationWarning>
         <strong>STATUS:</strong> {status} <br/>
         <strong>Last Updated:</strong> {lastUpdated}
@@ -101,7 +100,6 @@ export default function TestTrackerPage() {
         )}
       </div>
 
-      {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
           <h3 className="text-lg font-bold text-gray-300 mb-2">Total Orders</h3>
@@ -113,7 +111,6 @@ export default function TestTrackerPage() {
         </div>
       </div>
 
-      {/* Raw Data Display */}
       <div className="bg-black p-6 rounded-lg border border-gray-700 overflow-x-auto mb-8">
         <h2 className="text-xl font-bold mb-4 text-gray-300">Raw Database Response:</h2>
         <pre className="text-sm text-green-400 whitespace-pre-wrap" suppressHydrationWarning>
@@ -121,7 +118,6 @@ export default function TestTrackerPage() {
         </pre>
       </div>
 
-      {/* Individual Country Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {rawData.map((row: any, idx) => (
           <div key={idx} className="bg-gray-800 p-6 rounded-lg border border-gray-600 hover:border-cyan-500 transition-colors">
