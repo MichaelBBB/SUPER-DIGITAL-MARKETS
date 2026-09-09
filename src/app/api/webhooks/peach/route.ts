@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'; // Forces this route to run on every request, not at build time
+
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -20,8 +22,9 @@ export async function POST(request: Request) {
     if (event === 'payment.completed' || event === 'transaction.successful') {
       // Update sales count in Supabase
       if (supabase) {
-        // Determine country from customer data or IP (simplified here)
-        const country = 'southAfrica'; // You can make this dynamic based on customer location
+        // Determine country from customer data or IP (simplified here to South Africa for testing)
+        // In a real app, you would extract this from data.customer.country or request headers
+        const country = 'southAfrica'; 
         
         // Increment the count
         const { data: currentData, error: fetchError } = await supabase
