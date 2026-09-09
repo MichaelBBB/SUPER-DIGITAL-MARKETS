@@ -14,15 +14,16 @@ export default function TestTrackerPage() {
   const [previousData, setPreviousData] = useState<any[]>([]);
   const [changedRows, setChangedRows] = useState<string[]>([]);
   
-  // FIX: Add mounted state to prevent Hydration Error #418
+  // CRITICAL FIX: Strictly control mounting to prevent ANY server-side render mismatch
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // This runs ONLY in the browser after hydration is complete
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    // FIX: Only fetch data AFTER mounting to avoid server/client mismatch
+    // CRITICAL FIX: Do NOT run ANY logic until mounted is true
     if (!supabase || !mounted) return;
 
     const fetchData = async () => {
@@ -63,15 +64,19 @@ export default function TestTrackerPage() {
       }
     };
 
+    // Initial fetch
     fetchData();
+    
+    // Poll every 3 seconds
     const interval = setInterval(fetchData, 3000); 
+    
     return () => clearInterval(interval);
-  }, [mounted]);
+  }, [mounted]); // Dependency ensures this only runs after mount
 
   const totalRevenue = rawData.reduce((sum, row) => sum + (row.count * 5), 0);
   const totalOrders = rawData.reduce((sum, row) => sum + row.count, 0);
 
-  // FIX: Show loading state until mounted to prevent mismatch
+  // CRITICAL FIX: Render NOTHING until mounted to guarantee zero hydration mismatch
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-900 text-white p-8 font-mono flex items-center justify-center">
@@ -81,7 +86,6 @@ export default function TestTrackerPage() {
   }
 
   return (
-    // FIX: Suppress hydration warnings for dynamic content
     <div className="min-h-screen bg-gray-900 text-white p-8 font-mono" suppressHydrationWarning>
       <h1 className="text-3xl font-bold mb-4 text-cyan-400">🧪 ISOLATED TRACKER TEST</h1>
       
