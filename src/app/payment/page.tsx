@@ -1,9 +1,9 @@
-export const dynamic = 'force-dynamic'; // CRITICAL: Prevents static build error with useSearchParams
+export const dynamic = 'force-dynamic'; // Ensures this page never static-generates
 
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import PeachCheckout from '@/components/PeachCheckout';
 
 // Inner component that uses hooks
@@ -11,6 +11,8 @@ function PaymentContent() {
   const searchParams = useSearchParams();
   const item = searchParams.get('item') || 'Digital Product';
   const amount = parseFloat(searchParams.get('amount') || '10.99');
+  
+  const [apiError, setApiError] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-sans">
@@ -41,70 +43,55 @@ function PaymentContent() {
             <span className="text-gray-400">Total Amount</span>
             <span className="text-4xl font-bold text-green-400">${amount.toFixed(2)}</span>
           </div>
-
-          <div className="space-y-3 text-sm text-gray-400 border-t border-gray-800 pt-4">
-            <div className="flex justify-between">
-              <span>Product Type</span>
-              <span className="text-white">Digital Download</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Delivery Method</span>
-              <span className="text-white">Email / Dashboard</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Security</span>
-              <span className="text-white">SSL Encrypted (Peach Payments)</span>
-            </div>
-          </div>
         </div>
 
-        {/* Payment Options */}
-        <div className="space-y-6">
-          <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              Secure Card Payment
-            </h3>
-            
-            {/* Peach Payments Button */}
-            <PeachCheckout 
-              amount={amount} 
-              itemName={item}
-              onSuccess={(data) => {
-                console.log('Payment successful:', data);
-                alert('Payment initiated successfully! Redirecting...');
-              }}
-              onError={(error) => {
-                console.error('Payment error:', error);
-                alert('Error initiating payment. Please try again or contact support.');
-              }}
-            />
-          </div>
+        {/* Payment Section - ALWAYS SHOWS THE BUTTON */}
+        <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            Secure Card Payment
+          </h3>
+          
+          {/* Peach Payments Button */}
+          <PeachCheckout 
+            amount={amount} 
+            itemName={item}
+            onSuccess={(data) => {
+              console.log('Success:', data);
+            }}
+            onError={(error) => {
+              console.error('Error:', error);
+              setApiError(error instanceof Error ? error.message : 'Payment failed');
+            }}
+          />
 
-          {/* WhatsApp Alternative */}
-          <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 text-center">
-            <h3 className="text-lg font-bold text-white mb-2">Prefer WhatsApp?</h3>
-            <p className="text-gray-400 text-sm mb-4">Chat with us directly to complete your order manually.</p>
-            <a 
-              href={`https://wa.me/27123456789?text=Hi, I want to buy ${encodeURIComponent(item)} for $${amount}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-lg transition-transform transform hover:scale-105"
-            >
-              Chat on WhatsApp
-            </a>
-          </div>
+          {/* Only show error if the API actually fails */}
+          {apiError && (
+            <div className="mt-4 p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+              ⚠️ {apiError}
+            </div>
+          )}
         </div>
 
-        <div className="mt-8 text-center text-xs text-gray-500">
-          By completing this purchase, you agree to our Terms of Service and Privacy Policy.
+        {/* WhatsApp Alternative */}
+        <div className="mt-6 bg-gray-900/50 p-6 rounded-xl border border-gray-800 text-center">
+          <h3 className="text-lg font-bold text-white mb-2">Prefer WhatsApp?</h3>
+          <p className="text-gray-400 text-sm mb-4">Chat with us directly.</p>
+          <a 
+            href={`https://wa.me/27123456789?text=Hi, I want to buy ${encodeURIComponent(item)} for $${amount}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg"
+          >
+            Chat on WhatsApp
+          </a>
         </div>
       </div>
     </div>
   );
 }
 
-// Wrapper with Suspense to satisfy Next.js requirements
+// Wrapper with Suspense
 export default function PaymentPage() {
   return (
     <Suspense fallback={
