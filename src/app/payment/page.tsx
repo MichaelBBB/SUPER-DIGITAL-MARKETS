@@ -1,17 +1,16 @@
-export const dynamic = 'force-dynamic'; // Forces this page to render on the server per request, fixing the useSearchParams error
+export const dynamic = 'force-dynamic'; // CRITICAL: Prevents static build error with useSearchParams
 
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { Suspense } from 'react';
 import PeachCheckout from '@/components/PeachCheckout';
 
-export default function PaymentPage() {
+// Inner component that uses hooks
+function PaymentContent() {
   const searchParams = useSearchParams();
   const item = searchParams.get('item') || 'Digital Product';
   const amount = parseFloat(searchParams.get('amount') || '10.99');
-  
-  const [loading, setLoading] = useState(false);
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-sans">
@@ -54,7 +53,7 @@ export default function PaymentPage() {
             </div>
             <div className="flex justify-between">
               <span>Security</span>
-              <span className="text-white">SSL Encrypted</span>
+              <span className="text-white">SSL Encrypted (Peach Payments)</span>
             </div>
           </div>
         </div>
@@ -64,7 +63,7 @@ export default function PaymentPage() {
           <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              Secure Payment Options
+              Secure Card Payment
             </h3>
             
             {/* Peach Payments Button */}
@@ -73,11 +72,11 @@ export default function PaymentPage() {
               itemName={item}
               onSuccess={(data) => {
                 console.log('Payment successful:', data);
-                // Optional: Show success message here
+                alert('Payment initiated successfully! Redirecting...');
               }}
               onError={(error) => {
                 console.error('Payment error:', error);
-                // Optional: Show error message here
+                alert('Error initiating payment. Please try again or contact support.');
               }}
             />
           </div>
@@ -102,5 +101,18 @@ export default function PaymentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrapper with Suspense to satisfy Next.js requirements
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+      </div>
+    }>
+      <PaymentContent />
+    </Suspense>
   );
 }
