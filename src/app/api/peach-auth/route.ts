@@ -10,11 +10,17 @@ export async function POST(request: Request) {
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
     const merchantId = process.env.PEACH_MERCHANT_ID;
 
+    // DEBUG: Log partial keys to verify they are loaded correctly
+    console.log('Checking Credentials...');
+    console.log('Client ID Start:', clientId ? clientId.substring(0, 5) + '...' : 'MISSING');
+    console.log('Client Secret Start:', clientSecret ? clientSecret.substring(0, 5) + '...' : 'MISSING');
+    console.log('Merchant ID Start:', merchantId ? merchantId.substring(0, 5) + '...' : 'MISSING');
+
     if (!clientId || !clientSecret || !merchantId) {
-      return NextResponse.json({ error: 'Credentials missing' }, { status: 500 });
+      return NextResponse.json({ error: 'Credentials missing in Env Vars' }, { status: 500 });
     }
 
-    // TRY: Standard OAuth 2.0 Format (Underscores + grant_type)
+    // FIX: Use EXACT standard OAuth format (Underscores + grant_type)
     const tokenBody = {
       client_id: clientId,       
       client_secret: clientSecret, 
@@ -22,7 +28,8 @@ export async function POST(request: Request) {
       grant_type: 'client_credentials' 
     };
 
-    console.log('Sending Standard OAuth Request...', tokenBody);
+    console.log('Sending Request to:', 'https://dashboard.peachpayments.com/api/oauth/token');
+    console.log('Payload:', JSON.stringify(tokenBody));
 
     const tokenResponse = await fetch('https://dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
@@ -36,13 +43,13 @@ export async function POST(request: Request) {
     const tokenText = await tokenResponse.text();
     
     console.log(' PEACH STATUS:', tokenResponse.status);
-    console.log('🍑 PEACH RAW RESPONSE:', tokenText);
+    console.log(' PEACH RAW RESPONSE:', tokenText);
 
     if (!tokenResponse.ok) {
       return NextResponse.json(
         { 
           error: 'Token Failed', 
-          peachError: tokenText, // This shows the real error!
+          peachError: tokenText, 
           status: tokenResponse.status 
         },
         { status: 401 }
@@ -55,6 +62,8 @@ export async function POST(request: Request) {
     if (!accessToken) {
       return NextResponse.json({ error: 'No token in response', details: tokenData }, { status: 401 });
     }
+
+    console.log('✅ Access Token Received!');
 
     // Create Checkout
     const checkoutResponse = await fetch('https://checkout.peachpayments.com/api/v1/sessions', {
