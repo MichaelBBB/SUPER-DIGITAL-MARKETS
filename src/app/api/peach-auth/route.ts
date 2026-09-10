@@ -6,21 +6,26 @@ export async function POST(request: Request) {
   try {
     const { amount, item, currency = 'USD' } = await request.json();
 
-    // Get credentials from environment variables
     const clientId = process.env.PEACH_CLIENT_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
     const merchantId = process.env.PEACH_MERCHANT_ID;
 
+    console.log('Starting Peach Auth...', { 
+      hasClientId: !!clientId, 
+      hasClientSecret: !!clientSecret, 
+      hasMerchantId: !!merchantId 
+    });
+
     if (!clientId || !clientSecret || !merchantId) {
-      console.error('Missing credentials:', { hasClientId: !!clientId, hasClientSecret: !!clientSecret, hasMerchantId: !!merchantId });
+      console.error('Missing credentials!');
       return NextResponse.json(
         { error: 'Peach Payments credentials missing' },
         { status: 500 }
       );
     }
 
-    // Step 1: Get Access Token
-    // NOTE: Using snake_case fields as required by OAuth/Peach
+    // Step 1: Get Access Token - Using EXACT format from Peach's cURL example
+    console.log('Requesting token from Peach...');
     const tokenResponse = await fetch('https://dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
       headers: {
@@ -28,18 +33,18 @@ export async function POST(request: Request) {
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        client_id: clientId,       
-        client_secret: clientSecret, 
-        merchant_id: merchantId,     
-        grant_type: 'client_credentials' 
+        clientId: clientId,       // CamelCase as per Peach example
+        clientSecret: clientSecret, // CamelCase
+        merchantId: merchantId      // CamelCase
       }),
     });
 
     const tokenText = await tokenResponse.text();
-    console.log('Token Response Status:', tokenResponse.status);
-    console.log('Token Response Body:', tokenText);
+    console.log('Peach Token Response Status:', tokenResponse.status);
+    console.log('Peach Token Response Body:', tokenText);
 
     if (!tokenResponse.ok) {
+      console.error('Token request failed:', tokenText);
       return NextResponse.json(
         { 
           error: 'Failed to get access token', 
@@ -71,7 +76,10 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('Access token received successfully!');
+
     // Step 2: Create Checkout Session
+    console.log('Creating checkout session...');
     const checkoutResponse = await fetch('https://checkout.peachpayments.com/api/v1/sessions', {
       method: 'POST',
       headers: {
@@ -79,7 +87,7 @@ export async function POST(request: Request) {
         'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
-        amount: Math.round(amount * 100), 
+        amount: Math.round(amount * 100),
         currency: currency.toUpperCase(),
         description: item || 'Digital Product Purchase',
         merchantReference: `ORDER-${Date.now()}`,
@@ -87,7 +95,7 @@ export async function POST(request: Request) {
         cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment?item=${encodeURIComponent(item)}&amount=${amount}&cancelled=true`,
         webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/peach`,
         customer: {
-          email: 'customer@example.com', 
+          email: 'customer@example.com',
           firstName: 'Customer',
           lastName: 'Name',
         },
@@ -111,6 +119,7 @@ export async function POST(request: Request) {
     }
 
     const checkoutData = await checkoutResponse.json();
+    console.log('Checkout created successfully!');
 
     return NextResponse.json({
       success: true,
