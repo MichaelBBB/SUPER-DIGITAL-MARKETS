@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     }
 
     // Step 1: Get Access Token
-    // NOTE: Using the exact endpoint and payload format expected by Peach
+    // NOTE: Using snake_case fields as required by OAuth/Peach
     const tokenResponse = await fetch('https://dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
       headers: {
@@ -28,10 +28,10 @@ export async function POST(request: Request) {
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        client_id: clientId,       // Changed from clientId to client_id
-        client_secret: clientSecret, // Changed from clientSecret to client_secret
-        merchant_id: merchantId,     // Changed from merchantId to merchant_id
-        grant_type: 'client_credentials' // Often required for OAuth
+        client_id: clientId,       
+        client_secret: clientSecret, 
+        merchant_id: merchantId,     
+        grant_type: 'client_credentials' 
       }),
     });
 
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
         'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: Math.round(amount * 100), 
         currency: currency.toUpperCase(),
         description: item || 'Digital Product Purchase',
         merchantReference: `ORDER-${Date.now()}`,
