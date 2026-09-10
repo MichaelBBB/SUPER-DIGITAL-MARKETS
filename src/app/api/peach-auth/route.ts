@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'; // Forces this route to run on every request, not at build time
+export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 
@@ -12,36 +12,64 @@ export async function POST(request: Request) {
     const merchantId = process.env.PEACH_MERCHANT_ID;
 
     if (!clientId || !clientSecret || !merchantId) {
+      console.error('Missing credentials:', { hasClientId: !!clientId, hasClientSecret: !!clientSecret, hasMerchantId: !!merchantId });
       return NextResponse.json(
-        { error: 'Peach Payments credentials not configured' },
+        { error: 'Peach Payments credentials missing' },
         { status: 500 }
       );
     }
 
     // Step 1: Get Access Token
+    // NOTE: Using the exact endpoint and payload format expected by Peach
     const tokenResponse = await fetch('https://dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify({
-        clientId,
-        clientSecret,
-        merchantId,
+        client_id: clientId,       // Changed from clientId to client_id
+        client_secret: clientSecret, // Changed from clientSecret to client_secret
+        merchant_id: merchantId,     // Changed from merchantId to merchant_id
+        grant_type: 'client_credentials' // Often required for OAuth
       }),
     });
 
+    const tokenText = await tokenResponse.text();
+    console.log('Token Response Status:', tokenResponse.status);
+    console.log('Token Response Body:', tokenText);
+
     if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('Token Error:', errorText);
       return NextResponse.json(
-        { error: 'Failed to get access token', details: errorText },
+        { 
+          error: 'Failed to get access token', 
+          details: tokenText,
+          status: tokenResponse.status
+        },
         { status: 401 }
       );
     }
 
-    const tokenData = await tokenResponse.json();
+    let tokenData;
+    try {
+      tokenData = JSON.parse(tokenText);
+    } catch (e) {
+      console.error('Failed to parse token response:', e);
+      return NextResponse.json(
+        { error: 'Invalid response from Peach Payments', details: tokenText },
+        { status: 500 }
+      );
+    }
+
     const accessToken = tokenData.access_token;
+
+    if (!accessToken) {
+      console.error('No access_token in response:', tokenData);
+      return NextResponse.json(
+        { error: 'No access token received', details: tokenData },
+        { status: 401 }
+      );
+    }
 
     // Step 2: Create Checkout Session
     const checkoutResponse = await fetch('https://checkout.peachpayments.com/api/v1/sessions', {
@@ -55,11 +83,11 @@ export async function POST(request: Request) {
         currency: currency.toUpperCase(),
         description: item || 'Digital Product Purchase',
         merchantReference: `ORDER-${Date.now()}`,
-        returnUrl: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`,
-        cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
+        returnUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`,
+        cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment?item=${encodeURIComponent(item)}&amount=${amount}&cancelled=true`,
         webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/peach`,
         customer: {
-          email: 'customer@example.com', // You can get this from your form
+          email: 'customer@example.com', 
           firstName: 'Customer',
           lastName: 'Name',
         },
@@ -86,7 +114,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      checkoutUrl: checkoutData.redirectUrl || checkoutData.checkoutUrl,
+      checkoutUrl: checkoutData.redirectUrl || checkoutData.checkoutUrl || checkoutData.url,
       sessionId: checkoutData.id,
     });
 
