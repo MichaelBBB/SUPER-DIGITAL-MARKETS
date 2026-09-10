@@ -14,34 +14,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Credentials missing' }, { status: 500 });
     }
 
-    // Try Standard OAuth Format with grant_type
+    // TRY: Exact format from Peach's cURL example (CamelCase, NO grant_type)
     const tokenBody = {
-      client_id: clientId,
-      client_secret: clientSecret,
-      merchant_id: merchantId,
-      grant_type: 'client_credentials'
+      clientId: clientId,       
+      clientSecret: clientSecret, 
+      merchantId: merchantId      
+      // NO grant_type included
     };
 
-    console.log('Sending Token Request...', tokenBody);
+    console.log('Sending Token Request (CamelCase)...', tokenBody);
 
     const tokenResponse = await fetch('https://dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify(tokenBody),
     });
 
     const tokenText = await tokenResponse.text();
     
-    // CRITICAL: Log the EXACT response from Peach
-    console.log(' PEACH RESPONSE STATUS:', tokenResponse.status);
-    console.log('🍑 PEACH RESPONSE BODY:', tokenText);
+    console.log(' PEACH STATUS:', tokenResponse.status);
+    console.log('🍑 PEACH RAW RESPONSE:', tokenText);
 
     if (!tokenResponse.ok) {
-      // Return the raw error from Peach so we can see it
       return NextResponse.json(
         { 
           error: 'Token Failed', 
-          peachError: tokenText, // This will show up in your logs!
+          peachError: tokenText, // This shows the real error!
           status: tokenResponse.status 
         },
         { status: 401 }
