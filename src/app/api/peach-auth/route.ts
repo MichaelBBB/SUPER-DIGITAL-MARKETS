@@ -14,15 +14,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Credentials missing' }, { status: 500 });
     }
 
-    // FIX: Use client_id (underscore) instead of clientId
+    // TRY: Standard OAuth 2.0 Format (Underscores + grant_type)
     const tokenBody = {
       client_id: clientId,       
       client_secret: clientSecret, 
       merchant_id: merchantId,     
-      grant_type: 'client_credentials' // Include standard grant type
+      grant_type: 'client_credentials' 
     };
 
-    console.log('Sending Token Request (Correct Format)...', tokenBody);
+    console.log('Sending Standard OAuth Request...', tokenBody);
 
     const tokenResponse = await fetch('https://dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { 
           error: 'Token Failed', 
-          peachError: tokenText, 
+          peachError: tokenText, // This shows the real error!
           status: tokenResponse.status 
         },
         { status: 401 }
@@ -55,8 +55,6 @@ export async function POST(request: Request) {
     if (!accessToken) {
       return NextResponse.json({ error: 'No token in response', details: tokenData }, { status: 401 });
     }
-
-    console.log('✅ Access Token Received Successfully!');
 
     // Create Checkout
     const checkoutResponse = await fetch('https://checkout.peachpayments.com/api/v1/sessions', {
