@@ -24,19 +24,25 @@ export async function POST(request: Request) {
       );
     }
 
-    // Step 1: Get Access Token - Using EXACT format from Peach's cURL example
+    // Step 1: Get Access Token - Using Standard OAuth 2.0 Format
     console.log('Requesting token from Peach...');
+    
+    const tokenBody = {
+      client_id: clientId,       // Standard OAuth uses underscore
+      client_secret: clientSecret, 
+      merchant_id: merchantId,     
+      grant_type: 'client_credentials' // CRITICAL: Required by most OAuth servers
+    };
+
+    console.log('Sending Payload:', JSON.stringify(tokenBody));
+
     const tokenResponse = await fetch('https://dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        clientId: clientId,       // CamelCase as per Peach example
-        clientSecret: clientSecret, // CamelCase
-        merchantId: merchantId      // CamelCase
-      }),
+      body: JSON.stringify(tokenBody),
     });
 
     const tokenText = await tokenResponse.text();
