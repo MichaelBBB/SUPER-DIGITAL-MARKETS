@@ -6,34 +6,27 @@ export async function POST(request: Request) {
   try {
     const { amount, item, currency = 'USD' } = await request.json();
 
-    // 1. Load Credentials
     const clientId = process.env.PEACH_CLIENT_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
     
-    // ⚠️ CRITICAL FIX: Use the CORRECT Merchant ID provided by Peach Support
-    // Old (Wrong): 9e65f2c5950c4b483ffbd225bd6f027
-    // New (Correct): 9e65f2c5950c4b8483ffbd225bd6f027
+    // Use the CORRECT Merchant ID provided by Peach
     const merchantId = "9e65f2c5950c4b8483ffbd225bd6f027"; 
 
     if (!clientId || !clientSecret || !merchantId) {
-      console.error('❌ MISSING ENV VARS');
       return NextResponse.json({ error: 'Credentials missing' }, { status: 500 });
     }
 
-    console.log('🔑 Using Correct Merchant ID:', merchantId);
+    console.log('Sending Token Request with Underscores...');
 
-    // 2. Prepare Payload EXACTLY as per Peach's instruction
-    // - Use camelCase (clientId, merchantId)
-    // - NO grant_type
+    // FIX: Use underscores (client_id) instead of camelCase (clientId)
+    // This is what the server actually accepts despite their email instruction
     const tokenBody = {
-      clientId: clientId,       
-      clientSecret: clientSecret, 
-      merchantId: merchantId      
+      client_id: clientId,       
+      client_secret: clientSecret, 
+      merchant_id: merchantId      
+      // NO grant_type
     };
 
-    console.log('📤 Sending Token Request (CamelCase, No Grant Type)...');
-
-    // 3. Fetch Token
     const tokenResponse = await fetch('https://dashboard.peachpayments.com/api/oauth/token', {
       method: 'POST',
       headers: { 
@@ -64,7 +57,6 @@ export async function POST(request: Request) {
 
     console.log('✅ TOKEN RECEIVED! Creating Checkout...');
 
-    // 4. Create Checkout
     const checkoutResponse = await fetch('https://checkout.peachpayments.com/api/v1/sessions', {
       method: 'POST',
       headers: {
