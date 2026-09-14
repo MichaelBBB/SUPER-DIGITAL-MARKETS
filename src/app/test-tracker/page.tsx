@@ -1,267 +1,102 @@
-'use client';
+export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
-// Initialize Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+export async function POST(request: Request) {
+  try {
+    const { amount, item, currency = 'USD' } = await request.json();
 
-export default function TestTrackerPage() {
-  const [data, setData] = useState<any[]>([]);
-  const [status, setStatus] = useState('Connecting...');
-  const [lastUpdated, setLastUpdated] = useState('Never');
-  
-  // State to prevent hydration mismatch
-  const [mounted, setMounted] = useState(false);
+    // 1. Load Credentials
+    const clientId = process.env.PEACH_CLIENT_ID;
+    const clientSecret = process.env.PEACH_CLIENT_SECRET;
+    
+    // ⚠️ CRITICAL FIX: Use the CORRECT Merchant ID provided by Peach
+    // Old (Wrong): 9e65f2c5950c4b483ffbd225bd6f027
+    // New (Correct): 9e65f2c5950c4b8483ffbd225bd6f027
+    const merchantId = "9e65f2c5950c4b8483ffbd225bd6f027"; 
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!clientId || !clientSecret || !merchantId) {
+      return NextResponse.json({ error: 'Credentials missing' }, { status: 500 });
+    }
 
-  useEffect(() => {
-    if (!supabase || !mounted) return;
+    console.log('🔑 Using Correct Merchant ID:', merchantId);
 
-    const fetchData = async () => {
-      setStatus('Fetching...');
-      try {
-        // Fetch ALL data from sales_counts
-        const { data: rows, error } = await supabase.from('sales_counts').select('*');
-        
-        if (error) {
-          setStatus(`ERROR: ${error.message}`);
-          console.error('Supabase Error:', error);
-          return;
-        }
-
-        if (!rows) {
-          setStatus('WARNING: No data returned');
-          setData([]);
-        } else {
-          setStatus(`SUCCESS: Loaded ${rows.length} rows`);
-          setData(rows);
-        }
-        
-        setLastUpdated(new Date().toLocaleTimeString());
-      } catch (err) {
-        setStatus('ERROR: Fetch Failed');
-        console.error(err);
-      }
+    // 2. Prepare Payload EXACTLY as per Peach's new instruction
+    // - Use camelCase (clientId, merchantId)
+    // - NO grant_type
+    const tokenBody = {
+      clientId: clientId,       
+      clientSecret: clientSecret, 
+      merchantId: merchantId      
     };
 
-    // Fetch immediately
-    fetchData();
+    console.log('📤 Sending Token Request (CamelCase, No Grant Type)...');
+
+    // 3. Fetch Token
+    const tokenResponse = await fetch('https://dashboard.peachpayments.com/api/oauth/token', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(tokenBody),
+    });
+
+    const tokenText = await tokenResponse.text();
     
-    // Then every 3 seconds
-    const interval = setInterval(fetchData, 3000);
+    console.log(' PEACH STATUS:', tokenResponse.status);
+    console.log(' PEACH RAW RESPONSE:', tokenText);
+
+    if (!tokenResponse.ok) {
+      return NextResponse.json(
+        { error: 'Token Failed', details: tokenText },
+        { status: 401 }
+      );
+    }
+
+    const tokenData = JSON.parse(tokenText);
+    const accessToken = tokenData.access_token;
+
+    if (!accessToken) {
+      return NextResponse.json({ error: 'No token in response' }, { status: 401 });
+    }
+
+    console.log('✅ TOKEN RECEIVED! Creating Checkout...');
+
+    // 4. Create Checkout
+    const checkoutResponse = await fetch('https://checkout.peachpayments.com/api/v1/sessions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        amount: Math.round(amount * 100),
+        currency: currency.toUpperCase(),
+        description: item || 'Digital Product Purchase',
+        merchantReference: `ORDER-${Date.now()}`,
+        returnUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`,
+        cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment?cancelled=true`,
+        webhookUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/peach`,
+        customer: { email: 'customer@example.com', firstName: 'Customer', lastName: 'Name' },
+        items: [{ name: item, quantity: 1, unitPrice: Math.round(amount * 100) }],
+      }),
+    });
+
+    if (!checkoutResponse.ok) {
+      const errText = await checkoutResponse.text();
+      return NextResponse.json({ error: 'Checkout Failed', details: errText }, { status: 500 });
+    }
+
+    const checkoutData = await checkoutResponse.json();
     
-    return () => clearInterval(interval);
-  }, [mounted]);
+    return NextResponse.json({
+      success: true,
+      checkoutUrl: checkoutData.redirectUrl || checkoutData.checkoutUrl,
+    });
 
-  // Calculate totals safely
-  const totalOrders = data.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
-  const totalRevenue = totalOrders * 5; // Assuming $5 per order
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="text-xl text-cyan-400 animate-pulse">Loading Live Tracker...</div>
-      </div>
-    );
+  } catch (error) {
+    console.error('API Crash:', error);
+    return NextResponse.json({ error: 'Server Error' }, { status: 500 });
   }
-
-  return (
-    <div className="min-h-screen bg-gray-900 text-white p-8 font-mono" suppressHydrationWarning>
-      <h1 className="text-3xl font-bold mb-6 text-cyan-400"> LIVE TRACKER TEST</h1>
-      
-      {/* Status Bar */}
-      <div className={`p-4 rounded mb-6 border ${status.includes('ERROR') ? 'bg-red-900/50 border-red-500' : 'bg-green-900/50 border-green-500'}`} suppressHydrationWarning>
-        <strong>STATUS:</strong> {status} <br/>
-        <strong>Last Updated:</strong> {lastUpdated}
-      </div>
-
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-          <h3 className="text-lg font-bold text-gray-300 mb-2">Total Orders</h3>
-          <p className="text-3xl font-bold text-green-400" suppressHydrationWarning>{totalOrders.toLocaleString()}</p>
-        </div>
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-          <h3 className="text-lg font-bold text-gray-300 mb-2">Total Revenue (USD)</h3>
-          <p className="text-3xl font-bold text-cyan-400" suppressHydrationWarning">${totalRevenue.toLocaleString()}</p>
-        </div>
-      </div>
-
-      {/* Raw Data Display */}
-      <div className="bg-black p-6 rounded-lg border border-gray-700 overflow-x-auto mb-8">
-        <h2 className="text-xl font-bold mb-4 text-gray-300">Raw Database Data:</h2>
-        <pre className="text-sm text-green-400 whitespace-pre-wrap" suppressHydrationWarning>
-          {JSON.stringify(data, null, 2)}
-        </pre>
-      </div>
-
-      {/* Country Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {data.map((row: any, idx) => (
-          <div key={idx} className="bg-gray-800 p-6 rounded-lg border border-gray-600 hover:border-cyan-500 transition-colors">
-            <h3 className="text-xl font-bold capitalize text-cyan-300 mb-2" suppressHydrationWarning>
-              {row.region || row.country || 'Unknown'}
-            </h3>
-            <div className="space-y-2">
-              <p className="text-sm text-gray-400">Count: <span className="text-white font-bold" suppressHydrationWarning>{Number(row.count).toLocaleString()}</span></p>
-              <p className="text-2xl font-bold text-green-400" suppressHydrationWarning>
-                ${(Number(row.count) * 5).toLocaleString()}
-              </p>
-              <p className="text-xs text-gray-500">ID: {row.id}</p>
-            </div>
-          </div>
-        ))}
-        {data.length === 0 && (
-          <div className="col-span-full text-center py-12 text-gray-500">
-            No data found. Check Supabase table 'sales_counts'.
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}'use client';
-
-import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-
-export default function TestTrackerPage() {
-  const [rawData, setRawData] = useState<any[]>([]);
-  const [status, setStatus] = useState('Connecting...');
-  const [lastUpdated, setLastUpdated] = useState('Never');
-  const [previousData, setPreviousData] = useState<any[]>([]);
-  const [changedRows, setChangedRows] = useState<string[]>([]);
-  
-  // FIX: Prevent Hydration Mismatch by waiting for client mount
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    // FIX: Only fetch after mounting to avoid server/client mismatch
-    if (!supabase || !mounted) return;
-
-    const fetchData = async () => {
-      setStatus('Fetching...');
-      try {
-        const { data, error } = await supabase.from('sales_counts').select('*');
-        
-        if (error) {
-          setStatus(`ERROR: ${error.message}`);
-          console.error('Supabase Error:', error);
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          setStatus('WARNING: Table is Empty');
-          setRawData([]);
-        } else {
-          setStatus(`SUCCESS: Found ${data.length} rows`);
-          
-          // Detect changes for visual feedback
-          const changes: string[] = [];
-          data.forEach((row: any) => {
-            const prevRow = previousData.find((p: any) => p.id === row.id);
-            if (prevRow && prevRow.count !== row.count) {
-              changes.push(`${row.region}: ${prevRow.count} → ${row.count}`);
-            }
-          });
-          
-          setChangedRows(changes);
-          setPreviousData(data);
-          setRawData(data);
-        }
-        
-        setLastUpdated(new Date().toLocaleTimeString());
-      } catch (err) {
-        setStatus('ERROR: Fetch Failed');
-        console.error(err);
-      }
-    };
-
-    fetchData();
-    const interval = setInterval(fetchData, 3000); 
-    return () => clearInterval(interval);
-  }, [mounted]);
-
-  const totalRevenue = rawData.reduce((sum, row) => sum + (row.count * 5), 0);
-  const totalOrders = rawData.reduce((sum, row) => sum + row.count, 0);
-
-  // FIX: Show loading state until mounted to prevent mismatch
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white p-8 font-mono flex items-center justify-center">
-        <div className="text-xl text-cyan-400 animate-pulse">Initializing Live Tracker...</div>
-      </div>
-    );
-  }
-
-  return (
-    // FIX: Suppress hydration warnings for dynamic content
-    <div className="min-h-screen bg-gray-900 text-white p-8 font-mono" suppressHydrationWarning>
-      <h1 className="text-3xl font-bold mb-4 text-cyan-400">🧪 ISOLATED TRACKER TEST</h1>
-      
-      <div className={`p-4 rounded mb-6 border ${status.includes('ERROR') ? 'bg-red-900/50 border-red-500' : status.includes('WARNING') ? 'bg-yellow-900/50 border-yellow-500' : 'bg-green-900/50 border-green-500'}`} suppressHydrationWarning>
-        <strong>STATUS:</strong> {status} <br/>
-        <strong>Last Updated:</strong> {lastUpdated}
-        {changedRows.length > 0 && (
-          <div className="mt-2 text-sm">
-            <strong>Changes detected:</strong>
-            <ul className="list-disc list-inside">
-              {changedRows.map((change, idx) => (
-                <li key={idx} className="text-green-300">{change}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-          <h3 className="text-lg font-bold text-gray-300 mb-2">Total Orders</h3>
-          <p className="text-3xl font-bold text-green-400" suppressHydrationWarning>{totalOrders.toLocaleString()}</p>
-        </div>
-        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-          <h3 className="text-lg font-bold text-gray-300 mb-2">Total Revenue</h3>
-          <p className="text-3xl font-bold text-cyan-400" suppressHydrationWarning>${totalRevenue.toLocaleString()}</p>
-        </div>
-      </div>
-
-      <div className="bg-black p-6 rounded-lg border border-gray-700 overflow-x-auto mb-8">
-        <h2 className="text-xl font-bold mb-4 text-gray-300">Raw Database Response:</h2>
-        <pre className="text-sm text-green-400 whitespace-pre-wrap" suppressHydrationWarning>
-          {JSON.stringify(rawData, null, 2)}
-        </pre>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {rawData.map((row: any, idx) => (
-          <div key={idx} className="bg-gray-800 p-6 rounded-lg border border-gray-600 hover:border-cyan-500 transition-colors">
-            <h3 className="text-xl font-bold capitalize text-cyan-300 mb-2" suppressHydrationWarning>{row.region}</h3>
-            <div className="space-y-2">
-              <p className="text-sm text-gray-400">Count: <span className="text-white font-bold" suppressHydrationWarning>{row.count.toLocaleString()}</span></p>
-              <p className="text-2xl font-bold text-green-400" suppressHydrationWarning>${(row.count * 5).toLocaleString()}</p>
-              <p className="text-xs text-gray-500">ID: {row.id}</p>
-            </div>
-          </div>
-        ))}
-        {rawData.length === 0 && (
-          <div className="col-span-full text-center py-12 text-gray-500">
-            No data to display yet.
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }
