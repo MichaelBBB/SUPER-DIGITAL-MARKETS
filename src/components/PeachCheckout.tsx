@@ -25,6 +25,7 @@ export default function PeachCheckout({
     setError(null);
 
     try {
+      // CRITICAL FIX: Must call our internal API route, NOT Peach directly
       const response = await fetch('/api/peach-auth', {
         method: 'POST',
         headers: {
@@ -40,7 +41,7 @@ export default function PeachCheckout({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Checkout failed');
+        throw new Error(data.error || data.details || 'Checkout failed');
       }
 
       if (data.success && data.checkoutUrl) {
