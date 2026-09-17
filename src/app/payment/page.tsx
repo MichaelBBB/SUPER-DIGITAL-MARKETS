@@ -43,14 +43,6 @@ function PaymentContent() {
           </div>
         </div>
 
-        {/* ⚠️ TEMPORARY NOTICE: Card Payments Under Maintenance */}
-        <div className="bg-yellow-900/30 border border-yellow-600 p-4 rounded-lg mb-6 text-center">
-          <p className="text-yellow-200 text-sm">
-            🔧 <strong>Card payments are temporarily undergoing maintenance.</strong><br/>
-            Please use WhatsApp or Bank Transfer below for <strong>instant activation</strong>.
-          </p>
-        </div>
-
         {/* PRIMARY OPTION: WhatsApp (Fastest) */}
         <div className="bg-green-900/20 p-8 rounded-xl border border-green-600 mb-6 text-center shadow-lg shadow-green-900/20">
           <h3 className="text-2xl font-bold text-white mb-2 flex items-center justify-center gap-2">
