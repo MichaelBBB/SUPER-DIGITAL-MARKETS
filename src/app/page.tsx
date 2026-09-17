@@ -33,7 +33,7 @@ export default function Home() {
             
             <Link href="/payment?item=Test+Product&amount=10.99">
               <button className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full text-lg shadow-lg shadow-green-500/30 transition-all transform hover:scale-105">
-                Go To Payment Panel
+                Test Payment
               </button>
             </Link>
           </div>
@@ -78,3 +78,14 @@ export default function Home() {
               <h3 className="text-xl font-bold mb-3">Global Access</h3>
               <p className="text-gray-400">Shop from anywhere in the world. We support customers across all continents.</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-8 px-6 bg-black border-t border-gray-800 text-center">
+        <p className="text-gray-500 text-sm">© 2026 Super Digital Markets. All rights reserved.</p>
+      </footer>
+    </div>
+  );
+}
