@@ -1,4 +1,4 @@
-'use client'; // CRITICAL: Must be at the very top for interactive state
+'use client'; // CRITICAL: Must be at the very top
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
@@ -12,8 +12,12 @@ function PaymentContent() {
   const phoneNumber = "27641061358"; 
   const capitecAccountName = "MR MB BLUMENTHAL";
   const capitecAccountNumber = "1975933441";
-  const capitecBranchCode = "470010"; // For SA Only
-  const capitecSwiftCode = "CABLZAJJ"; // For International (USA, India, China, etc.)
+  
+  // SA Only
+  const capitecBranchCode = "470010"; 
+  
+  // International Only (Exactly as typed)
+  const capitecSwiftCode = "CABLZAJJ"; 
   const capitecBankAddress = "1 Neutron Street, Techno Park, Stellenbosch, 7600, South Africa";
   
   const orderRef = `ORDER-${Math.floor(Math.random() * 10000)}`;
@@ -26,7 +30,7 @@ function PaymentContent() {
     const base = `Hi Super Digital Markets! %0A%0A🛒 *ORDER DETAILS*%0AItem: ${encodeURIComponent(item)}%0AAmount: *$${amount.toFixed(2)}%0AReference: ${orderRef}%0A%0A`;
     
     if (selectedCountry === 'south-africa') {
-      return base + `📋 *PAYMENT METHOD: EFT (Capitec)*%0A%0AI have made the payment via EFT.%0A%0A Attached is my proof of payment.%0A✅ Please send my download link.`;
+      return base + `📋 *PAYMENT METHOD: EFT (Capitec)*%0A%0AI have made the payment via EFT.%0A%0A📎 Attached is my proof of payment.%0A✅ Please send my download link.`;
     } else {
       return base + `📋 *PAYMENT METHOD: International Wire (SWIFT)*%0A%0AI have sent the money via SWIFT/Wire to your Capitec account.%0A%0A📎 Attached is my proof of payment.%0A✅ Please send my download link.`;
     }
@@ -77,7 +81,7 @@ function PaymentContent() {
           </select>
         </div>
 
-        {/* --- SOUTH AFRICA: LOCAL CAPITEC DETAILS --- */}
+        {/* --- SOUTH AFRICA: LOCAL CAPITEC DETAILS (BRANCH CODE) --- */}
         {selectedCountry === 'south-africa' && (
           <div className="bg-blue-900/20 border border-blue-600/50 p-8 rounded-2xl shadow-lg shadow-blue-900/20 animate-fade-in">
             <h2 className="text-2xl font-bold text-white mb-6 text-center">🏦 Capitec Banking Details (SA)</h2>
@@ -119,10 +123,10 @@ function PaymentContent() {
           </div>
         )}
 
-        {/* --- INTERNATIONAL: CAPITEC SWIFT DETAILS (USA, India, China) --- */}
+        {/* --- INTERNATIONAL: CAPITEC SWIFT DETAILS (USA, INDIA, CHINA) --- */}
         {selectedCountry !== 'south-africa' && (
           <div className="bg-blue-900/20 border border-blue-600/50 p-8 rounded-2xl shadow-lg shadow-blue-900/20 animate-fade-in">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center"> International Wire Details (SWIFT)</h2>
+            <h2 className="text-2xl font-bold text-white mb-6 text-center">🌍 International Wire Details (SWIFT)</h2>
             <p className="text-center text-gray-400 mb-6 text-sm">Send money directly to our Capitec Account via SWIFT</p>
             
             <div className="space-y-4 bg-black/40 p-6 rounded-xl border border-blue-800/50">
@@ -132,7 +136,7 @@ function PaymentContent() {
               </div>
               <div className="flex justify-between items-center border-b border-gray-800 pb-3">
                 <span className="text-gray-400">SWIFT/BIC Code:</span>
-                <span className="text-green-400 font-mono text-lg">{capitecSwiftCode}</span>
+                <span className="text-green-400 font-mono text-lg">CABLZAJJ</span>
               </div>
               <div className="flex justify-between items-center border-b border-gray-800 pb-3">
                 <span className="text-gray-400">Bank Address:</span>
@@ -164,7 +168,7 @@ function PaymentContent() {
               </ol>
               {selectedCountry === 'usa' && (
                 <p className="text-xs text-yellow-400 mt-2">
-                  ️ USA Clients: Do NOT select "ACH". Select "International Wire" using the SWIFT code above.
+                  ⚠️ USA Clients: Do NOT select "ACH". Select "International Wire" using the SWIFT code above.
                 </p>
               )}
             </div>
