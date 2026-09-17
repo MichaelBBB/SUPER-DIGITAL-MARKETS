@@ -13,14 +13,14 @@ function PaymentContent() {
   const capitecAccountName = "MR MB BLUMENTHAL";
   const capitecAccountNumber = "1975933441";
   
-  // SA Only
+  // SA Only (NEVER shown to International)
   const capitecBranchCode = "470010"; 
   
-  // International SWIFT (Hardcoded Exactly As Typed)
+  // International Only (NEVER shown to SA)
   const capitecSwiftCode = "CABLZAJJ"; 
   const capitecBankAddress = "1 Neutron Street, Techno Park, Stellenbosch, 7600, South Africa";
   
-  // International App Placeholders (Fill these in when ready)
+  // International App Placeholders
   const wiseEmail = "YOUR_WISE_EMAIL_HERE"; 
   const paypalEmail = "YOUR_PAYPAL_EMAIL_HERE";
   const upiId = "YOUR_UPI_ID_HERE";
@@ -39,11 +39,11 @@ function PaymentContent() {
     if (selectedCountry === 'south-africa') {
       return base + `📋 *PAYMENT METHOD: EFT (Capitec)*%0A%0AI have made the payment via EFT.%0A%0A📎 Attached is my proof of payment.%0A✅ Please send my download link.`;
     } else if (selectedCountry === 'usa') {
-      return base + ` *PAYMENT METHOD: Wise/PayPal/SWIFT*%0A%0AI have made the payment using the details shown.%0A%0A📎 Attached is my proof of payment.%0A✅ Please send my download link.`;
+      return base + `📋 *PAYMENT METHOD: Wise/PayPal/SWIFT*%0A%0AI have made the payment using the details shown.%0A%0A📎 Attached is my proof of payment.%0A✅ Please send my download link.`;
     } else if (selectedCountry === 'india') {
-      return base + `📋 *PAYMENT METHOD: UPI/Wise/SWIFT*%0A%0AI have made the payment using the details shown.%0A%0A📎 Attached is my proof of payment.%0A✅ Please send my download link.`;
+      return base + `📋 *PAYMENT METHOD: UPI/Wise/SWIFT*%0A%0AI have made the payment using the details shown.%0A%0A Attached is my proof of payment.%0A✅ Please send my download link.`;
     } else if (selectedCountry === 'china') {
-      return base + ` *PAYMENT METHOD: Alipay/WeChat/SWIFT*%0A%0AI have made the payment using the details shown.%0A%0A📎 Attached is my proof of payment.%0A✅ Please send my download link.`;
+      return base + `📋 *PAYMENT METHOD: Alipay/WeChat/SWIFT*%0A%0AI have made the payment using the details shown.%0A%0A📎 Attached is my proof of payment.%0A✅ Please send my download link.`;
     }
     return base;
   };
@@ -79,7 +79,7 @@ function PaymentContent() {
         {/* Country Selector */}
         <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
           <label className="block text-sm font-medium text-gray-300 mb-3">
-            🌍 Select Your Country:
+             Select Your Country:
           </label>
           <select 
             value={selectedCountry}
@@ -93,7 +93,7 @@ function PaymentContent() {
           </select>
         </div>
 
-        {/* --- SOUTH AFRICA: LOCAL CAPITEC DETAILS --- */}
+        {/* --- SOUTH AFRICA: LOCAL CAPITEC DETAILS (BRANCH CODE ONLY) --- */}
         {selectedCountry === 'south-africa' && (
           <div className="bg-blue-900/20 border border-blue-600/50 p-8 rounded-2xl shadow-lg shadow-blue-900/20 animate-fade-in">
             <h2 className="text-2xl font-bold text-white mb-6 text-center">🏦 Capitec Banking Details (SA)</h2>
@@ -135,40 +135,80 @@ function PaymentContent() {
           </div>
         )}
 
-        {/* --- USA: WISE / PAYPAL / SWIFT --- */}
-        {selectedCountry === 'usa' && (
+        {/* --- INTERNATIONAL: SWIFT CODE ONLY (NO BRANCH CODE) --- */}
+        {selectedCountry !== 'south-africa' && (
           <div className="bg-blue-900/20 border border-blue-600/50 p-8 rounded-2xl shadow-lg shadow-blue-900/20 animate-fade-in">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">🇺🇸 USA Payment Options</h2>
+            <h2 className="text-2xl font-bold text-white mb-6 text-center">🌍 International Payment Options</h2>
             
             <div className="space-y-6">
-              {/* Option 1: Wise/PayPal */}
-              <div className="bg-black/40 p-6 rounded-xl border border-blue-800/50">
+              {/* Option 1: Apps (Recommended) */}
+              <div className="bg-black/40 p-6 rounded-xl border border-green-800/50">
                 <h3 className="text-lg font-bold text-green-400 mb-4">⭐ Recommended (Fast & Cheap)</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Wise Email:</span>
-                    <span className="text-white font-mono">{wiseEmail}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">PayPal Email:</span>
-                    <span className="text-white font-mono">{paypalEmail}</span>
-                  </div>
+                <div className="space-y-3 text-sm">
+                  {selectedCountry === 'usa' && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Wise Email:</span>
+                        <span className="text-white font-mono">{wiseEmail}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">PayPal Email:</span>
+                        <span className="text-white font-mono">{paypalEmail}</span>
+                      </div>
+                    </>
+                  )}
+                  {selectedCountry === 'india' && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">UPI ID:</span>
+                        <span className="text-white font-mono">{upiId}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Wise Email:</span>
+                        <span className="text-white font-mono">{wiseEmail}</span>
+                      </div>
+                    </>
+                  )}
+                  {selectedCountry === 'china' && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Alipay ID:</span>
+                        <span className="text-white font-mono">{alipayId}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">WeChat ID:</span>
+                        <span className="text-white font-mono">{weChatId}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
-              {/* Option 2: SWIFT */}
+              {/* Option 2: Direct Bank (SWIFT ONLY - NO BRANCH CODE) */}
               <div className="bg-black/40 p-6 rounded-xl border border-gray-800">
-                <h3 className="text-lg font-bold text-gray-400 mb-4">🏦 Direct Bank (SWIFT)</h3>
-                <div className="space-y-2 text-sm">
+                <h3 className="text-lg font-bold text-gray-400 mb-4">🏦 Direct Bank Transfer (SWIFT)</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">SWIFT/BIC Code:</span>
+                    <span className="text-green-400 font-mono font-bold text-lg">CABLZAJJ</span>
+                  </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">SWIFT Code:</span>
-                    <span className="text-green-400 font-mono font-bold">CABLZAJJ</span>
+                    <span className="text-gray-400">Bank Name:</span>
+                    <span className="text-white">Capitec Bank</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Account Name:</span>
+                    <span className="text-white">{capitecAccountName}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Account Number:</span>
                     <span className="text-white font-mono">{capitecAccountNumber}</span>
                   </div>
-                  <p className="text-xs text-yellow-500 mt-2">⚠️ Note: SWIFT may incur higher fees ($20-$50).</p>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Bank Address:</span>
+                    <span className="text-white text-xs text-right max-w-[200px]">{capitecBankAddress}</span>
+                  </div>
+                  <p className="text-xs text-yellow-500 mt-2">️ Note: SWIFT may incur higher fees ($20-$50). Do NOT use Branch Code 470010.</p>
                 </div>
               </div>
             </div>
@@ -176,103 +216,7 @@ function PaymentContent() {
             <div className="mt-6 bg-blue-900/30 p-4 rounded-lg border border-blue-700/50">
               <h3 className="font-bold text-blue-200 mb-2">📝 Payment Instructions:</h3>
               <ol className="text-sm text-blue-100 space-y-2 list-decimal list-inside">
-                <li>Use Wise/PayPal for lowest fees OR SWIFT for direct bank transfer.</li>
-                <li>Use the Order Reference in the notes.</li>
-                <li>Click the green WhatsApp button below to send proof.</li>
-              </ol>
-            </div>
-          </div>
-        )}
-
-        {/* --- INDIA: UPI / WISE / SWIFT --- */}
-        {selectedCountry === 'india' && (
-          <div className="bg-blue-900/20 border border-blue-600/50 p-8 rounded-2xl shadow-lg shadow-blue-900/20 animate-fade-in">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">🇮🇳 India Payment Options</h2>
-            
-            <div className="space-y-6">
-              {/* Option 1: UPI/Wise */}
-              <div className="bg-black/40 p-6 rounded-xl border border-blue-800/50">
-                <h3 className="text-lg font-bold text-green-400 mb-4">⭐ Recommended (Fast & Cheap)</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">UPI ID:</span>
-                    <span className="text-white font-mono">{upiId}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Wise Email:</span>
-                    <span className="text-white font-mono">{wiseEmail}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Option 2: SWIFT */}
-              <div className="bg-black/40 p-6 rounded-xl border border-gray-800">
-                <h3 className="text-lg font-bold text-gray-400 mb-4">🏦 Direct Bank (SWIFT)</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">SWIFT Code:</span>
-                    <span className="text-green-400 font-mono font-bold">CABLZAJJ</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Account Number:</span>
-                    <span className="text-white font-mono">{capitecAccountNumber}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 bg-blue-900/30 p-4 rounded-lg border border-blue-700/50">
-              <h3 className="font-bold text-blue-200 mb-2">📝 Payment Instructions:</h3>
-              <ol className="text-sm text-blue-100 space-y-2 list-decimal list-inside">
-                <li>Use UPI/Wise for lowest fees OR SWIFT for direct bank transfer.</li>
-                <li>Use the Order Reference in the notes.</li>
-                <li>Click the green WhatsApp button below to send proof.</li>
-              </ol>
-            </div>
-          </div>
-        )}
-
-        {/* --- CHINA: ALIPAY / WECHAT / SWIFT --- */}
-        {selectedCountry === 'china' && (
-          <div className="bg-blue-900/20 border border-blue-600/50 p-8 rounded-2xl shadow-lg shadow-blue-900/20 animate-fade-in">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">🇨🇳 China Payment Options</h2>
-            
-            <div className="space-y-6">
-              {/* Option 1: Alipay/WeChat */}
-              <div className="bg-black/40 p-6 rounded-xl border border-blue-800/50">
-                <h3 className="text-lg font-bold text-green-400 mb-4">⭐ Recommended (Fast & Cheap)</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Alipay ID:</span>
-                    <span className="text-white font-mono">{alipayId}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">WeChat ID:</span>
-                    <span className="text-white font-mono">{weChatId}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Option 2: SWIFT */}
-              <div className="bg-black/40 p-6 rounded-xl border border-gray-800">
-                <h3 className="text-lg font-bold text-gray-400 mb-4">🏦 Direct Bank (SWIFT)</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">SWIFT Code:</span>
-                    <span className="text-green-400 font-mono font-bold">CABLZAJJ</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Account Number:</span>
-                    <span className="text-white font-mono">{capitecAccountNumber}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 bg-blue-900/30 p-4 rounded-lg border border-blue-700/50">
-              <h3 className="font-bold text-blue-200 mb-2">📝 Payment Instructions:</h3>
-              <ol className="text-sm text-blue-100 space-y-2 list-decimal list-inside">
-                <li>Use Alipay/WeChat for lowest fees OR SWIFT for direct bank transfer.</li>
+                <li>Use Wise/UPI/Alipay for lowest fees OR SWIFT for direct bank transfer.</li>
                 <li>Use the Order Reference in the notes.</li>
                 <li>Click the green WhatsApp button below to send proof.</li>
               </ol>
