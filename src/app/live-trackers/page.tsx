@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 
-// Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
@@ -15,12 +14,10 @@ export default function LiveTrackersPage() {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
 
-  // Prevent Hydration Mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Fetch Data
   useEffect(() => {
     if (!supabase || !mounted) return;
 
@@ -31,10 +28,9 @@ export default function LiveTrackersPage() {
         
         if (rows) {
           setData(rows);
-          // Calculate totals
           const orders = rows.reduce((sum, r) => sum + (Number(r.count) || 0), 0);
           setTotalOrders(orders);
-          setTotalRevenue(orders * 5); // Assuming $5 avg price
+          setTotalRevenue(orders * 5); 
         }
       } catch (err) {
         console.error("Tracker Error:", err);
@@ -42,32 +38,37 @@ export default function LiveTrackersPage() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 3000); // Update every 3s
+    const interval = setInterval(fetchData, 3000);
     return () => clearInterval(interval);
   }, [mounted]);
 
-  if (!mounted) return <div className="p-10 text-center text-gray-400">Loading Live Trackers...</div>;
-
-  // Helper to get data for a specific country
-  const getCountryData = (name: string) => {
-    // Try matching both "south africa" and "South Africa"
-    return data.find(r => r.region?.toLowerCase() === name.toLowerCase()) || { count: 0 };
+  // ROBUST MATCHING: Handles "southAfrica", "south africa", "South Africa", "RSA"
+  const getCountryData = (possibleNames: string[]) => {
+    return data.find(r => {
+      if (!r.region) return false;
+      // Normalize both the DB value and the search term: remove spaces, lowercase
+      const normalizedDb = r.region.toLowerCase().replace(/\s/g, '');
+      return possibleNames.some(name => 
+        name.toLowerCase().replace(/\s/g, '') === normalizedDb
+      );
+    }) || { count: 0 };
   };
 
-  const sa = getCountryData('south africa');
-  const usa = getCountryData('usa');
-  const ind = getCountryData('india');
-  const chn = getCountryData('china');
+  // Define all possible variations for each country
+  const sa = getCountryData(['southAfrica', 'south africa', 'South Africa', 'rsa']);
+  const usa = getCountryData(['usa', 'united states', 'United States']);
+  const ind = getCountryData(['india', 'India']);
+  const chn = getCountryData(['china', 'China']);
+
+  if (!mounted) return <div className="p-10 text-center text-gray-400">Loading Live Trackers...</div>;
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-sans">
-      {/* Header */}
       <div className="max-w-7xl mx-auto mb-12 text-center">
         <h1 className="text-3xl font-bold mb-2">Live Revenue by Country (USD)</h1>
         <p className="text-gray-400 text-sm">Real-time earnings and recent buyers from each region</p>
       </div>
 
-      {/* Grid */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* SOUTH AFRICA */}
@@ -91,17 +92,7 @@ export default function LiveTrackersPage() {
             <p className="text-xs text-gray-500 uppercase mb-3 font-bold tracking-wider">Recent Buyers</p>
             {sa.count > 0 ? (
               <div className="space-y-3">
-                <div className="flex items-center justify-between group">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-cyan-900 rounded-full flex items-center justify-center text-xs font-bold text-cyan-400">N</div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-200">Nomsa K.</p>
-                      <p className="text-xs text-gray-500">Social Media Toolkit</p>
-                    </div>
-                  </div>
-                  <span className="text-xs text-green-400 font-mono">Just now</span>
-                </div>
-                <div className="flex items-center justify-between group">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-cyan-900 rounded-full flex items-center justify-center text-xs font-bold text-cyan-400">N</div>
                     <div>
@@ -122,9 +113,7 @@ export default function LiveTrackersPage() {
         <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden shadow-lg">
           <div className="p-6 border-b border-gray-800 flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-800 rounded flex items-center justify-center text-xl font-bold text-white shadow-lg">
-                🇸
-              </div>
+              <div className="w-12 h-12 bg-blue-800 rounded flex items-center justify-center text-xl font-bold text-white shadow-lg">🇺</div>
               <div>
                 <h3 className="font-bold text-lg text-white">USA</h3>
                 <p className="text-xs text-gray-400">Live Revenue (USD)</p>
@@ -160,7 +149,7 @@ export default function LiveTrackersPage() {
         <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden shadow-lg">
           <div className="p-6 border-b border-gray-800 flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-orange-600 rounded flex items-center justify-center text-xl font-bold text-white shadow-lg">N</div>
+              <div className="w-12 h-12 bg-orange-600 rounded flex items-center justify-center text-xl font-bold text-white shadow-lg">🇮🇳</div>
               <div>
                 <h3 className="font-bold text-lg text-white">India</h3>
                 <p className="text-xs text-gray-400">Live Revenue (USD)</p>
@@ -182,9 +171,7 @@ export default function LiveTrackersPage() {
         <div className="bg-[#1a1f2e] rounded-xl border border-gray-800 overflow-hidden shadow-lg">
           <div className="p-6 border-b border-gray-800 flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-red-700 rounded flex items-center justify-center text-xl font-bold text-white shadow-lg">
-                🇨🇳
-              </div>
+              <div className="w-12 h-12 bg-red-700 rounded flex items-center justify-center text-xl font-bold text-white shadow-lg">🇨🇳</div>
               <div>
                 <h3 className="font-bold text-lg text-white">China</h3>
                 <p className="text-xs text-gray-400">Live Revenue (USD)</p>
@@ -217,7 +204,6 @@ export default function LiveTrackersPage() {
 
       </div>
       
-      {/* Summary Stats (Optional) */}
       <div className="max-w-7xl mx-auto mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
          <div className="bg-gray-900 p-4 rounded border border-gray-800">
             <p className="text-gray-500 text-xs uppercase">Total Orders</p>
