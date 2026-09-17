@@ -8,23 +8,25 @@ function PaymentContent() {
   const item = searchParams.get('item') || 'Digital Product';
   const amount = parseFloat(searchParams.get('amount') || '0.00');
   
-  // YOUR CAPITEC DETAILS (SAME FOR ALL COUNTRIES)
+  // YOUR CAPITEC DETAILS
   const phoneNumber = "27641061358"; 
   const capitecAccountName = "MR MB BLUMENTHAL";
   const capitecAccountNumber = "1975933441";
-  const capitecSwiftCode = "CABLZAJJ"; // WORKS FOR EVERYONE!
+  const capitecSwiftCode = "CABLZAJJ";
   const capitecBankAddress = "1 Neutron Street, Techno Park, Stellenbosch, 7600, South Africa";
   
-  // App Placeholders
+  // App Placeholders - FILL THESE IN WHEN YOU HAVE THEM
   const wiseEmail = "YOUR_WISE_EMAIL_HERE";
+  const paypalEmail = "YOUR_PAYPAL_EMAIL_HERE";
   const upiId = "YOUR_UPI_ID_HERE";
   const alipayId = "YOUR_ALIPAY_ID_HERE";
+  const weChatId = "YOUR_WECHAT_ID_HERE";
   
   const orderRef = `ORDER-${Math.floor(Math.random() * 10000)}`;
   const [selectedCountry, setSelectedCountry] = useState('south-africa');
 
   const getWhatsAppMessage = () => {
-    const base = `Hi Super Digital Markets! %0A%0A🛒 *ORDER*%0AItem: ${encodeURIComponent(item)}%0AAmount: $${amount.toFixed(2)}%0ARef: ${orderRef}%0A%0A✅ Payment sent via details shown below.`;
+    const base = `Hi Super Digital Markets! %0A%0A🛒 *ORDER*%0AItem: ${encodeURIComponent(item)}%0AAmount: $${amount.toFixed(2)}%0ARef: ${orderRef}%0A%0A✅ Payment sent - proof attached.`;
     return base;
   };
 
@@ -53,26 +55,24 @@ function PaymentContent() {
           </div>
         </div>
 
-        {/* Country Selector (For Recommended Apps Only) */}
+        {/* Country Selector */}
         <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-          <label className="block text-sm font-medium text-gray-300 mb-3">Your Country (For App Recommendations):</label>
+          <label className="block text-sm font-medium text-gray-300 mb-3">Select Your Country:</label>
           <select 
             value={selectedCountry}
             onChange={(e) => setSelectedCountry(e.target.value)}
             className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white"
           >
             <option value="south-africa">🇿🇦 South Africa</option>
-            <option value="usa">🇺🇸 USA</option>
-            <option value="india">🇮🇳 India</option>
+            <option value="usa">🇸 USA</option>
+            <option value="india">🇮 India</option>
             <option value="china">🇨🇳 China</option>
-            <option value="other">🌍 Other</option>
           </select>
         </div>
 
-        {/* UNIVERSAL BANKING DETAILS - SAME FOR ALL */}
+        {/* UNIVERSAL BANKING DETAILS - SHOWN TO ALL */}
         <div className="bg-blue-900/20 border border-blue-600/50 p-8 rounded-2xl">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center"> Capitec Banking Details</h2>
-          <p className="text-center text-gray-400 mb-6 text-sm">Use these details from ANY country</p>
+          <h2 className="text-2xl font-bold text-white mb-6 text-center">🏦 Capitec Banking Details</h2>
           
           <div className="space-y-4 bg-black/40 p-6 rounded-xl border border-blue-800/50">
             <div className="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -91,53 +91,61 @@ function PaymentContent() {
               <span className="text-gray-400">SWIFT/BIC Code:</span>
               <span className="text-green-400 font-mono font-bold text-lg">CABLZAJJ</span>
             </div>
-            <div className="flex justify-between items-center border-b border-gray-800 pb-3">
-              <span className="text-gray-400">Bank Address:</span>
-              <span className="text-white text-xs text-right max-w-[250px]">{capitecBankAddress}</span>
-            </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Payment Reference:</span>
               <span className="text-yellow-400 font-mono">{orderRef}</span>
             </div>
           </div>
-
-          <div className="mt-6 bg-blue-900/30 p-4 rounded-lg border border-blue-700/50">
-            <h3 className="font-bold text-blue-200 mb-2">📝 How to Pay:</h3>
-            <ol className="text-sm text-blue-100 space-y-2 list-decimal list-inside">
-              <li>Open YOUR banking app (any bank, any country)</li>
-              <li>Select "International Transfer" or "SWIFT"</li>
-              <li>Enter the Capitec details shown above</li>
-              <li>Use the Payment Reference exactly as shown</li>
-              <li>Click WhatsApp button below to send proof</li>
-            </ol>
-          </div>
         </div>
 
         {/* RECOMMENDED APPS BY COUNTRY */}
-        <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
-          <h3 className="text-lg font-bold text-white mb-4">⭐ Faster/Cheaper Options (Optional)</h3>
-          {selectedCountry === 'south-africa' && (
-            <p className="text-gray-300 text-sm">Use your local bank app for instant EFT (Branch Code: 470010)</p>
-          )}
-          {selectedCountry === 'usa' && (
-            <div className="text-gray-300 text-sm space-y-2">
-              <p><strong>Wise:</strong> {wiseEmail}</p>
-              <p><strong>PayPal:</strong> YOUR_PAYPAL_EMAIL</p>
+        {selectedCountry === 'usa' && (
+          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
+            <h3 className="text-lg font-bold text-white mb-4">⭐ Faster/Cheaper Options for USA</h3>
+            <div className="space-y-3 text-sm text-gray-300">
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-green-400 mb-1">Wise (Recommended)</p>
+                <p>Email: <span className="font-mono text-white">{wiseEmail}</span></p>
+              </div>
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-blue-400 mb-1">PayPal</p>
+                <p>Email: <span className="font-mono text-white">{paypalEmail}</span></p>
+              </div>
             </div>
-          )}
-          {selectedCountry === 'india' && (
-            <div className="text-gray-300 text-sm space-y-2">
-              <p><strong>UPI:</strong> {upiId}</p>
-              <p><strong>Wise:</strong> {wiseEmail}</p>
+          </div>
+        )}
+
+        {selectedCountry === 'india' && (
+          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
+            <h3 className="text-lg font-bold text-white mb-4">⭐ Faster/Cheaper Options for India</h3>
+            <div className="space-y-3 text-sm text-gray-300">
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-green-400 mb-1">UPI (Recommended)</p>
+                <p>UPI ID: <span className="font-mono text-white">{upiId}</span></p>
+              </div>
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-blue-400 mb-1">Wise</p>
+                <p>Email: <span className="font-mono text-white">{wiseEmail}</span></p>
+              </div>
             </div>
-          )}
-          {selectedCountry === 'china' && (
-            <div className="text-gray-300 text-sm space-y-2">
-              <p><strong>Alipay:</strong> {alipayId}</p>
-              <p><strong>WeChat:</strong> YOUR_WECHAT_ID</p>
+          </div>
+        )}
+
+        {selectedCountry === 'china' && (
+          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
+            <h3 className="text-lg font-bold text-white mb-4">⭐ Faster/Cheaper Options for China</h3>
+            <div className="space-y-3 text-sm text-gray-300">
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-green-400 mb-1">Alipay (Recommended)</p>
+                <p>Alipay ID: <span className="font-mono text-white">{alipayId}</span></p>
+              </div>
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-blue-400 mb-1">WeChat Pay</p>
+                <p>WeChat ID: <span className="font-mono text-white">{weChatId}</span></p>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* WhatsApp Button */}
         <a 
