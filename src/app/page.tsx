@@ -88,18 +88,18 @@ export default function Home() {
             
             <Link href="/payment?item=Test+Product&amount=10.99">
               <button className="px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-full text-lg shadow-lg shadow-green-500/30 transition-all transform hover:scale-105">
-                Test Payment
+                Go To Payment Page
               </button>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Features Section (Optional - kept simple to match original vibe) */}
+      {/* Features Section */}
       <section className="py-24 px-6 bg-black border-t border-white/10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div className="p-6">
-            <div className="text-4xl mb-4">🚀</div>
+            <div className="text-4xl mb-4"></div>
             <h3 className="text-xl font-bold mb-2">Instant Delivery</h3>
             <p className="text-gray-400">Automated systems ensure you get your products seconds after payment.</p>
           </div>
