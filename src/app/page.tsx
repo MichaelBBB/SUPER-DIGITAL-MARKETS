@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      {/* Hero Section */}
+      {/* Hero Section (Text Only) */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Background Image/Gradient */}
         <div className="absolute inset-0 z-0">
@@ -15,7 +15,7 @@ export default function Home() {
           />
         </div>
 
-        {/* Content */}
+        {/* Content (Text Only - No Buttons) */}
         <div className="relative z-20 text-center px-6 max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight leading-tight">
             Super Digital Markets
@@ -23,7 +23,13 @@ export default function Home() {
           <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-2xl mx-auto">
             From AI tools to creative software — shop in USD, pay your way, receive instantly. Trusted by buyers across 3 continents.
           </p>
-          
+          {/* Buttons removed from here */}
+        </div>
+      </section>
+
+      {/* Button Section (Below Hero) */}
+      <section className="py-12 px-6 bg-black border-t border-gray-800">
+        <div className="max-w-4xl mx-auto text-center">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/products">
               <button className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full text-lg shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105">
