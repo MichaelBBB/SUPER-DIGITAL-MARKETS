@@ -8,13 +8,11 @@ function PaymentContent() {
   const item = searchParams.get('item') || 'Digital Product';
   const amount = parseFloat(searchParams.get('amount') || '0.00');
   
-  // YOUR CAPITEC DETAILS
   const phoneNumber = "27641061358"; 
   const capitecAccountName = "MR MB BLUMENTHAL";
   const capitecAccountNumber = "1975933441";
   const capitecSwiftCode = "CABLZAJJ";
   
-  // APP DETAILS
   const wiseEmail = "YOUR_WISE_EMAIL_HERE";
   const paypalEmail = "YOUR_PAYPAL_EMAIL_HERE";
   const upiId = "YOUR_UPI_ID_HERE";
@@ -24,11 +22,24 @@ function PaymentContent() {
   const orderRef = `ORDER-${Math.floor(Math.random() * 10000)}`;
   const [selectedCountry, setSelectedCountry] = useState('south-africa');
 
+  // DEBUG: Log country changes
+  const handleCountryChange = (e) => {
+    const newCountry = e.target.value;
+    console.log(' Country changed to:', newCountry);
+    setSelectedCountry(newCountry);
+  };
+
   const getWhatsAppMessage = () => {
     return `Hi! Order: ${item}, Amount: $${amount}, Ref: ${orderRef}. Payment sent!`;
   };
 
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${getWhatsAppMessage()}`;
+
+  // DEBUG: Log current selection
+  console.log('Current selectedCountry:', selectedCountry);
+  console.log('Should show USA panel:', selectedCountry === 'usa');
+  console.log('Should show India panel:', selectedCountry === 'india');
+  console.log('Should show China panel:', selectedCountry === 'china');
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-sans">
@@ -53,20 +64,20 @@ function PaymentContent() {
           </div>
         </div>
 
-        {/* Country Selector - NO "OTHER" OPTION */}
+        {/* Country Selector */}
         <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
           <label className="block text-sm font-medium text-gray-300 mb-3">
             Select Your Country:
           </label>
           <select 
             value={selectedCountry}
-            onChange={(e) => setSelectedCountry(e.target.value)}
+            onChange={handleCountryChange}
             className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
           >
             <option value="south-africa">🇿🇦 South Africa</option>
             <option value="usa">🇺🇸 USA</option>
             <option value="india">🇮🇳 India</option>
-            <option value="china">🇨🇳 China</option>
+            <option value="china">🇨 China</option>
           </select>
         </div>
 
@@ -117,7 +128,7 @@ function PaymentContent() {
         {/* INDIA APP OPTIONS */}
         {selectedCountry === 'india' && (
           <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
-            <h3 className="text-lg font-bold text-white mb-4">🇮🇳 Faster Options for India</h3>
+            <h3 className="text-lg font-bold text-white mb-4">🇳 Faster Options for India</h3>
             <div className="space-y-3 text-sm">
               <div className="bg-black/40 p-3 rounded-lg">
                 <p className="font-bold text-green-400">UPI (Recommended)</p>
