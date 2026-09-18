@@ -1,4 +1,4 @@
-'use client'; // CRITICAL: Must be the very first line for useState to work
+'use client';
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
@@ -13,9 +13,8 @@ function PaymentContent() {
   const capitecAccountName = "MR MB BLUMENTHAL";
   const capitecAccountNumber = "1975933441";
   const capitecSwiftCode = "CABLZAJJ";
-  const capitecBankAddress = "1 Neutron Street, Techno Park, Stellenbosch, 7600, South Africa";
   
-  // APP DETAILS (FILL THESE IN WHEN YOU HAVE THEM)
+  // APP DETAILS
   const wiseEmail = "YOUR_WISE_EMAIL_HERE";
   const paypalEmail = "YOUR_PAYPAL_EMAIL_HERE";
   const upiId = "YOUR_UPI_ID_HERE";
@@ -23,20 +22,16 @@ function PaymentContent() {
   const weChatId = "YOUR_WECHAT_ID_HERE";
   
   const orderRef = `ORDER-${Math.floor(Math.random() * 10000)}`;
-  
-  // State for Country Selection
   const [selectedCountry, setSelectedCountry] = useState('south-africa');
 
   const getWhatsAppMessage = () => {
-    const base = `Hi Super Digital Markets! %0A%0A *ORDER*%0AItem: ${encodeURIComponent(item)}%0AAmount: $${amount.toFixed(2)}%0ARef: ${orderRef}%0A%0A✅ Payment sent - proof attached.`;
-    return base;
+    return `Hi! Order: ${item}, Amount: $${amount}, Ref: ${orderRef}. Payment sent!`;
   };
 
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${getWhatsAppMessage()}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-sans">
-      {/* Header */}
       <nav className="mb-8 border-b border-gray-800 pb-4">
         <div className="max-w-2xl mx-auto flex justify-between items-center">
           <span className="text-xl font-bold text-cyan-400">SUPER DIGITAL</span>
@@ -58,117 +53,106 @@ function PaymentContent() {
           </div>
         </div>
 
-        {/* Country Selector */}
+        {/* Country Selector - NO "OTHER" OPTION */}
         <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
           <label className="block text-sm font-medium text-gray-300 mb-3">
-            Select Your Country (To See App Options):
+            Select Your Country:
           </label>
           <select 
             value={selectedCountry}
-            onChange={(e) => {
-              console.log("Country Changed To:", e.target.value); // Debug log
-              setSelectedCountry(e.target.value);
-            }}
+            onChange={(e) => setSelectedCountry(e.target.value)}
             className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
           >
             <option value="south-africa">🇿🇦 South Africa</option>
             <option value="usa">🇺🇸 USA</option>
-            <option value="india">🇳 India</option>
+            <option value="india">🇮🇳 India</option>
             <option value="china">🇨🇳 China</option>
           </select>
         </div>
 
-        {/* UNIVERSAL BANKING DETAILS - SHOWN TO ALL */}
+        {/* UNIVERSAL BANKING DETAILS */}
         <div className="bg-blue-900/20 border border-blue-600/50 p-8 rounded-2xl">
           <h2 className="text-2xl font-bold text-white mb-6 text-center">🏦 Capitec Banking Details</h2>
-          <p className="text-center text-gray-400 mb-6 text-sm">Use these details from ANY country (SWIFT: CABLZAJJ)</p>
-          
           <div className="space-y-4 bg-black/40 p-6 rounded-xl border border-blue-800/50">
-            <div className="flex justify-between items-center border-b border-gray-800 pb-3">
+            <div className="flex justify-between border-b border-gray-800 pb-3">
               <span className="text-gray-400">Bank:</span>
-              <span className="text-white font-bold text-lg">Capitec</span>
+              <span className="text-white font-bold">Capitec</span>
             </div>
-            <div className="flex justify-between items-center border-b border-gray-800 pb-3">
+            <div className="flex justify-between border-b border-gray-800 pb-3">
               <span className="text-gray-400">Account Name:</span>
               <span className="text-white font-bold">{capitecAccountName}</span>
             </div>
-            <div className="flex justify-between items-center border-b border-gray-800 pb-3">
+            <div className="flex justify-between border-b border-gray-800 pb-3">
               <span className="text-gray-400">Account Number:</span>
-              <span className="text-green-400 font-mono text-xl">{capitecAccountNumber}</span>
+              <span className="text-green-400 font-mono">{capitecAccountNumber}</span>
             </div>
-            <div className="flex justify-between items-center border-b border-gray-800 pb-3">
-              <span className="text-gray-400">SWIFT/BIC Code:</span>
-              <span className="text-green-400 font-mono font-bold text-lg">{capitecSwiftCode}</span>
+            <div className="flex justify-between border-b border-gray-800 pb-3">
+              <span className="text-gray-400">SWIFT Code:</span>
+              <span className="text-green-400 font-mono font-bold">{capitecSwiftCode}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400">Payment Reference:</span>
+            <div className="flex justify-between">
+              <span className="text-gray-400">Reference:</span>
               <span className="text-yellow-400 font-mono">{orderRef}</span>
             </div>
           </div>
         </div>
 
-        {/* --- ITEM 1: USA PANEL --- */}
+        {/* USA APP OPTIONS */}
         {selectedCountry === 'usa' && (
-          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl animate-fade-in">
-            <h3 className="text-lg font-bold text-white mb-4">⭐ Faster/Cheaper Options for USA</h3>
-            <div className="space-y-3 text-sm text-gray-300">
-              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
-                <p className="font-bold text-green-400 mb-1">Wise (Recommended)</p>
-                <p>Email: <span className="font-mono text-white">{wiseEmail}</span></p>
+          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
+            <h3 className="text-lg font-bold text-white mb-4">🇺🇸 Faster Options for USA</h3>
+            <div className="space-y-3 text-sm">
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-green-400">Wise (Recommended)</p>
+                <p className="text-gray-300">Email: <span className="font-mono text-white">{wiseEmail}</span></p>
               </div>
-              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
-                <p className="font-bold text-blue-400 mb-1">PayPal</p>
-                <p>Email: <span className="font-mono text-white">{paypalEmail}</span></p>
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-blue-400">PayPal</p>
+                <p className="text-gray-300">Email: <span className="font-mono text-white">{paypalEmail}</span></p>
               </div>
             </div>
           </div>
         )}
 
-        {/* --- ITEM 2: INDIA PANEL --- */}
+        {/* INDIA APP OPTIONS */}
         {selectedCountry === 'india' && (
-          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl animate-fade-in">
-            <h3 className="text-lg font-bold text-white mb-4">⭐ Faster/Cheaper Options for India</h3>
-            <div className="space-y-3 text-sm text-gray-300">
-              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
-                <p className="font-bold text-green-400 mb-1">UPI (Recommended)</p>
-                <p>UPI ID: <span className="font-mono text-white">{upiId}</span></p>
+          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
+            <h3 className="text-lg font-bold text-white mb-4">🇮🇳 Faster Options for India</h3>
+            <div className="space-y-3 text-sm">
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-green-400">UPI (Recommended)</p>
+                <p className="text-gray-300">UPI ID: <span className="font-mono text-white">{upiId}</span></p>
               </div>
-              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
-                <p className="font-bold text-blue-400 mb-1">Wise</p>
-                <p>Email: <span className="font-mono text-white">{wiseEmail}</span></p>
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-blue-400">Wise</p>
+                <p className="text-gray-300">Email: <span className="font-mono text-white">{wiseEmail}</span></p>
               </div>
             </div>
           </div>
         )}
 
-        {/* --- ITEM 3: CHINA PANEL --- */}
+        {/* CHINA APP OPTIONS */}
         {selectedCountry === 'china' && (
-          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl animate-fade-in">
-            <h3 className="text-lg font-bold text-white mb-4">⭐ Faster/Cheaper Options for China</h3>
-            <div className="space-y-3 text-sm text-gray-300">
-              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
-                <p className="font-bold text-green-400 mb-1">Alipay (Recommended)</p>
-                <p>Alipay ID: <span className="font-mono text-white">{alipayId}</span></p>
+          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
+            <h3 className="text-lg font-bold text-white mb-4">🇨🇳 Faster Options for China</h3>
+            <div className="space-y-3 text-sm">
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-green-400">Alipay (Recommended)</p>
+                <p className="text-gray-300">Alipay ID: <span className="font-mono text-white">{alipayId}</span></p>
               </div>
-              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
-                <p className="font-bold text-blue-400 mb-1">WeChat Pay</p>
-                <p>WeChat ID: <span className="font-mono text-white">{weChatId}</span></p>
+              <div className="bg-black/40 p-3 rounded-lg">
+                <p className="font-bold text-blue-400">WeChat Pay</p>
+                <p className="text-gray-300">WeChat ID: <span className="font-mono text-white">{weChatId}</span></p>
               </div>
             </div>
           </div>
         )}
 
         {/* WhatsApp Button */}
-        <a 
-          href={whatsappLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all transform hover:scale-105"
-        >
+        <a href={whatsappLink} target="_blank" rel="noopener noreferrer"
+          className="block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-lg rounded-xl text-center shadow-lg">
           Send Proof on WhatsApp
         </a>
-        <p className="text-xs text-gray-500 text-center">💡 Works on Windows 7 (Opens WhatsApp Web)</p>
-
       </div>
     </div>
   );
