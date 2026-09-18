@@ -12,7 +12,7 @@ export default function PaymentPage() {
   const phoneNumber = "27641061358";
   const capitecAccountName = "MR MB BLUMENTHAL";
   const capitecAccountNumber = "1975933441";
-  const capitecSwiftCode = "CABLZAJJ"; // SWIFT for ALL countries
+  const capitecSwiftCode = "CABLZAJJ";
   
   const wiseEmail = "YOUR_WISE_EMAIL_HERE";
   const paypalEmail = "YOUR_PAYPAL_EMAIL_HERE";
@@ -27,15 +27,15 @@ export default function PaymentPage() {
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${getWhatsAppMessage()}`;
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
+    <div className="min-h-screen bg-black text-white p-8 font-sans">
       <div className="max-w-2xl mx-auto space-y-8">
         
         {/* Order Summary */}
-        <div className="bg-gray-900 p-8 rounded-2xl text-center">
+        <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 text-center">
           <h1 className="text-3xl font-bold mb-2">Complete Your Purchase</h1>
           <div className="bg-black/50 p-6 rounded-xl mt-6">
             <p className="text-gray-400 text-sm">Item</p>
-            <p className="text-xl font-semibold text-white">{item}</p>
+            <p className="text-xl font-semibold text-white mb-2">{item}</p>
             <div className="h-px bg-gray-800 my-3"></div>
             <p className="text-gray-400 text-sm">Total</p>
             <p className="text-5xl font-bold text-green-400">${amount.toFixed(2)}</p>
@@ -61,9 +61,9 @@ export default function PaymentPage() {
             className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white"
           >
             <option value="south-africa">🇿🇦 South Africa</option>
-            <option value="usa">🇺 USA</option>
+            <option value="usa">🇺🇸 USA</option>
             <option value="india">🇮🇳 India</option>
-            <option value="china">🇳 China</option>
+            <option value="china">🇨🇳 China</option>
           </select>
         </div>
 
@@ -94,10 +94,10 @@ export default function PaymentPage() {
           </div>
         </div>
 
-        {/* USA APPS - MUST SHOW */}
+        {/* USA Apps */}
         {selectedCountry === 'usa' && (
           <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
-            <h3 className="text-lg font-bold text-white mb-4">🇸 Faster Options for USA</h3>
+            <h3 className="text-lg font-bold text-white mb-4">🇺🇸 Faster Options for USA</h3>
             <div className="space-y-3 text-sm">
               <div className="bg-black/40 p-3 rounded-lg">
                 <p className="font-bold text-green-400">Wise (Recommended)</p>
@@ -111,7 +111,7 @@ export default function PaymentPage() {
           </div>
         )}
 
-        {/* INDIA APPS - MUST SHOW */}
+        {/* India Apps */}
         {selectedCountry === 'india' && (
           <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
             <h3 className="text-lg font-bold text-white mb-4">🇮🇳 Faster Options for India</h3>
@@ -128,7 +128,7 @@ export default function PaymentPage() {
           </div>
         )}
 
-        {/* CHINA APPS - MUST SHOW */}
+        {/* China Apps */}
         {selectedCountry === 'china' && (
           <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
             <h3 className="text-lg font-bold text-white mb-4">🇨🇳 Faster Options for China</h3>
@@ -139,4 +139,13 @@ export default function PaymentPage() {
               </div>
               <div className="bg-black/40 p-3 rounded-lg">
                 <p className="font-bold text-blue-400">WeChat Pay</p>
-                <p className="text-gray-300">WeChat ID:
+                <p className="text-gray-300">WeChat ID: {weChatId}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
