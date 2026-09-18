@@ -1,4 +1,4 @@
-'use client';
+'use client'; // CRITICAL: Must be the very first line for useState to work
 
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
@@ -15,7 +15,7 @@ function PaymentContent() {
   const capitecSwiftCode = "CABLZAJJ";
   const capitecBankAddress = "1 Neutron Street, Techno Park, Stellenbosch, 7600, South Africa";
   
-  // App Placeholders - FILL THESE IN WHEN YOU HAVE THEM
+  // APP DETAILS (FILL THESE IN WHEN YOU HAVE THEM)
   const wiseEmail = "YOUR_WISE_EMAIL_HERE";
   const paypalEmail = "YOUR_PAYPAL_EMAIL_HERE";
   const upiId = "YOUR_UPI_ID_HERE";
@@ -23,10 +23,12 @@ function PaymentContent() {
   const weChatId = "YOUR_WECHAT_ID_HERE";
   
   const orderRef = `ORDER-${Math.floor(Math.random() * 10000)}`;
+  
+  // State for Country Selection
   const [selectedCountry, setSelectedCountry] = useState('south-africa');
 
   const getWhatsAppMessage = () => {
-    const base = `Hi Super Digital Markets! %0A%0A🛒 *ORDER*%0AItem: ${encodeURIComponent(item)}%0AAmount: $${amount.toFixed(2)}%0ARef: ${orderRef}%0A%0A✅ Payment sent - proof attached.`;
+    const base = `Hi Super Digital Markets! %0A%0A *ORDER*%0AItem: ${encodeURIComponent(item)}%0AAmount: $${amount.toFixed(2)}%0ARef: ${orderRef}%0A%0A✅ Payment sent - proof attached.`;
     return base;
   };
 
@@ -34,6 +36,7 @@ function PaymentContent() {
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-sans">
+      {/* Header */}
       <nav className="mb-8 border-b border-gray-800 pb-4">
         <div className="max-w-2xl mx-auto flex justify-between items-center">
           <span className="text-xl font-bold text-cyan-400">SUPER DIGITAL</span>
@@ -57,15 +60,20 @@ function PaymentContent() {
 
         {/* Country Selector */}
         <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-          <label className="block text-sm font-medium text-gray-300 mb-3">Select Your Country:</label>
+          <label className="block text-sm font-medium text-gray-300 mb-3">
+            Select Your Country (To See App Options):
+          </label>
           <select 
             value={selectedCountry}
-            onChange={(e) => setSelectedCountry(e.target.value)}
-            className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white"
+            onChange={(e) => {
+              console.log("Country Changed To:", e.target.value); // Debug log
+              setSelectedCountry(e.target.value);
+            }}
+            className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
           >
             <option value="south-africa">🇿🇦 South Africa</option>
-            <option value="usa">🇸 USA</option>
-            <option value="india">🇮 India</option>
+            <option value="usa">🇺🇸 USA</option>
+            <option value="india">🇳 India</option>
             <option value="china">🇨🇳 China</option>
           </select>
         </div>
@@ -73,6 +81,7 @@ function PaymentContent() {
         {/* UNIVERSAL BANKING DETAILS - SHOWN TO ALL */}
         <div className="bg-blue-900/20 border border-blue-600/50 p-8 rounded-2xl">
           <h2 className="text-2xl font-bold text-white mb-6 text-center">🏦 Capitec Banking Details</h2>
+          <p className="text-center text-gray-400 mb-6 text-sm">Use these details from ANY country (SWIFT: CABLZAJJ)</p>
           
           <div className="space-y-4 bg-black/40 p-6 rounded-xl border border-blue-800/50">
             <div className="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -89,7 +98,7 @@ function PaymentContent() {
             </div>
             <div className="flex justify-between items-center border-b border-gray-800 pb-3">
               <span className="text-gray-400">SWIFT/BIC Code:</span>
-              <span className="text-green-400 font-mono font-bold text-lg">CABLZAJJ</span>
+              <span className="text-green-400 font-mono font-bold text-lg">{capitecSwiftCode}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Payment Reference:</span>
@@ -98,16 +107,16 @@ function PaymentContent() {
           </div>
         </div>
 
-        {/* RECOMMENDED APPS BY COUNTRY */}
+        {/* --- ITEM 1: USA PANEL --- */}
         {selectedCountry === 'usa' && (
-          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
+          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl animate-fade-in">
             <h3 className="text-lg font-bold text-white mb-4">⭐ Faster/Cheaper Options for USA</h3>
             <div className="space-y-3 text-sm text-gray-300">
-              <div className="bg-black/40 p-3 rounded-lg">
+              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
                 <p className="font-bold text-green-400 mb-1">Wise (Recommended)</p>
                 <p>Email: <span className="font-mono text-white">{wiseEmail}</span></p>
               </div>
-              <div className="bg-black/40 p-3 rounded-lg">
+              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
                 <p className="font-bold text-blue-400 mb-1">PayPal</p>
                 <p>Email: <span className="font-mono text-white">{paypalEmail}</span></p>
               </div>
@@ -115,15 +124,16 @@ function PaymentContent() {
           </div>
         )}
 
+        {/* --- ITEM 2: INDIA PANEL --- */}
         {selectedCountry === 'india' && (
-          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
+          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl animate-fade-in">
             <h3 className="text-lg font-bold text-white mb-4">⭐ Faster/Cheaper Options for India</h3>
             <div className="space-y-3 text-sm text-gray-300">
-              <div className="bg-black/40 p-3 rounded-lg">
+              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
                 <p className="font-bold text-green-400 mb-1">UPI (Recommended)</p>
                 <p>UPI ID: <span className="font-mono text-white">{upiId}</span></p>
               </div>
-              <div className="bg-black/40 p-3 rounded-lg">
+              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
                 <p className="font-bold text-blue-400 mb-1">Wise</p>
                 <p>Email: <span className="font-mono text-white">{wiseEmail}</span></p>
               </div>
@@ -131,15 +141,16 @@ function PaymentContent() {
           </div>
         )}
 
+        {/* --- ITEM 3: CHINA PANEL --- */}
         {selectedCountry === 'china' && (
-          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
+          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl animate-fade-in">
             <h3 className="text-lg font-bold text-white mb-4">⭐ Faster/Cheaper Options for China</h3>
             <div className="space-y-3 text-sm text-gray-300">
-              <div className="bg-black/40 p-3 rounded-lg">
+              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
                 <p className="font-bold text-green-400 mb-1">Alipay (Recommended)</p>
                 <p>Alipay ID: <span className="font-mono text-white">{alipayId}</span></p>
               </div>
-              <div className="bg-black/40 p-3 rounded-lg">
+              <div className="bg-black/40 p-3 rounded-lg border border-gray-800">
                 <p className="font-bold text-blue-400 mb-1">WeChat Pay</p>
                 <p>WeChat ID: <span className="font-mono text-white">{weChatId}</span></p>
               </div>
@@ -152,11 +163,11 @@ function PaymentContent() {
           href={whatsappLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all"
+          className="block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all transform hover:scale-105"
         >
           Send Proof on WhatsApp
         </a>
-        <p className="text-xs text-gray-500 text-center">Works on Windows 7 (Opens WhatsApp Web)</p>
+        <p className="text-xs text-gray-500 text-center">💡 Works on Windows 7 (Opens WhatsApp Web)</p>
 
       </div>
     </div>
