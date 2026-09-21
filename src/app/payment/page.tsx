@@ -3,144 +3,97 @@
 import { useState } from 'react';
 
 export default function PaymentPage() {
-  const [selectedCountry, setSelectedCountry] = useState('south-africa');
-
-  const item = 'Digital Product';
-  const amount = 10.99;
-  const orderRef = `ORDER-${Math.floor(Math.random() * 10000)}`;
-  
-  const phoneNumber = "27641061358";
-  const capitecAccountName = "MR MB BLUMENTHAL";
-  const capitecAccountNumber = "1975933441";
-  const capitecSwiftCode = "CABLZAJJ";
-  
-  const wiseEmail = "YOUR_WISE_EMAIL_HERE";
-  const paypalEmail = "YOUR_PAYPAL_EMAIL_HERE";
-  const upiId = "YOUR_UPI_ID_HERE";
-  const alipayId = "YOUR_ALIPAY_ID_HERE";
-  const weChatId = "YOUR_WECHAT_ID_HERE";
-
-  const getWhatsAppMessage = () => {
-    return `Hi! Order: ${item}, Amount: $${amount}, Ref: ${orderRef}. Country: ${selectedCountry}. Payment sent!`;
-  };
-
-  const whatsappLink = `https://wa.me/${phoneNumber}?text=${getWhatsAppMessage()}`;
+  const [country, setCountry] = useState('sa');
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 font-sans">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <div className="min-h-screen bg-black text-white p-8">
+      <div className="max-w-2xl mx-auto space-y-6">
         
         {/* Order Summary */}
-        <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 text-center">
-          <h1 className="text-3xl font-bold mb-2">Complete Your Purchase</h1>
-          <div className="bg-black/50 p-6 rounded-xl mt-6">
-            <p className="text-gray-400 text-sm">Item</p>
-            <p className="text-xl font-semibold text-white mb-2">{item}</p>
-            <div className="h-px bg-gray-800 my-3"></div>
-            <p className="text-gray-400 text-sm">Total</p>
-            <p className="text-5xl font-bold text-green-400">${amount.toFixed(2)}</p>
-          </div>
+        <div className="bg-gray-900 p-6 rounded-xl text-center">
+          <h1 className="text-2xl font-bold">Complete Your Purchase</h1>
+          <p className="text-3xl font-bold text-green-400 mt-4">$10.99</p>
         </div>
 
-        {/* WhatsApp Block */}
-        <div className="bg-green-900/10 border border-green-600/50 p-8 rounded-2xl text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">Pay via WhatsApp</h2>
-          <p className="text-gray-300 mb-6">Fastest method! Chat with us directly.</p>
-          <a href={whatsappLink} target="_blank" rel="noopener noreferrer"
-            className="inline-block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl">
-            Chat to Buy Now
-          </a>
-        </div>
+        {/* WhatsApp Button */}
+        <a href="https://wa.me/27641061358" target="_blank" rel="noopener noreferrer"
+          className="block w-full py-4 bg-green-600 text-white font-bold rounded-xl text-center">
+          Chat to Buy Now
+        </a>
 
         {/* Country Selector */}
         <div className="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
-          <label className="block text-sm font-medium text-gray-300 mb-3">Select Your Country:</label>
+          <label className="block text-sm mb-2">Select Your Country:</label>
           <select 
-            value={selectedCountry} 
-            onChange={(e) => setSelectedCountry(e.target.value)}
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
             className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white"
           >
-            <option value="south-africa">🇿🇦 South Africa</option>
-            <option value="usa">🇺🇸 USA</option>
+            <option value="sa">🇿🇦 South Africa</option>
+            <option value="usa">🇺 USA</option>
             <option value="india">🇮🇳 India</option>
             <option value="china">🇨🇳 China</option>
           </select>
         </div>
 
         {/* Banking Details - SWIFT FOR ALL */}
-        <div className="bg-blue-900/20 border border-blue-600/50 p-8 rounded-2xl">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">Capitec Banking Details</h2>
-          <div className="space-y-4 bg-black/40 p-6 rounded-xl border border-blue-800/50">
-            <div className="flex justify-between border-b border-gray-800 pb-3">
-              <span className="text-gray-400">Bank:</span>
-              <span className="text-white font-bold">Capitec</span>
-            </div>
-            <div className="flex justify-between border-b border-gray-800 pb-3">
-              <span className="text-gray-400">Account Name:</span>
-              <span className="text-white font-bold">{capitecAccountName}</span>
-            </div>
-            <div className="flex justify-between border-b border-gray-800 pb-3">
-              <span className="text-gray-400">Account Number:</span>
-              <span className="text-green-400 font-mono">{capitecAccountNumber}</span>
-            </div>
-            <div className="flex justify-between border-b border-gray-800 pb-3">
-              <span className="text-gray-400">SWIFT Code:</span>
-              <span className="text-green-400 font-mono font-bold">{capitecSwiftCode}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Reference:</span>
-              <span className="text-yellow-400 font-mono">{orderRef}</span>
-            </div>
+        <div className="bg-blue-900/20 border border-blue-600/50 p-6 rounded-xl">
+          <h2 className="text-xl font-bold mb-4">Capitec Banking Details</h2>
+          <div className="space-y-2 text-sm">
+            <p><strong>Bank:</strong> Capitec</p>
+            <p><strong>Account:</strong> MR MB BLUMENTHAL</p>
+            <p><strong>Number:</strong> 1975933441</p>
+            <p><strong>SWIFT:</strong> CABLZAJJ</p>
+            <p><strong>Reference:</strong> ORDER-1234</p>
+          </div>
+          
+          {/* SHORT INSTRUCTIONS FOR SA CLIENTS */}
+          <div className="mt-4 pt-4 border-t border-blue-800">
+            <h3 className="font-bold text-sm mb-2">How to Pay:</h3>
+            <ol className="text-xs space-y-1 list-decimal list-inside text-gray-300">
+              <li>Open your bank app (FNB, Standard Bank, etc.)</li>
+              <li>Select "Pay Beneficiary" or "Send Money"</li>
+              <li>Enter the Capitec details above</li>
+              <li>Use SWIFT code: <strong>CABLZAJJ</strong></li>
+              <li>Use the Reference number shown</li>
+              <li>Select "Immediate Payment"</li>
+              <li>Click WhatsApp button to send proof</li>
+            </ol>
           </div>
         </div>
 
-        {/* USA Apps */}
-        {selectedCountry === 'usa' && (
-          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
-            <h3 className="text-lg font-bold text-white mb-4">🇺🇸 Faster Options for USA</h3>
-            <div className="space-y-3 text-sm">
-              <div className="bg-black/40 p-3 rounded-lg">
-                <p className="font-bold text-green-400">Wise (Recommended)</p>
-                <p className="text-gray-300">Email: {wiseEmail}</p>
-              </div>
-              <div className="bg-black/40 p-3 rounded-lg">
-                <p className="font-bold text-blue-400">PayPal</p>
-                <p className="text-gray-300">Email: {paypalEmail}</p>
-              </div>
+        {/* USA PANEL */}
+        {country === 'usa' && (
+          <div className="bg-green-900/20 border border-green-600 p-6 rounded-xl">
+            <h3 className="font-bold mb-2">🇺 Faster Options for USA</h3>
+            <div className="space-y-2 text-sm">
+              <p><strong>Wise:</strong> YOUR_WISE_EMAIL</p>
+              <p><strong>PayPal:</strong> YOUR_PAYPAL_EMAIL</p>
+              <p className="text-xs text-gray-400 mt-2">Or use SWIFT CABLZAJJ above</p>
             </div>
           </div>
         )}
 
-        {/* India Apps */}
-        {selectedCountry === 'india' && (
-          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
-            <h3 className="text-lg font-bold text-white mb-4">🇮🇳 Faster Options for India</h3>
-            <div className="space-y-3 text-sm">
-              <div className="bg-black/40 p-3 rounded-lg">
-                <p className="font-bold text-green-400">UPI (Recommended)</p>
-                <p className="text-gray-300">UPI ID: {upiId}</p>
-              </div>
-              <div className="bg-black/40 p-3 rounded-lg">
-                <p className="font-bold text-blue-400">Wise</p>
-                <p className="text-gray-300">Email: {wiseEmail}</p>
-              </div>
+        {/* INDIA PANEL */}
+        {country === 'india' && (
+          <div className="bg-green-900/20 border border-green-600 p-6 rounded-xl">
+            <h3 className="font-bold mb-2">🇮🇳 Faster Options for India</h3>
+            <div className="space-y-2 text-sm">
+              <p><strong>UPI:</strong> YOUR_UPI_ID</p>
+              <p><strong>Wise:</strong> YOUR_WISE_EMAIL</p>
+              <p className="text-xs text-gray-400 mt-2">Or use SWIFT CABLZAJJ above</p>
             </div>
           </div>
         )}
 
-        {/* China Apps */}
-        {selectedCountry === 'china' && (
-          <div className="bg-green-900/10 border border-green-600/50 p-6 rounded-2xl">
-            <h3 className="text-lg font-bold text-white mb-4">🇨🇳 Faster Options for China</h3>
-            <div className="space-y-3 text-sm">
-              <div className="bg-black/40 p-3 rounded-lg">
-                <p className="font-bold text-green-400">Alipay (Recommended)</p>
-                <p className="text-gray-300">Alipay ID: {alipayId}</p>
-              </div>
-              <div className="bg-black/40 p-3 rounded-lg">
-                <p className="font-bold text-blue-400">WeChat Pay</p>
-                <p className="text-gray-300">WeChat ID: {weChatId}</p>
-              </div>
+        {/* CHINA PANEL */}
+        {country === 'china' && (
+          <div className="bg-green-900/20 border border-green-600 p-6 rounded-xl">
+            <h3 className="font-bold mb-2">🇳 Faster Options for China</h3>
+            <div className="space-y-2 text-sm">
+              <p><strong>Alipay:</strong> YOUR_ALIPAY_ID</p>
+              <p><strong>WeChat:</strong> YOUR_WECHAT_ID</p>
+              <p className="text-xs text-gray-400 mt-2">Or use SWIFT CABLZAJJ above</p>
             </div>
           </div>
         )}
