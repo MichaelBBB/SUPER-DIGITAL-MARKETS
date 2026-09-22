@@ -10,18 +10,16 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 export default function LiveTrackersPage() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<any[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [status, setStatus] = useState('Connecting...');
 
-  // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Fetch live data
   useEffect(() => {
     if (!supabase || !mounted) return;
 
@@ -40,10 +38,9 @@ export default function LiveTrackersPage() {
           console.log('Fetched data:', rows);
           setData(rows);
           
-          // Calculate totals
           const orders = rows.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
           setTotalOrders(orders);
-          setTotalRevenue(orders * 5); // Assuming $5 average
+          setTotalRevenue(orders * 5);
           setStatus('Live ✓');
         }
       } catch (err) {
@@ -52,17 +49,13 @@ export default function LiveTrackersPage() {
       }
     };
 
-    // Fetch immediately
     fetchData();
-    
-    // Then every 3 seconds
     const interval = setInterval(fetchData, 3000);
     
     return () => clearInterval(interval);
   }, [mounted]);
 
-  // Helper to get country data
-  const getCountryData = (regionName) => {
+  const getCountryData = (regionName: string) => {
     const normalized = regionName.toLowerCase().replace(/\s/g, '');
     return data.find(row => {
       const rowRegion = (row.region || '').toLowerCase().replace(/\s/g, '');
@@ -80,7 +73,6 @@ export default function LiveTrackersPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8 font-sans">
-      {/* Header */}
       <div className="max-w-7xl mx-auto mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white">Live Sales Dashboard</h1>
@@ -96,7 +88,7 @@ export default function LiveTrackersPage() {
 
       <div className="max-w-7xl mx-auto space-y-12">
         
-        {/* 1. Live Sales Activity */}
+        {/* Live Sales Activity */}
         <section>
           <h2 className="text-2xl font-bold mb-6 text-center">Live Sales Activity</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -119,7 +111,7 @@ export default function LiveTrackersPage() {
           </div>
         </section>
 
-        {/* 2. Live Revenue by Country */}
+        {/* Live Revenue by Country */}
         <section>
           <h2 className="text-2xl font-bold mb-6 text-center">Live Revenue by Country (USD)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
