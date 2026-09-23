@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 
-// Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
@@ -16,79 +15,70 @@ export default function LiveTrackersPage() {
   const [mounted, setMounted] = useState(false);
   const [status, setStatus] = useState('Connecting...');
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (!supabase || !mounted) return;
-
     const fetchData = async () => {
       setStatus('Updating...');
       try {
         const { data: rows, error } = await supabase.from('sales_counts').select('*');
-        
-        if (error) {
-          console.error('Supabase error:', error);
-          setStatus('Error: ' + error.message);
-          return;
-        }
-
+        if (error) { setStatus('Error: ' + error.message); return; }
         if (rows) {
           console.log('Fetched data:', rows);
           setData(rows);
-          
-          const orders = rows.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
+          const orders = rows.reduce((sum: number, row: any) => sum + (Number(row.count) || 0), 0);
           setTotalOrders(orders);
           setTotalRevenue(orders * 5);
           setStatus('Live ✓');
         }
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setStatus('Error connecting');
-      }
+      } catch (err) { setStatus('Error connecting'); }
     };
-
     fetchData();
     const interval = setInterval(fetchData, 3000);
-    
     return () => clearInterval(interval);
   }, [mounted]);
 
-  const getCountryData = (regionName: string) => {
-    const normalized = regionName.toLowerCase().replace(/\s/g, '');
-    return data.find(row => {
-      const rowRegion = (row.region || '').toLowerCase().replace(/\s/g, '');
-      return rowRegion === normalized;
-    }) || { count: 0 };
+  // FLEXIBLE MATCHING: Try multiple variations to find the data
+  const getCountryData = (targetRegion: string) => {
+    // List of possible variations for each region
+    const variations: Record<string, string[]> = {
+      'southafrica': ['southafrica', 'southAfrica', 'south africa', 'South Africa', 'SA', 'za', 'RSA'],
+      'usa': ['usa', 'USA', 'unitedstates', 'United States', 'US', 'us'],
+      'india': ['india', 'India', 'IND', 'IN'],
+      'china': ['china', 'China', 'CN', 'cn', 'PRC']
+    };
+    
+    const targetVariations = variations[targetRegion] || [targetRegion];
+    
+    // Find any row that matches any variation
+    for (const row of data) {
+      const rowRegion = (row.region || '').trim();
+      if (targetVariations.some(variation => 
+        variation.toLowerCase() === rowRegion.toLowerCase() ||
+        variation.toLowerCase().replace(/\s/g, '') === rowRegion.toLowerCase().replace(/\s/g, '')
+      )) {
+        return row;
+      }
+    }
+    
+    return { count: 0 };
   };
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-white">
-        <div className="text-xl text-cyan-400 animate-pulse">Loading Live Trackers...</div>
-      </div>
-    );
-  }
+  if (!mounted) return <div className="min-h-screen bg-black flex items-center justify-center text-white"><div className="text-xl text-cyan-400 animate-pulse">Loading...</div></div>;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8 font-sans">
       <div className="max-w-7xl mx-auto mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white">Live Sales Dashboard</h1>
-          <p className="text-gray-400">Real-time statistics from global marketplace</p>
-          <span className={`text-xs font-bold ${status === 'Live ✓' ? 'text-green-400' : 'text-yellow-400'}`}>
-            ● {status}
-          </span>
+          <p className="text-gray-400">Real-time statistics</p>
+          <span className={`text-xs font-bold ${status === 'Live ✓' ? 'text-green-400' : 'text-yellow-400'}`}>● {status}</span>
         </div>
-        <Link href="/" className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full text-sm font-bold transition">
-          ← Back to Home
-        </Link>
+        <Link href="/" className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full text-sm font-bold transition">← Back to Home</Link>
       </div>
 
       <div className="max-w-7xl mx-auto space-y-12">
-        
-        {/* Live Sales Activity */}
         <section>
           <h2 className="text-2xl font-bold mb-6 text-center">Live Sales Activity</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -111,7 +101,6 @@ export default function LiveTrackersPage() {
           </div>
         </section>
 
-        {/* Live Revenue by Country */}
         <section>
           <h2 className="text-2xl font-bold mb-6 text-center">Live Revenue by Country (USD)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -131,8 +120,7 @@ export default function LiveTrackersPage() {
                     ${(getCountryData('southafrica').count * 5).toLocaleString()}
                   </p>
                   <p className="text-xs text-green-500 flex items-center justify-end gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Updating live
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live
                   </p>
                 </div>
               </div>
@@ -153,8 +141,7 @@ export default function LiveTrackersPage() {
                     ${(getCountryData('usa').count * 5).toLocaleString()}
                   </p>
                   <p className="text-xs text-green-500 flex items-center justify-end gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Updating live
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live
                   </p>
                 </div>
               </div>
@@ -175,8 +162,7 @@ export default function LiveTrackersPage() {
                     ${(getCountryData('india').count * 5).toLocaleString()}
                   </p>
                   <p className="text-xs text-green-500 flex items-center justify-end gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Updating live
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live
                   </p>
                 </div>
               </div>
@@ -197,8 +183,7 @@ export default function LiveTrackersPage() {
                     ${(getCountryData('china').count * 5).toLocaleString()}
                   </p>
                   <p className="text-xs text-green-500 flex items-center justify-end gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    Updating live
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live
                   </p>
                 </div>
               </div>
