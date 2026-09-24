@@ -1,28 +1,33 @@
 'use client';
 
 export default function PaymentPage() {
+  // Order details
   const item = 'Digital Product';
   const amount = 10.99;
   const orderRef = `ORDER-${Math.floor(Math.random() * 10000)}`;
-  
+
+  // Contact & Banking
   const phoneNumber = "27641061358";
   const capitecBank = "Capitec";
   const capitecAccountName = "MR MB BLUMENTHAL";
   const capitecAccountNumber = "1975933441";
   const capitecSwiftCode = "CABLZAJJ";
-  
+
+  // Payment Apps
   const wiseEmail = "YOUR_WISE_EMAIL_HERE";
   const paypalEmail = "YOUR_PAYPAL_EMAIL_HERE";
   const upiId = "YOUR_UPI_ID_HERE";
   const alipayId = "YOUR_ALIPAY_ID_HERE";
   const weChatId = "YOUR_WECHAT_ID_HERE";
 
-  const whatsappLink = `https://wa.me/${phoneNumber}?text=Hi! Order: ${item}, Amount: $${amount}, Ref: ${orderRef}. Payment sent!`;
+  // FIXED WhatsApp Link (Uses api.whatsapp.com for 100% reliability)
+  const message = encodeURIComponent(`Hi! Order: ${item}, Amount: $${amount}, Ref: ${orderRef}. Ready to pay.`);
+  const whatsappLink = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-sans">
       <div className="max-w-4xl mx-auto space-y-8">
-        
+
         {/* Order Summary */}
         <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 text-center">
           <h1 className="text-3xl font-bold mb-2">Complete Your Purchase</h1>
@@ -50,9 +55,9 @@ export default function PaymentPage() {
         <div className="bg-blue-900/10 border border-blue-600/50 p-8 rounded-2xl">
           <h2 className="text-2xl font-bold text-white mb-2">Option 2: Manual Bank Transfer</h2>
           <p className="text-gray-400 mb-6">Transfer funds directly to our account. Send proof of payment via WhatsApp for activation.</p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             {/* LEFT COLUMN: Banking Details & Instructions */}
             <div className="space-y-4">
               <div className="bg-black/40 p-6 rounded-xl border border-blue-800/50">
@@ -98,11 +103,10 @@ export default function PaymentPage() {
 
             {/* RIGHT COLUMN: Country Payment Apps */}
             <div className="space-y-4">
-              
               {/* USA Apps */}
               <div className="bg-black/40 p-6 rounded-xl border border-green-800/50">
                 <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                  <span>🇺</span> USA - Faster Options
+                  <span>🇺🇸</span> USA - Faster Options
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="bg-green-900/20 p-3 rounded-lg">
@@ -121,7 +125,7 @@ export default function PaymentPage() {
               {/* India Apps */}
               <div className="bg-black/40 p-6 rounded-xl border border-green-800/50">
                 <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                  <span>🇮</span> India - Faster Options
+                  <span>🇮🇳</span> India - Faster Options
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="bg-green-900/20 p-3 rounded-lg">
@@ -155,7 +159,6 @@ export default function PaymentPage() {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
 
