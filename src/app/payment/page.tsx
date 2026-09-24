@@ -1,9 +1,12 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
+
 export default function PaymentPage() {
-  // Order details
-  const item = 'Digital Product';
-  const amount = 10.99;
+  // Get product info from URL parameters
+  const searchParams = useSearchParams();
+  const item = searchParams.get('product') || 'Digital Product';
+  const amount = parseFloat(searchParams.get('price') || '10.99');
   const orderRef = `ORDER-${Math.floor(Math.random() * 10000)}`;
 
   // Contact & Banking
@@ -20,8 +23,8 @@ export default function PaymentPage() {
   const alipayId = "YOUR_ALIPAY_ID_HERE";
   const weChatId = "YOUR_WECHAT_ID_HERE";
 
-  // FIXED WhatsApp Link (Uses api.whatsapp.com for 100% reliability)
-  const message = encodeURIComponent(`Hi! Order: ${item}, Amount: $${amount}, Ref: ${orderRef}. Ready to pay.`);
+  // WhatsApp Link with dynamic price
+  const message = encodeURIComponent(`Hi! Order: ${item}, Amount: $${amount.toFixed(2)}, Ref: ${orderRef}. Ready to pay.`);
   const whatsappLink = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
 
   return (
@@ -144,7 +147,7 @@ export default function PaymentPage() {
               {/* China Apps */}
               <div className="bg-black/40 p-6 rounded-xl border border-green-800/50">
                 <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                  <span>🇨🇳</span> China - Faster Options
+                  <span>🇨</span> China - Faster Options
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="bg-green-900/20 p-3 rounded-lg">
