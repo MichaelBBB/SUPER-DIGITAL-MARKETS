@@ -36,7 +36,7 @@ export default function TapPage() {
       if (!w.ok) { const t = await w.text(); setStatus('WRITE FAIL: ' + t.slice(0, 80)); }
       else setStatus('OK - ' + region + ' now ' + next);
     } catch (e) {
-      setStatus('NETWORK: ' + (e && e.message ? e.message : 'err'));
+      setStatus('NETWORK: ' + (e instanceof Error ? e.message : 'err'));
     }
     setBusy(false);
   }
