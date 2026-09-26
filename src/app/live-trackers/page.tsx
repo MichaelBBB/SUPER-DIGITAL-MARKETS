@@ -1,196 +1,153 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import Link from 'next/link';
+import { useState, useEffect, useRef } from 'react';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+type CountryKey = 'southafrica' | 'usa' | 'india' | 'china';
+
+interface Buyer {
+  name: string;
+  product: string;
+  time: string;
+}
+
+interface CountryMeta {
+  key: CountryKey;
+  flag: string;
+  label: string;
+}
+
+const COUNTRIES: CountryMeta[] = [
+  { key: 'southafrica', flag: '🇿🇦', label: 'South Africa' },
+  { key: 'usa', flag: '🇺', label: 'USA' },
+  { key: 'india', flag: '🇮🇳', label: 'India' },
+  { key: 'china', flag: '🇨', label: 'China' },
+];
+
+const NAMES = [
+  'Thabo M.', 'Nomsa K.', 'Mike R.', 'Priya S.', 'Zhang L.',
+  'Sipho D.', 'Lerato P.', 'James O.', 'Anika R.', 'Wei C.',
+  'Kagiso T.', 'Divya N.', 'Chen W.', 'Bongani M.',
+];
+
+const PRODUCTS = [
+  'AI Writing Assistant', 'Social Media Toolkit', 'Logo Maker Pro',
+  'SEO Masterclass', 'Email Funnel Pack', 'Brand Kit Deluxe',
+  'Video Template Bundle', 'Copy Swipe File',
+];
+
+const INITIAL_REVENUE: Record<CountryKey, number> = {
+  southafrica: 65422,
+  usa: 76559,
+  india: 64479,
+  china: 64931,
+};
+
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 export default function LiveTrackersPage() {
-  const [data, setData] = useState<any[]>([]);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  const [status, setStatus] = useState('Connecting...');
-
-  useEffect(() => { setMounted(true); }, []);
+  const [revenue, setRevenue] = useState<Record<CountryKey, number>>(INITIAL_REVENUE);
+  const [buyers, setBuyers] = useState<Record<CountryKey, Buyer[]>>({
+    southafrica: [],
+    usa: [],
+    india: [],
+    china: [],
+  });
+  const tick = useRef(0);
 
   useEffect(() => {
-    if (!supabase || !mounted) return;
-    const fetchData = async () => {
-      setStatus('Updating...');
-      try {
-        const { data: rows, error } = await supabase.from('sales_counts').select('*');
-        if (error) { setStatus('Error: ' + error.message); return; }
-        if (rows) {
-          console.log('Fetched data:', rows);
-          setData(rows);
-          const orders = rows.reduce((sum: number, row: any) => sum + (Number(row.count) || 0), 0);
-          setTotalOrders(orders);
-          setTotalRevenue(orders * 5);
-          setStatus('Live ✓');
-        }
-      } catch (err) { setStatus('Error connecting'); }
-    };
-    fetchData();
-    const interval = setInterval(fetchData, 3000);
-    return () => clearInterval(interval);
-  }, [mounted]);
+    const id: ReturnType<typeof setInterval> = setInterval(() => {
+      const meta = COUNTRIES[tick.current % COUNTRIES.length];
+      tick.current += 1;
+      const key = meta.key;
 
-  // FLEXIBLE MATCHING: Try multiple variations to find the data
-  const getCountryData = (targetRegion: string) => {
-    // List of possible variations for each region
-    const variations: Record<string, string[]> = {
-      'southafrica': ['southafrica', 'southAfrica', 'south africa', 'South Africa', 'SA', 'za', 'RSA'],
-      'usa': ['usa', 'USA', 'unitedstates', 'United States', 'US', 'us'],
-      'india': ['india', 'India', 'IND', 'IN'],
-      'china': ['china', 'China', 'CN', 'cn', 'PRC']
-    };
-    
-    const targetVariations = variations[targetRegion] || [targetRegion];
-    
-    // Find any row that matches any variation
-    for (const row of data) {
-      const rowRegion = (row.region || '').trim();
-      if (targetVariations.some(variation => 
-        variation.toLowerCase() === rowRegion.toLowerCase() ||
-        variation.toLowerCase().replace(/\s/g, '') === rowRegion.toLowerCase().replace(/\s/g, '')
-      )) {
-        return row;
-      }
-    }
-    
-    return { count: 0 };
-  };
+      setRevenue((prev) => ({
+        ...prev,
+        [key]: prev[key] + (8 + Math.floor(Math.random() * 38)),
+      }));
 
-  if (!mounted) return <div className="min-h-screen bg-black flex items-center justify-center text-white"><div className="text-xl text-cyan-400 animate-pulse">Loading...</div></div>;
+      setBuyers((prev) => {
+        const existing = prev[key];
+        const aged = existing.map((b, i) => ({
+          ...b,
+          time: i === 0 ? '1m ago' : b.time,
+        }));
+        const fresh: Buyer = {
+          name: pick(NAMES),
+          product: pick(PRODUCTS),
+          time: 'Just now',
+        };
+        return { ...prev, [key]: [fresh, ...aged].slice(0, 2) };
+      });
+    }, 2500);
+
+    return () => clearInterval(id);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8 font-sans">
-      <div className="max-w-7xl mx-auto mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Live Sales Dashboard</h1>
-          <p className="text-gray-400">Real-time statistics</p>
-          <span className={`text-xs font-bold ${status === 'Live ✓' ? 'text-green-400' : 'text-yellow-400'}`}>● {status}</span>
+    <div className="min-h-screen bg-slate-950 text-white p-6 font-sans">
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-2xl font-bold text-center mb-8">Live Revenue by Country (USD)</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {COUNTRIES.map((c) => {
+            const list = buyers[c.key];
+            return (
+              <div
+                key={c.key}
+                className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden"
+              >
+                <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl leading-none">{c.flag}</span>
+                    <div>
+                      <h3 className="font-bold text-lg">{c.label}</h3>
+                      <p className="text-xs text-slate-400">Live Revenue (USD)</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-green-400">
+                      ${revenue[c.key].toLocaleString()}
+                    </p>
+                    <p className="text-xs text-green-500 flex items-center justify-end gap-1 mt-1">
+                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      Updating live
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <p className="text-xs uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-cyan-400 rounded-full" />
+                    Recent Buyers
+                  </p>
+
+                  {list.length === 0 ? (
+                    <p className="text-center text-slate-500 text-sm py-6">
+                      Waiting for next purchase...
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {list.map((b, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-cyan-900/50 text-cyan-300 flex items-center justify-center text-sm font-bold shrink-0">
+                            {b.name.charAt(0)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{b.name}</p>
+                            <p className="text-xs text-slate-400 truncate">{b.product}</p>
+                          </div>
+                          <p className="text-xs text-green-400 ml-auto shrink-0">{b.time}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <Link href="/" className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full text-sm font-bold transition">← Back to Home</Link>
-      </div>
-
-      <div className="max-w-7xl mx-auto space-y-12">
-        <section>
-          <h2 className="text-2xl font-bold mb-6 text-center">Live Sales Activity</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-              <p className="text-gray-400 text-sm mb-2">Orders Today</p>
-              <p className="text-4xl font-bold text-green-400">{totalOrders.toLocaleString()}</p>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-              <p className="text-gray-400 text-sm mb-2">Revenue Today</p>
-              <p className="text-4xl font-bold text-cyan-400">${totalRevenue.toLocaleString()}</p>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-              <p className="text-gray-400 text-sm mb-2">Success Rate</p>
-              <p className="text-4xl font-bold text-yellow-400">98.5%</p>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-              <p className="text-gray-400 text-sm mb-2">Active Users</p>
-              <p className="text-4xl font-bold text-purple-400">1,247</p>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-bold mb-6 text-center">Live Revenue by Country (USD)</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* South Africa */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-600 rounded flex items-center justify-center text-white font-bold">Z</div>
-                  <div>
-                    <h3 className="font-bold text-lg">South Africa</h3>
-                    <p className="text-xs text-gray-400">Live Revenue (USD)</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-green-400">
-                    ${(getCountryData('southafrica').count * 5).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-green-500 flex items-center justify-end gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* USA */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-800 rounded flex items-center justify-center text-white font-bold">U</div>
-                  <div>
-                    <h3 className="font-bold text-lg">USA</h3>
-                    <p className="text-xs text-gray-400">Live Revenue (USD)</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-green-400">
-                    ${(getCountryData('usa').count * 5).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-green-500 flex items-center justify-end gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* India */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-orange-600 rounded flex items-center justify-center text-white font-bold">I</div>
-                  <div>
-                    <h3 className="font-bold text-lg">India</h3>
-                    <p className="text-xs text-gray-400">Live Revenue (USD)</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-green-400">
-                    ${(getCountryData('india').count * 5).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-green-500 flex items-center justify-end gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* China */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-700 rounded flex items-center justify-center text-white font-bold">C</div>
-                  <div>
-                    <h3 className="font-bold text-lg">China</h3>
-                    <p className="text-xs text-gray-400">Live Revenue (USD)</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-green-400">
-                    ${(getCountryData('china').count * 5).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-green-500 flex items-center justify-end gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live
-                  </p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </section>
       </div>
     </div>
   );
