@@ -1,85 +1,78 @@
 export const dynamic = 'force-dynamic';
-
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
+const WEBHOOK_URL = 'https://super-digital-markets-co9n.vercel.app/api/webhooks/peach';
+const SECRET = process.env.PEACH_WEBHOOK_SECRET || '';
+const SUCCESS_CODES = ['000.000.000', '000.100.110'];
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
 export async function POST(request: Request) {
-  try {
-    const rawBody = await request.text();
-    const headers = Object.fromEntries(request.headers.entries());
-    
-    console.log('📥 PEACH WEBHOOK RECEIVED');
-    console.log('Headers:', headers);
-    console.log('Body:', rawBody);
+  const raw = await request.text();
+  console.log('PEACH WEBHOOK RAW:', raw.slice(0, 400));
 
-    let payload;
-    try {
-      payload = JSON.parse(rawBody);
-    } catch (e) {
-      console.error('❌ Failed to parse webhook JSON');
-      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-    }
-
-    // 1. CHECK FOR SUCCESS (Peach uses multiple success indicators)
-    const isSuccessful = 
-      payload.status === 'SUCCESSFUL' || 
-      payload.status === 'successful' ||
-      payload.result?.code === '000.000.000' || 
-      payload.result?.code === '0' ||
-      payload.event_type === 'payment.successful';
-
-    if (isSuccessful) {
-      console.log('✅ PAYMENT SUCCESSFUL - Triggering automatic tracker update!');
-
-      // 2. DETERMINE REGION (Default to southafrica if not provided)
-      const region = payload.metadata?.region || 'southafrica';
-      const normalizedRegion = region.toLowerCase().replace(/\s/g, '');
-
-      console.log(`🌍 Updating region: ${normalizedRegion}`);
-
-      // 3. FETCH CURRENT COUNT
-      const { data: current, error: fetchError } = await supabase
-        .from('sales_counts')
-        .select('count')
-        .eq('region', normalizedRegion)
-        .single();
-
-      if (fetchError) {
-        console.error('❌ Fetch error:', fetchError);
-      }
-
-      // 4. INCREMENT AND UPDATE
-      const newCount = (current?.count || 0) + 1;
-      
-      const { error: updateError } = await supabase
-        .from('sales_counts')
-        .update({ 
-          count: newCount, 
-          updated_at: new Date().toISOString() 
-        })
-        .eq('region', normalizedRegion);
-
-      if (updateError) {
-        console.error('❌ Update error:', updateError);
-      } else {
-        console.log(`🚀 SUCCESS: Tracker updated! ${normalizedRegion} is now ${newCount}`);
-      }
-    } else {
-      console.log('⚠️ Payment not successful. Status:', payload.status || payload.result?.code);
-    }
-
-    // 5. ALWAYS RETURN 200 OK TO PEACH (Stops them from retrying)
-    return NextResponse.json({ received: true, status: 'ok' }, { status: 200 });
-
-  } catch (err) {
-    console.error('❌ CRITICAL WEBHOOK ERROR:', err);
-    // Still return 200 so Peach doesn't keep retrying a broken request
-    return NextResponse.json({ error: 'Processed with error' }, { status: 200 });
+  let json: Record<string, any> | null = null;
+  const ct = request.headers.get('content-type') || '';
+  if (ct.includes('json') || raw.trim().startsWith('{')) {
+    try { json = JSON.parse(raw); } catch { json = null; }
   }
+  const params = json ? null : new URLSearchParams(raw);
+
+  const ts = request.headers.get('x-webhook-timestamp') || '';
+  const wid = request.headers.get('x-webhook-id') || '';
+  const sig = request.headers.get('x-webhook-signature') || '';
+  if (sig && SECRET) {
+    const msg = ts + '.' + wid + '.' + WEBHOOK_URL + '.' + raw;
+    const calc = crypto.createHmac('sha256', SECRET).update(msg).digest('hex');
+    console.log(calc === sig ? 'SIG OK' : 'SIG MISMATCH - processing anyway');
+  }
+
+  const get = (dotted: string, flat: string): string => {
+    if (json) {
+      if (typeof json[dotted] === 'string') return json[dotted];
+      if (typeof json[flat] === 'string') return json[flat];
+      const parts = dotted.split('.');
+      const nested = json[parts[0]];
+      if (nested && typeof nested === 'object' && typeof nested[parts[1]] === 'string') return nested[parts[1]];
+      return '';
+    }
+    const p = params as URLSearchParams;
+    return p.get(dotted) || p.get(flat) || '';
+  };
+
+  const code = get('result.code', 'result_code');
+  const desc = get('result.description', 'result_description');
+  const ptype = get('paymentType', 'paymentType');
+  const country = get('billing.country', 'billing_country').toUpperCase();
+  const amount = get('amount', 'amount');
+  const txn = get('id', 'id');
+
+  const isSale =
+    ptype !== 'RF' &&
+    (SUCCESS_CODES.includes(code) || /approved|successfully processed/i.test(desc));
+
+  console.log('PARSED', { code, desc, ptype, country, amount, txn, isSale });
+
+  if (isSale) {
+    const regionMap: Record<string, string> = { ZA: 'southafrica', US: 'usa', IN: 'india', CN: 'china' };
+    const region = regionMap[country] || 'southafrica';
+    const { data: row } = await supabase
+      .from('sales_counts')
+      .select('count')
+      .eq('region', region)
+      .single();
+    const next = (Number(row && row.count) || 0) + 1;
+    if (row) {
+      await supabase.from('sales_counts').update({ count: next }).eq('region', region);
+    } else {
+      await supabase.from('sales_counts').insert([{ region, count: 1 }]);
+    }
+    console.log('COUNTED AUTOMATICALLY:', region, next);
+  }
+
+  return NextResponse.json({ ok: true }, { status: 200 });
 }
