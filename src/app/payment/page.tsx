@@ -1,107 +1,111 @@
-export default async function PaymentPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const sp = await searchParams;
-  const pick = (v: string | string[] | undefined, d: string) =>
-    Array.isArray(v) ? (v[0] ?? d) : (v ?? d);
+'use client';
 
-  const item = pick(sp.product, 'Digital Product');
-  const amount = parseFloat(pick(sp.price, '10.99')) || 10.99;
-  const orderRef = `ORDER-${Math.floor(Math.random() * 10000)}`;
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
-  const phoneNumber = "27743868889";
-  const capitecBank = "Capitec";
-  const capitecAccountName = "MR MB BLUMENTHAL";
-  const capitecAccountNumber = "1975933441";
-  const capitecSwiftCode = "CABLZAJJ";
+// Michael's WhatsApp business number — baked in.
+const WHATSAPP_NUMBER = '27641061358';
 
-  const wiseEmail = "YOUR_WISE_EMAIL_HERE";
-  const paypalEmail = "YOUR_PAYPAL_EMAIL_HERE";
-  const upiId = "YOUR_UPI_ID_HERE";
-  const alipayId = "YOUR_ALIPAY_ID_HERE";
-  const weChatId = "YOUR_WECHAT_ID_HERE";
+const CATALOG: { name: string; price: number }[] = [
+  { name: 'AI Writing Assistant', price: 49 },
+  { name: 'Social Media Toolkit', price: 39 },
+  { name: 'Logo Maker Pro', price: 29 },
+  { name: 'SEO Masterclass', price: 59 },
+  { name: 'Email Funnel Pack', price: 35 },
+  { name: 'Photo Enhancement Suite', price: 45 },
+  { name: 'Brand Kit Deluxe', price: 65 },
+  { name: 'Video Template Bundle', price: 55 },
+];
 
-  const message = encodeURIComponent(`Hi! Order: ${item}, Amount: $${amount.toFixed(2)}, Ref: ${orderRef}. Ready to pay.`);
-  const whatsappLink = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
+const DUMMY_NAMES = ['digital product', 'test product', 'product', 'item', ''];
+
+function cleanItem(raw: string): string {
+  const t = raw.trim();
+  const low = t.toLowerCase();
+  if (DUMMY_NAMES.includes(low)) return '';
+  return t;
+}
+
+function CheckoutInner() {
+  const params = useSearchParams();
+  const urlItem = cleanItem(params.get('item') || '');
+  const rawAmount = Number(params.get('amount') || 0) || 0;
+  const urlAmount = rawAmount === 10.99 ? 0 : rawAmount;
+
+  const [chosen, setChosen] = useState<string>(urlItem);
+
+  const itemName = chosen || urlItem;
+  const inCatalog = CATALOG.find((p) => p.name.toLowerCase() === itemName.toLowerCase());
+  const amount = urlAmount > 0 ? urlAmount : inCatalog ? inCatalog.price : 0;
+
+  const message =
+    'Hello Super Digital Markets! I want to purchase: ' +
+    (itemName || 'a digital product') +
+    ' (Total: $' + amount + '). Please send payment instructions.';
+  const waLink = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
 
   return (
-    <div className="min-h-screen bg-black text-white p-8 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 text-center">
-          <h1 className="text-3xl font-bold mb-2">Complete Your Purchase</h1>
-          <div className="bg-black/50 p-6 rounded-xl mt-6">
-            <p className="text-gray-400 text-sm">Item</p>
-            <p className="text-xl font-semibold text-white mb-2">{item}</p>
-            <div className="h-px bg-gray-800 my-3"></div>
-            <p className="text-gray-400 text-sm">Total</p>
-            <p className="text-5xl font-bold text-green-400">${amount.toFixed(2)}</p>
+    <div className="min-h-screen bg-black text-white font-sans py-16 px-6">
+      <div className="max-w-3xl mx-auto space-y-8">
+        <h1 className="text-4xl font-bold text-center">Complete Your Purchase</h1>
+
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
+          <div className="text-center pb-6 border-b border-gray-800">
+            <p className="text-sm text-gray-400 mb-1">Item</p>
+            <p className="text-2xl font-semibold">{itemName || 'Select your product below'}</p>
+          </div>
+          <div className="text-center pt-6">
+            <p className="text-sm text-gray-400 mb-1">Total</p>
+            <p className="text-5xl font-bold text-green-400">${amount.toLocaleString()}</p>
           </div>
         </div>
-        <div className="bg-green-900/10 border border-green-600/50 p-8 rounded-2xl text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">Pay via WhatsApp (Recommended)</h2>
-          <p className="text-gray-300 mb-6">Fastest method! Chat with us directly for instant payment instructions and order confirmation.</p>
-          <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition-all">Chat to Buy Now</a>
-          <p className="text-xs text-gray-500 mt-4">Available 24/7 • Instant Response</p>
+
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
+          <p className="text-sm text-gray-400 mb-4 text-center">
+            Choose your product — the Item name and Total above update instantly:
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {CATALOG.map((p) => (
+              <button
+                key={p.name}
+                onClick={() => setChosen(p.name)}
+                className={
+                  'px-4 py-3 rounded-lg border text-sm font-semibold transition-all ' +
+                  (itemName.toLowerCase() === p.name.toLowerCase()
+                    ? 'bg-cyan-600 border-cyan-400 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-cyan-500')
+                }
+              >
+                {p.name} — ${p.price}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="bg-blue-900/10 border border-blue-600/50 p-8 rounded-2xl">
-          <h2 className="text-2xl font-bold text-white mb-2">Option 2: Manual Bank Transfer</h2>
-          <p className="text-gray-400 mb-6">Transfer funds directly to our account. Send proof of payment via WhatsApp for activation.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="bg-black/40 p-6 rounded-xl border border-blue-800/50">
-                <h3 className="font-bold text-lg mb-4">Banking Details</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between border-b border-gray-800 pb-2"><span className="text-gray-400">Bank:</span><span className="text-white font-bold">{capitecBank}</span></div>
-                  <div className="flex justify-between border-b border-gray-800 pb-2"><span className="text-gray-400">Account Name:</span><span className="text-white">{capitecAccountName}</span></div>
-                  <div className="flex justify-between border-b border-gray-800 pb-2"><span className="text-gray-400">Account Number:</span><span className="text-green-400 font-mono">{capitecAccountNumber}</span></div>
-                  <div className="flex justify-between border-b border-gray-800 pb-2"><span className="text-gray-400">SWIFT Code:</span><span className="text-green-400 font-mono font-bold">{capitecSwiftCode}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-400">Reference:</span><span className="text-yellow-400 font-mono">{orderRef}</span></div>
-                </div>
-              </div>
-              <div className="bg-black/40 p-6 rounded-xl border border-gray-800">
-                <h3 className="font-bold text-lg mb-3">How to Pay</h3>
-                <ol className="text-sm text-gray-300 space-y-2 list-decimal list-inside">
-                  <li>Open your banking app (any bank, any country)</li>
-                  <li>Select "International Transfer" or "SWIFT"</li>
-                  <li>Enter the Capitec details shown above</li>
-                  <li>Use SWIFT code: <strong className="text-green-400">CABLZAJJ</strong></li>
-                  <li>Use the Reference number exactly as shown</li>
-                  <li>Send payment and save proof</li>
-                  <li>Click WhatsApp button to send proof</li>
-                </ol>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="bg-black/40 p-6 rounded-xl border border-green-800/50">
-                <h3 className="font-bold text-lg mb-3 flex items-center gap-2"><span>🇺</span> USA - Faster Options</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="bg-green-900/20 p-3 rounded-lg"><p className="font-bold text-green-400">Wise (Recommended)</p><p className="text-gray-300 text-xs mt-1">Email: <span className="font-mono">{wiseEmail}</span></p></div>
-                  <div className="bg-blue-900/20 p-3 rounded-lg"><p className="font-bold text-blue-400">PayPal</p><p className="text-gray-300 text-xs mt-1">Email: <span className="font-mono">{paypalEmail}</span></p></div>
-                </div>
-              </div>
-              <div className="bg-black/40 p-6 rounded-xl border border-green-800/50">
-                <h3 className="font-bold text-lg mb-3 flex items-center gap-2"><span>🇮🇳</span> India - Faster Options</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="bg-green-900/20 p-3 rounded-lg"><p className="font-bold text-green-400">UPI (Recommended)</p><p className="text-gray-300 text-xs mt-1">UPI ID: <span className="font-mono">{upiId}</span></p></div>
-                  <div className="bg-blue-900/20 p-3 rounded-lg"><p className="font-bold text-blue-400">Wise</p><p className="text-gray-300 text-xs mt-1">Email: <span className="font-mono">{wiseEmail}</span></p></div>
-                </div>
-              </div>
-              <div className="bg-black/40 p-6 rounded-xl border border-green-800/50">
-                <h3 className="font-bold text-lg mb-3 flex items-center gap-2"><span>🇨🇳</span> China - Faster Options</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="bg-green-900/20 p-3 rounded-lg"><p className="font-bold text-green-400">Alipay (Recommended)</p><p className="text-gray-300 text-xs mt-1">Alipay ID: <span className="font-mono">{alipayId}</span></p></div>
-                  <div className="bg-blue-900/20 p-3 rounded-lg"><p className="font-bold text-blue-400">WeChat Pay</p><p className="text-gray-300 text-xs mt-1">WeChat ID: <span className="font-mono">{weChatId}</span></p></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-6 text-center">
-            <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition-all">Send Proof of Payment on WhatsApp</a>
-          </div>
+
+        <div className="bg-green-950/40 border border-green-700 rounded-xl p-8 text-center">
+          <h2 className="text-2xl font-bold mb-2">Pay via WhatsApp (Recommended)</h2>
+          <p className="text-gray-300 mb-6">
+            Fastest method! Chat with us directly for instant payment instructions and order confirmation.
+          </p>
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full py-4 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold text-lg transition-all"
+          >
+            Chat to Buy Now
+          </a>
+          <p className="text-xs text-gray-400 mt-4">Available 24/7 • Instant Response</p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <CheckoutInner />
+    </Suspense>
   );
 }
