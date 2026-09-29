@@ -3,7 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-// Michael's WhatsApp business number — baked in, no edits needed.
+// Michael's WhatsApp business number — baked in.
 const WHATSAPP_NUMBER = '27641061358';
 
 const CATALOG: { name: string; price: number }[] = [
@@ -17,10 +17,20 @@ const CATALOG: { name: string; price: number }[] = [
   { name: 'Video Template Bundle', price: 55 },
 ];
 
+const DUMMY_NAMES = ['digital product', 'test product', 'product', 'item', ''];
+
+function cleanItem(raw: string): string {
+  const t = raw.trim();
+  const low = t.toLowerCase();
+  if (DUMMY_NAMES.includes(low)) return '';
+  return t;
+}
+
 function CheckoutInner() {
   const params = useSearchParams();
-  const urlItem = (params.get('item') || '').trim();
-  const urlAmount = Number(params.get('amount') || 0) || 0;
+  const urlItem = cleanItem(params.get('item') || '');
+  const rawAmount = Number(params.get('amount') || 0) || 0;
+  const urlAmount = rawAmount === 10.99 ? 0 : rawAmount;
 
   const [chosen, setChosen] = useState<string>(urlItem);
 
