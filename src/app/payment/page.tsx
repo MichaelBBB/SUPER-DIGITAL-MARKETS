@@ -2,8 +2,9 @@
 
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
-// Michael's REAL WhatsApp number (from his own WhatsApp "(You)" line).
+// Michael's REAL WhatsApp number — baked in.
 const WHATSAPP_NUMBER = '27743868889';
 
 const CATALOG: { name: string; price: number }[] = [
@@ -41,7 +42,7 @@ function CheckoutInner() {
   const message =
     'Hello Super Digital Markets! I want to purchase: ' +
     (itemName || 'a digital product') +
-    ' (Total: $' + amount + '). Please send payment instructions.';
+    ' (Total: $' + amount + '). I have read the Payment Guide and I am ready to pay. Please confirm my order.';
   const waLink = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
 
   return (
@@ -60,10 +61,37 @@ function CheckoutInner() {
           </div>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
-          <p className="text-sm text-gray-400 mb-4 text-center">
-            Choose your product — the Item name and Total above update instantly:
+        <div className="bg-gray-900 border border-cyan-800 rounded-xl p-8">
+          <h2 className="text-2xl font-bold text-center mb-6">How To Pay — Payment Guide</h2>
+          <div className="space-y-4 text-gray-300 text-sm md:text-base">
+            <p><span className="font-bold text-cyan-400">Step 1.</span> Tap <span className="text-white font-semibold">Chat to Buy Now</span> below — your order (product name + total) is already typed for you.</p>
+            <p><span className="font-bold text-cyan-400">Step 2.</span> Press <span className="text-white font-semibold">Send</span> in WhatsApp. Our team replies 24/7 with our secure Capitec EFT / card payment details.</p>
+            <p><span className="font-bold text-cyan-400">Step 3.</span> Pay and send the proof in the same chat. You receive your Order Reference (e.g. ORDER-8882).</p>
+            <p><span className="font-bold text-cyan-400">Step 4.</span> Your product is delivered instantly in chat with your download / license details.</p>
+          </div>
+          <p className="text-xs text-gray-500 mt-6 text-center">
+            Banking details are shared only inside your private WhatsApp chat for your security — never on public pages.
           </p>
+        </div>
+
+        <div className="bg-green-950/40 border border-green-700 rounded-xl p-8 text-center">
+          <h2 className="text-2xl font-bold mb-2">Pay via WhatsApp (Recommended)</h2>
+          <p className="text-gray-300 mb-6">
+            Fastest method! Chat with us directly for instant payment details and order confirmation.
+          </p>
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full py-4 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold text-lg transition-all"
+          >
+            Chat to Buy Now
+          </a>
+          <p className="text-xs text-gray-400 mt-4">Available 24/7 • Instant Response</p>
+        </div>
+
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
+          <p className="text-sm text-gray-400 mb-4 text-center">Choose Similar Products</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {CATALOG.map((p) => (
               <button
@@ -82,20 +110,17 @@ function CheckoutInner() {
           </div>
         </div>
 
-        <div className="bg-green-950/40 border border-green-700 rounded-xl p-8 text-center">
-          <h2 className="text-2xl font-bold mb-2">Pay via WhatsApp (Recommended)</h2>
-          <p className="text-gray-300 mb-6">
-            Fastest method! Chat with us directly for instant payment instructions and order confirmation.
-          </p>
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full py-4 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold text-lg transition-all"
-          >
-            Chat to Buy Now
-          </a>
-          <p className="text-xs text-gray-400 mt-4">Available 24/7 • Instant Response</p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link href="/products">
+            <button className="w-full px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full text-lg shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105">
+              ← Back To Products
+            </button>
+          </Link>
+          <Link href="/">
+            <button className="w-full px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full text-lg shadow-lg transition-all transform hover:scale-105">
+              Back To Home
+            </button>
+          </Link>
         </div>
       </div>
     </div>
