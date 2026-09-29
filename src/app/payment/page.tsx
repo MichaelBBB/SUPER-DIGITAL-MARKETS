@@ -3,8 +3,8 @@
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-// Michael's WhatsApp business number — baked in.
-const WHATSAPP_NUMBER = '27641061358';
+// Michael's REAL WhatsApp number (from his own WhatsApp "(You)" line).
+const WHATSAPP_NUMBER = '27743868889';
 
 const CATALOG: { name: string; price: number }[] = [
   { name: 'AI Writing Assistant', price: 49 },
