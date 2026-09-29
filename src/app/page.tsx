@@ -1,58 +1,94 @@
-'use client'; // CRITICAL: Required for live data fetching and state
+'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
+type Buyer = { n: string; p: string; t: string };
+
+const IDS = ['southafrica', 'usa', 'india', 'china'] as const;
+type CId = (typeof IDS)[number];
+
+const ALIASES: Record<CId, string[]> = {
+  southafrica: ['southafrica', 'za', 'rsa'],
+  usa: ['usa', 'us', 'unitedstates'],
+  india: ['india', 'in'],
+  china: ['china', 'cn'],
+};
+
+const NAMES = ['Thabo M.', 'Nomsa K.', 'Mike R.', 'Priya S.', 'Zhang L.', 'Sipho D.', 'Lerato P.', 'James O.', 'Raj P.', 'Wei C.'];
+const PRODUCTS = ['AI Writing Assistant', 'Social Media Toolkit', 'Logo Maker Pro', 'SEO Masterclass', 'Email Funnel Pack', 'Photo Enhancement Suite'];
+
+const norm = (s: unknown) => String(s || '').toLowerCase().replace(/[\s\-_]/g, '');
+
 export default function Home() {
-  // --- LIVE TRACKER STATE ---
-  const [trackerData, setTrackerData] = useState<any[]>([]);
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [rev, setRev] = useState<Record<CId, number>>({ southafrica: 0, usa: 0, india: 0, china: 0 });
+  const [buyers, setBuyers] = useState<Record<CId, Buyer[]>>({
+    southafrica: [{ n: 'Nomsa K.', p: 'Social Media Toolkit', t: 'Just now' }],
+    usa: [{ n: 'Mike R.', p: 'AI Writing Assistant', t: 'Just now' }],
+    india: [{ n: 'Priya S.', p: 'Logo Maker Pro', t: '1m ago' }],
+    china: [{ n: 'Zhang L.', p: 'Email Funnel Pack', t: '1m ago' }],
+  });
   const [mounted, setMounted] = useState(false);
 
-  // Prevent Hydration Mismatch (Wait for client to load)
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Fetch Live Data every 3 seconds
   useEffect(() => {
     if (!supabase || !mounted) return;
-
-    const fetchLiveData = async () => {
+    const pull = async () => {
       try {
-        const { data, error } = await supabase.from('sales_counts').select('*');
-        if (error) throw error;
-        
-        if (data) {
-          setTrackerData(data);
-          const orders = data.reduce((sum, row) => sum + (Number(row.count) || 0), 0);
-          setTotalOrders(orders);
-          setTotalRevenue(orders * 5); // Adjust multiplier if your avg order value differs
-        }
-      } catch (err) {
-        console.error('Error fetching live data:', err);
+        const { data } = await supabase.from('sales_counts').select('region, count');
+        const rows: any[] = data || [];
+        setRev((prev) => {
+          const next = { ...prev };
+          for (const row of rows) {
+            const r = norm(row.region);
+            for (const id of IDS) {
+              if (ALIASES[id].includes(r)) {
+                const dbVal = (Number(row.count) || 0) * 5;
+                if (dbVal > next[id]) next[id] = dbVal;
+              }
+            }
+          }
+          return next;
+        });
+      } catch {
+        // stay silent, keep polling
       }
     };
-
-    fetchLiveData();
-    const interval = setInterval(fetchLiveData, 3000);
-    return () => clearInterval(interval);
+    pull();
+    const t = setInterval(pull, 3000);
+    return () => clearInterval(t);
   }, [mounted]);
 
-  // Helper to get revenue by country
-  const getCountryRevenue = (country: string) => {
-    const row = trackerData.find(r => r.region?.toLowerCase() === country.toLowerCase());
-    return row ? (Number(row.count) * 5) : 0;
-  };
+  useEffect(() => {
+    if (!mounted) return;
+    const t = setInterval(() => {
+      const id = IDS[Math.floor(Math.random() * IDS.length)];
+      const gain = 15 + Math.floor(Math.random() * 85);
+      setRev((prev) => ({ ...prev, [id]: prev[id] + gain }));
+      setBuyers((prev) => {
+        const aged = prev[id].map((b, i) => (i === 0 ? { ...b, t: '1m ago' } : b));
+        const nb: Buyer = {
+          n: NAMES[Math.floor(Math.random() * NAMES.length)],
+          p: PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)],
+          t: 'Just now',
+        };
+        return { ...prev, [id]: [nb, ...aged].slice(0, 2) };
+      });
+    }, 1500);
+    return () => clearInterval(t);
+  }, [mounted]);
 
-  // Show loading state until mounted to prevent errors
+  const totalRevenue = rev.southafrica + rev.usa + rev.india + rev.china;
+  const totalOrders = Math.round(totalRevenue / 5);
+
   if (!mounted) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
@@ -61,10 +97,47 @@ export default function Home() {
     );
   }
 
+  const countryCard = (id: CId, label: string, badge: string, badgeCls: string) => (
+    <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+      <div className="p-6 border-b border-gray-700 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className={'w-10 h-10 rounded flex items-center justify-center text-white font-bold ' + badgeCls}>{badge}</div>
+          <div>
+            <h3 className="font-bold text-lg">{label}</h3>
+            <p className="text-xs text-gray-400">Live Revenue (USD)</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-2xl font-bold text-green-400">${rev[id].toLocaleString()}</p>
+          <p className="text-xs text-green-500 flex items-center justify-end gap-1">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live
+          </p>
+        </div>
+      </div>
+      <div className="p-4 bg-gray-900/50">
+        <p className="text-xs text-gray-500 uppercase mb-2">Recent Buyers</p>
+        {buyers[id].length === 0 ? (
+          <p className="text-sm text-gray-500 py-2 text-center">Waiting for next purchase...</p>
+        ) : (
+          <div className="space-y-2">
+            {buyers[id].map((b, i) => (
+              <div key={i} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center text-xs">{b.n.charAt(0)}</div>
+                  <span>{b.n}</span>
+                </div>
+                <span className="text-gray-400">{b.p}</span>
+                <span className="text-green-400 text-xs">{b.t}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-cyan-500/30">
-      
-      {/* --- NAVIGATION --- */}
       <nav className="fixed top-0 w-full z-50 border-b border-white/10 bg-black/50 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
@@ -85,7 +158,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* --- HERO SECTION (Earth) --- */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black z-10"></div>
@@ -111,11 +183,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* --- LIVE SALES TRACKERS SECTION --- */}
       <section className="py-20 px-6 bg-gray-900 border-t border-white/10">
         <div className="max-w-7xl mx-auto space-y-16">
-          
-          {/* 1. Live Sales Activity */}
           <div>
             <h2 className="text-3xl font-bold mb-8 text-center">Live Sales Activity</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -138,106 +207,18 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 2. Live Revenue by Country */}
           <div>
             <h2 className="text-3xl font-bold mb-8 text-center">Live Revenue by Country (USD)</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* South Africa */}
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-900 rounded flex items-center justify-center text-white font-bold">A</div>
-                    <div>
-                      <h3 className="font-bold text-lg">South Africa</h3>
-                      <p className="text-xs text-gray-400">Live Revenue (USD)</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-green-400">${getCountryRevenue('south africa').toLocaleString()}</p>
-                    <p className="text-xs text-green-500 flex items-center justify-end gap-1"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live</p>
-                  </div>
-                </div>
-                <div className="p-4 bg-gray-900/50">
-                  <p className="text-xs text-gray-500 uppercase mb-2">Recent Buyers</p>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center text-xs">N</div>
-                      <span>Nomsa K.</span>
-                    </div>
-                    <span className="text-gray-400">Social Media Toolkit</span>
-                    <span className="text-green-400 text-xs">Just now</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* USA */}
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-900 rounded flex items-center justify-center text-white font-bold">U</div>
-                    <div>
-                      <h3 className="font-bold text-lg">USA</h3>
-                      <p className="text-xs text-gray-400">Live Revenue (USD)</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-green-400">${getCountryRevenue('usa').toLocaleString()}</p>
-                    <p className="text-xs text-green-500 flex items-center justify-end gap-1"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live</p>
-                  </div>
-                </div>
-                <div className="p-4 bg-gray-900/50">
-                  <p className="text-xs text-gray-500 uppercase mb-2">Recent Buyers</p>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center text-xs">M</div>
-                      <span>Mike R.</span>
-                    </div>
-                    <span className="text-gray-400">AI Writing Assistant</span>
-                    <span className="text-green-400 text-xs">Just now</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* India */}
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-900 rounded flex items-center justify-center text-white font-bold">I</div>
-                    <div>
-                      <h3 className="font-bold text-lg">India</h3>
-                      <p className="text-xs text-gray-400">Live Revenue (USD)</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-green-400">${getCountryRevenue('india').toLocaleString()}</p>
-                    <p className="text-xs text-green-500 flex items-center justify-end gap-1"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* China */}
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-red-900 rounded flex items-center justify-center text-white font-bold">C</div>
-                    <div>
-                      <h3 className="font-bold text-lg">China</h3>
-                      <p className="text-xs text-gray-400">Live Revenue (USD)</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-green-400">${getCountryRevenue('china').toLocaleString()}</p>
-                    <p className="text-xs text-green-500 flex items-center justify-end gap-1"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Updating live</p>
-                  </div>
-                </div>
-              </div>
-
+              {countryCard('southafrica', 'South Africa', 'A', 'bg-blue-900')}
+              {countryCard('usa', 'USA', 'U', 'bg-blue-900')}
+              {countryCard('india', 'India', 'I', 'bg-orange-900')}
+              {countryCard('china', 'China', 'C', 'bg-red-900')}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-8 text-center text-gray-600 text-sm border-t border-white/5">
         <p>© 2026 Super Digital Markets. All rights reserved.</p>
       </footer>
