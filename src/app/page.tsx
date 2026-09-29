@@ -8,9 +8,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
-// Grabs your REAL Peach Payment Link from Vercel Env Vars
-const PAY_LINK = process.env.NEXT_PUBLIC_PAY_LINK || '/payment';
-
 type Buyer = { n: string; p: string; t: string };
 
 const IDS = ['southafrica', 'usa', 'india', 'china'] as const;
@@ -37,7 +34,6 @@ export default function Home() {
     china: [{ n: 'Zhang L.', p: 'Email Funnel Pack', t: '1m ago' }],
   });
   
-  // FIX 1: Active Users is now a live state variable
   const [activeUsers, setActiveUsers] = useState(1247); 
   const [mounted, setMounted] = useState(false);
 
@@ -45,7 +41,6 @@ export default function Home() {
     setMounted(true);
   }, []);
 
-  // Database Polling (Real Money)
   useEffect(() => {
     if (!supabase || !mounted) return;
     const pull = async () => {
@@ -66,7 +61,7 @@ export default function Home() {
           return next;
         });
       } catch {
-        // stay silent
+        // silent fail
       }
     };
     pull();
@@ -74,7 +69,6 @@ export default function Home() {
     return () => clearInterval(t);
   }, [mounted]);
 
-  // Live Simulation Engine (Active Users + Revenue ticks + Buyers)
   useEffect(() => {
     if (!mounted) return;
     const t = setInterval(() => {
@@ -82,7 +76,6 @@ export default function Home() {
       const gain = 15 + Math.floor(Math.random() * 85);
       setRev((prev) => ({ ...prev, [id]: prev[id] + gain }));
       
-      // FIX 1: Increment Active Users randomly every 1.5s
       setActiveUsers((prev) => prev + Math.floor(Math.random() * 3) + 1);
 
       setBuyers((prev) => {
@@ -191,15 +184,11 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link href="/products"><button className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full text-lg shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105">Browse Products</button></Link>
             
-            {/* FIX 2: Real Payment Link instead of $10.99 dummy */}
-            <a 
-              href={PAY_LINK} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-full text-lg shadow-lg shadow-green-500/30 transition-all transform hover:scale-105"
-            >
-              Go To Payment Page
-            </a>
+            <Link href="/checkout">
+              <button className="px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-full text-lg shadow-lg shadow-green-500/30 transition-all transform hover:scale-105">
+                Complete Your Purchase
+              </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -221,7 +210,6 @@ export default function Home() {
                 <p className="text-gray-400 text-sm mb-2">Success Rate</p>
                 <p className="text-4xl font-bold text-yellow-400">98.5%</p>
               </div>
-              {/* FIX 1: Active Users Now Moving */}
               <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
                 <p className="text-gray-400 text-sm mb-2">Active Users</p>
                 <p className="text-4xl font-bold text-purple-400">{activeUsers.toLocaleString()}</p>
