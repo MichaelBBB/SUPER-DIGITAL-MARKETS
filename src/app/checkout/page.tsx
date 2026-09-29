@@ -1,135 +1,91 @@
-"use client";
+'use client';
 
 import { Suspense, useState } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-const products = [
-  { id: 1, name: "ChatGPT Plus", price: 20.00 }, { id: 2, name: "Adobe Creative Cloud", price: 54.99 }, { id: 3, name: "Netflix Premium", price: 22.99 },
-  { id: 4, name: "Microsoft 365 Business", price: 12.50 }, { id: 5, name: "Spotify Premium", price: 9.99 }, { id: 6, name: "NordVPN", price: 3.99 },
-  { id: 7, name: "Notion Plus", price: 8.00 }, { id: 8, name: "Figma Professional", price: 12.00 }, { id: 9, name: "Dropbox Plus", price: 9.99 },
-  { id: 10, name: "Canva Pro", price: 12.99 }, { id: 11, name: "Grammarly Premium", price: 12.00 }, { id: 12, name: "Zoom Pro", price: 14.99 },
-  { id: 13, name: "LastPass Premium", price: 3.00 }, { id: 14, name: "Cursor AI Pro", price: 20.00 }, { id: 15, name: "Midjourney Standard", price: 24.00 },
-  { id: 16, name: "GitHub Copilot", price: 10.00 }, { id: 17, name: "Slack Pro", price: 7.25 }, { id: 18, name: "Dashlane Premium", price: 4.99 },
-  { id: 19, name: "Adobe Photoshop", price: 22.99 }, { id: 20, name: "Claude Pro", price: 20.00 }, { id: 21, name: "Adobe Premiere Pro", price: 22.99 },
-  { id: 22, name: "Asana Premium", price: 10.99 }, { id: 23, name: "ExpressVPN", price: 6.67 }, { id: 24, name: "YouTube Premium", price: 13.99 },
-  { id: 25, name: "1Password", price: 2.99 }, { id: 26, name: "Monday.com Pro", price: 9.00 }, { id: 27, name: "Perplexity Pro", price: 20.00 },
-  { id: 28, name: "Loom Business", price: 12.50 }, { id: 29, name: "Webflow CMS", price: 14.00 }, { id: 30, name: "ElevenLabs Starter", price: 5.00 }
+// Michael's WhatsApp business number — baked in, no edits needed.
+const WHATSAPP_NUMBER = '27641061358';
+
+const CATALOG: { name: string; price: number }[] = [
+  { name: 'AI Writing Assistant', price: 49 },
+  { name: 'Social Media Toolkit', price: 39 },
+  { name: 'Logo Maker Pro', price: 29 },
+  { name: 'SEO Masterclass', price: 59 },
+  { name: 'Email Funnel Pack', price: 35 },
+  { name: 'Photo Enhancement Suite', price: 45 },
+  { name: 'Brand Kit Deluxe', price: 65 },
+  { name: 'Video Template Bundle', price: 55 },
 ];
 
 function CheckoutInner() {
-  const searchParams = useSearchParams();
-  const productId = Number(searchParams.get('product')) || 1;
-  const product = products.find(p => p.id === productId) || products[0];
-  const [selectedMethod, setSelectedMethod] = useState('peach');
-  const [processing, setProcessing] = useState(false);
+  const params = useSearchParams();
+  const urlItem = (params.get('item') || '').trim();
+  const urlAmount = Number(params.get('amount') || 0) || 0;
 
-  const methods = [
-    { id: 'razorpay', name: 'Razorpay', sub: 'INDIA PRIMARY', flag: '🇮🇳' },
-    { id: 'alipay', name: 'Alipay', sub: 'CHINA PRIMARY', flag: '🇨' },
-    { id: 'payoneer', name: 'Payoneer', sub: 'USA PRIMARY', flag: '🇺' },
-    { id: 'googlepay', name: 'Google Pay', sub: 'GLOBAL', flag: '🌍' },
-    { id: 'peach', name: 'Peach Payments', sub: 'SA PRIMARY', flag: '🇿🇦' },
-    { id: 'capitec', name: 'Capitec Bank Transfer', sub: 'MANUAL', flag: '🇿' },
-  ];
+  const [chosen, setChosen] = useState<string>(urlItem);
 
-  // FIXED: Call /api/checkout instead of /api/peach-payment
-  const handlePeachPayment = async () => {
-    setProcessing(true);
-    
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          amount: product.price * 100,
-          currency: 'ZAR',
-          orderId: `SD-${product.id}`,
-          productName: product.name,
-        }),
-      });
-      
-      const data = await res.json();
-      
-      if (data.redirectUrl || data.checkoutUrl) {
-        window.location.href = data.redirectUrl || data.checkoutUrl;
-      } else {
-        alert('Payment link not received. Please try again.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Network error. Please check your connection.');
-    } finally {
-      setProcessing(false);
-    }
-  };
+  const itemName = chosen || urlItem;
+  const inCatalog = CATALOG.find((p) => p.name.toLowerCase() === itemName.toLowerCase());
+  const amount = urlAmount > 0 ? urlAmount : inCatalog ? inCatalog.price : 0;
+
+  const message =
+    'Hello Super Digital Markets! I want to purchase: ' +
+    (itemName || 'a digital product') +
+    ' (Total: $' + amount + '). Please send payment instructions.';
+  const waLink = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
 
   return (
-    <div className="min-h-screen bg-[#0B1120] text-white py-12 px-4 md:px-8 font-sans">
-      <div className="max-w-6xl mx-auto">
-        <Link href="/" className="text-cyan-400 hover:text-white mb-8 inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest">← Back to Home</Link>
-        <h1 className="text-4xl font-bold mb-2">Secure Checkout</h1>
-        <p className="text-gray-400 mb-8">Order: <span className="text-white font-bold">{product.name}</span> — Total: <span className="text-cyan-400 font-bold">${product.price.toFixed(2)}</span></p>
+    <div className="min-h-screen bg-black text-white font-sans py-16 px-6">
+      <div className="max-w-3xl mx-auto space-y-8">
+        <h1 className="text-4xl font-bold text-center">Complete Your Purchase</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="space-y-3">
-            {methods.map((m) => (
-              <button key={m.id} onClick={() => setSelectedMethod(m.id)} className={`w-full p-4 rounded-xl border transition text-left flex items-center justify-between ${selectedMethod === m.id ? 'border-cyan-500 bg-[#0F172A] shadow-[0_0_15px_rgba(6,182,212,0.15)]' : 'border-slate-700 bg-[#0F172A]/50 hover:border-slate-600'}`}>
-                <div className="flex items-center gap-3"><span className="text-xl">{m.flag}</span><div><div className="font-bold text-sm">{m.name}</div><div className={`text-[10px] uppercase tracking-wider font-bold ${m.id === 'peach' || m.id === 'capitec' ? 'text-orange-400' : 'text-blue-400'}`}>{m.sub}</div></div></div>
-                {selectedMethod === m.id && <span className="w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center text-xs text-white">✓</span>}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
+          <div className="text-center pb-6 border-b border-gray-800">
+            <p className="text-sm text-gray-400 mb-1">Item</p>
+            <p className="text-2xl font-semibold">{itemName || 'Select your product below'}</p>
+          </div>
+          <div className="text-center pt-6">
+            <p className="text-sm text-gray-400 mb-1">Total</p>
+            <p className="text-5xl font-bold text-green-400">${amount.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
+          <p className="text-sm text-gray-400 mb-4 text-center">
+            Choose your product — the Item name and Total above update instantly:
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {CATALOG.map((p) => (
+              <button
+                key={p.name}
+                onClick={() => setChosen(p.name)}
+                className={
+                  'px-4 py-3 rounded-lg border text-sm font-semibold transition-all ' +
+                  (itemName.toLowerCase() === p.name.toLowerCase()
+                    ? 'bg-cyan-600 border-cyan-400 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-cyan-500')
+                }
+              >
+                {p.name} — ${p.price}
               </button>
             ))}
           </div>
+        </div>
 
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            
-            {/* PANEL 1: STEPS */}
-            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800">
-              <h3 className="text-lg font-bold mb-4 text-cyan-400">📋 Payment Steps</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-start gap-3"><div className="w-8 h-8 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-sm">01</div><div><h4 className="font-bold text-sm">Choose Product</h4><p className="text-xs text-gray-400">You selected: {product.name}</p></div></div>
-                <div className="flex items-start gap-3"><div className="w-8 h-8 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-sm">02</div><div><h4 className="font-bold text-sm">Select Method</h4><p className="text-xs text-gray-400">{methods.find(m => m.id === selectedMethod)?.name}</p></div></div>
-                <div className="flex items-start gap-3"><div className="w-8 h-8 rounded-full bg-cyan-900/30 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-sm">03</div><div><h4 className="font-bold text-sm">Complete Payment</h4><p className="text-xs text-gray-400">Click the blue button below.</p></div></div>
-                <div className="flex items-start gap-3"><div className="w-8 h-8 rounded-full bg-green-900/30 border border-green-500/30 flex items-center justify-center text-green-400 font-bold text-sm">04</div><div><h4 className="font-bold text-sm">Instant Delivery</h4><p className="text-xs text-gray-400">Receive access immediately via email.</p></div></div>
-              </div>
-            </div>
-
-            {/* PANEL 2: PAYMENT DETAILS */}
-            <div className="bg-[#0F172A] p-6 rounded-2xl border border-slate-800 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-              <div className="relative z-10">
-                {selectedMethod === 'peach' && (
-                  <>
-                    <div className="flex items-center gap-3 mb-6"><span className="text-2xl">💳</span><div><h2 className="text-xl font-bold">Credit / Debit Card / Instant EFT</h2><p className="text-slate-400 text-sm">Powered by Peach Payments</p></div></div>
-                    
-                    <p className="text-gray-400 mb-6 text-lg font-medium text-center">
-                      SECURE PAYMENT. INSTANT DELIVERY.
-                    </p>
-                    
-                    <button onClick={handlePeachPayment} disabled={processing} className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold text-lg transition shadow-lg shadow-cyan-900/20">
-                      {processing ? 'Redirecting...' : `Pay $${product.price.toFixed(2)} Securely`}
-                    </button>
-                    <p className="text-xs text-gray-500 mt-3 text-center">⚠️ Testing: Use Card `4111 1111 1111 1111` | Any future expiry | CVV `123`</p>
-                  </>
-                )}
-                {selectedMethod === 'capitec' && (
-                  <>
-                    <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-2xl border border-slate-700">🇿</div><div><h2 className="text-xl font-bold">Capitec Bank Transfer</h2><p className="text-slate-400 text-sm">Direct EFT</p></div></div><span className="px-2 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold">✓ Verified</span></div>
-                    <div className="grid grid-cols-2 gap-3 mb-5"><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">HOLDER</span><span className="font-bold">SUPER DIGITAL</span></div><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">ACCOUNT</span><span className="font-bold font-mono">1975933441</span></div><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">SWIFT</span><span className="font-bold">CABLZAJJ</span></div><div className="bg-slate-900 p-3 rounded-lg border border-slate-800"><span className="text-gray-500 text-[10px] block">BRANCH</span><span className="font-bold">470010</span></div></div>
-                    <div className="bg-blue-900/20 border border-blue-800 p-3 rounded-lg mb-5"><p className="text-xs text-blue-200">Transfer exact amount. Email proof to <a href="mailto:payments@superdigital.store" className="underline">payments@superdigital.store</a> with Order ID.</p></div>
-                    <button disabled className="w-full py-4 bg-slate-700 rounded-xl font-bold text-lg cursor-not-allowed opacity-70">Manual Transfer Only</button>
-                  </>
-                )}
-                {!['peach', 'capitec'].includes(selectedMethod) && (
-                  <>
-                    <div className="flex items-center gap-3 mb-6"><span className="text-2xl">{methods.find(m => m.id === selectedMethod)?.flag}</span><div><h2 className="text-xl font-bold capitalize">{selectedMethod}</h2><p className="text-slate-400 text-sm">International Payment</p></div></div>
-                    <p className="text-gray-400 mb-6">Coming soon. Select Peach or Capitec for instant processing.</p>
-                    <button disabled className="w-full py-4 bg-slate-700 rounded-xl font-bold text-lg cursor-not-allowed opacity-70">Unavailable</button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+        <div className="bg-green-950/40 border border-green-700 rounded-xl p-8 text-center">
+          <h2 className="text-2xl font-bold mb-2">Pay via WhatsApp (Recommended)</h2>
+          <p className="text-gray-300 mb-6">
+            Fastest method! Chat with us directly for instant payment instructions and order confirmation.
+          </p>
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full py-4 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold text-lg transition-all"
+          >
+            Chat to Buy Now
+          </a>
+          <p className="text-xs text-gray-400 mt-4">Available 24/7 • Instant Response</p>
         </div>
       </div>
     </div>
@@ -137,5 +93,9 @@ function CheckoutInner() {
 }
 
 export default function CheckoutPage() {
-  return (<Suspense fallback={<div className="min-h-screen bg-[#0B1120] text-white flex items-center justify-center">Loading...</div>}><CheckoutInner /></Suspense>);
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <CheckoutInner />
+    </Suspense>
+  );
 }
