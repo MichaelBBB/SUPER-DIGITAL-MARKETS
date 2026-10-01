@@ -13,7 +13,7 @@ type Product = {
   image: string; // Local path from public/images
 };
 
-// ✅ YOUR 30 PRODUCTS WITH YOUR REAL IMAGE FILES
+// ✅ YOUR 30 PRODUCTS WITH YOUR REAL IMAGE FILES (MATCHING GITHUB FOLDER)
 const PRODUCTS: Product[] = [
   { id: 1, name: 'ChatGPT Plus', description: "OpenAI's GPT-4 powered assistant.", price: 20.00, badge: 'HOT', category: 'AI Tools', image: '/images/chatgpt.jpg' },
   { id: 2, name: 'Adobe Creative Cloud', description: 'Full suite of Adobe apps.', price: 54.99, badge: 'POPULAR', category: 'Creative', image: '/images/adobe-cc.jpg' },
@@ -33,7 +33,7 @@ const PRODUCTS: Product[] = [
   { id: 16, name: 'Microsoft 365 Business', description: 'Word, Excel, PowerPoint, Teams.', price: 12.50, badge: 'POPULAR', category: 'Business', image: '/images/microsoft365.jpg' },
   { id: 17, name: 'Midjourney Standard', description: 'AI image generation.', price: 24.00, badge: 'HOT', category: 'AI Tools', image: '/images/midjourney.jpg' },
   { id: 18, name: 'Monday.com Pro', description: 'Visual work OS.', price: 9.00, badge: 'NEW', category: 'Business', image: '/images/monday.jpg' },
-  { id: 19, name: 'Disney Premium', description: 'Marvel, Star Wars, Pixar & Nat Geo.', price: 13.99, badge: 'HOT', category: 'Entertainment', image: '/images/disney-premium.jpg' },
+  { id: 19, name: 'Disney Premium', description: 'Marvel, Star Wars, Pixar & Nat Geo.', price: 13.99, badge: 'HOT', category: 'Entertainment', image: '/images/netflix.jpg' }, // Using netflix.jpg as per your folder list for Disney slot
   { id: 20, name: 'NordVPN', description: 'Military-grade encryption.', price: 3.99, badge: 'HOT', category: 'Security', image: '/images/nordvpn.jpg' },
   { id: 21, name: 'Notion Plus', description: 'All-in-one workspace.', price: 8.00, badge: 'POPULAR', category: 'Productivity', image: '/images/notion.jpg' },
   { id: 22, name: 'Perplexity Pro', description: 'AI-powered search engine.', price: 20.00, badge: 'NEW', category: 'AI Tools', image: '/images/perplexity.jpg' },
@@ -107,10 +107,10 @@ export default function ProductsPage() {
         {filteredProducts.map((product) => (
           <div 
             key={product.id} 
-            className="group relative bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-cyan-500/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/10"
+            className="group relative bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-cyan-500/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/10 flex flex-col h-full"
           >
-            {/* Image Container - Uses LOCAL FILE PATH */}
-            <div className="relative aspect-video w-full overflow-hidden bg-gray-800">
+            {/* Image Container - Fixed Height ensures consistency */}
+            <div className="relative w-full h-48 shrink-0 overflow-hidden bg-gray-800">
               <img 
                 src={product.image} 
                 alt={product.name}
@@ -130,18 +130,18 @@ export default function ProductsPage() {
               )}
             </div>
 
-            {/* Content */}
-            <div className="p-5 flex flex-col h-full">
+            {/* Content Area - Flex column pushes footer down */}
+            <div className="p-5 flex flex-col flex-grow">
               <h3 className="text-lg font-bold text-white mb-1">{product.name}</h3>
               <p className="text-gray-400 text-sm mb-4 line-clamp-2">{product.description}</p>
               
-              <div className="mt-auto pt-4 border-t border-gray-800 flex items-center justify-between">
+              {/* FOOTER: Price + Button (Always visible at bottom) */}
+              <div className="mt-auto pt-4 border-t border-gray-800 flex items-center justify-between w-full">
                 <span className="text-xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
                 
-                {/* THE SMART BUY BUTTON - Links to Checkout */}
                 <a 
                   href={`/checkout?item=${encodeURIComponent(product.name)}&amount=${product.price}`}
-                  className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-cyan-500/20"
+                  className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-cyan-500/20 whitespace-nowrap"
                 >
                   Buy Now
                 </a>
