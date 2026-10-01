@@ -56,9 +56,11 @@ export default function ProductsPage() {
     ? PRODUCTS 
     : PRODUCTS.filter(p => p.category === activeCategory);
 
-  // ✅ INSTANT WHATSAPP LINK GENERATOR (No Scanning!)
+  // ✅ INSTANT WHATSAPP LINK GENERATOR (Updated Branch Code CABLZAJJ)
   const getWhatsAppLink = (product: Product) => {
     const orderId = `ORD-${Date.now().toString().slice(-6)}`;
+    
+    // Constructing the message with CORRECTED Branch Code: CABLZAJJ
     const message = encodeURIComponent(
       `✅ *ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n` +
       `*Ref:* ${orderId}\n` +
