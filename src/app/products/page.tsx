@@ -13,7 +13,7 @@ type Product = {
   image: string; // Local path from public/images
 };
 
-// ✅ YOUR 30 PRODUCTS WITH YOUR REAL IMAGE FILES (MATCHING GITHUB FOLDER)
+// ✅ YOUR 30 PRODUCTS WITH REAL IMAGES & UPDATED BANK LOGIC READY
 const PRODUCTS: Product[] = [
   { id: 1, name: 'ChatGPT Plus', description: "OpenAI's GPT-4 powered assistant.", price: 20.00, badge: 'HOT', category: 'AI Tools', image: '/images/chatgpt.jpg' },
   { id: 2, name: 'Adobe Creative Cloud', description: 'Full suite of Adobe apps.', price: 54.99, badge: 'POPULAR', category: 'Creative', image: '/images/adobe-cc.jpg' },
@@ -33,7 +33,7 @@ const PRODUCTS: Product[] = [
   { id: 16, name: 'Microsoft 365 Business', description: 'Word, Excel, PowerPoint, Teams.', price: 12.50, badge: 'POPULAR', category: 'Business', image: '/images/microsoft365.jpg' },
   { id: 17, name: 'Midjourney Standard', description: 'AI image generation.', price: 24.00, badge: 'HOT', category: 'AI Tools', image: '/images/midjourney.jpg' },
   { id: 18, name: 'Monday.com Pro', description: 'Visual work OS.', price: 9.00, badge: 'NEW', category: 'Business', image: '/images/monday.jpg' },
-  { id: 19, name: 'Disney Premium', description: 'Marvel, Star Wars, Pixar & Nat Geo.', price: 13.99, badge: 'HOT', category: 'Entertainment', image: '/images/netflix.jpg' }, // Using netflix.jpg as per your folder list for Disney slot
+  { id: 19, name: 'Disney Premium', description: 'Marvel, Star Wars, Pixar & Nat Geo.', price: 13.99, badge: 'HOT', category: 'Entertainment', image: '/images/netflix.jpg' }, 
   { id: 20, name: 'NordVPN', description: 'Military-grade encryption.', price: 3.99, badge: 'HOT', category: 'Security', image: '/images/nordvpn.jpg' },
   { id: 21, name: 'Notion Plus', description: 'All-in-one workspace.', price: 8.00, badge: 'POPULAR', category: 'Productivity', image: '/images/notion.jpg' },
   { id: 22, name: 'Perplexity Pro', description: 'AI-powered search engine.', price: 20.00, badge: 'NEW', category: 'AI Tools', image: '/images/perplexity.jpg' },
@@ -55,6 +55,22 @@ export default function ProductsPage() {
   const filteredProducts = activeCategory === 'All' 
     ? PRODUCTS 
     : PRODUCTS.filter(p => p.category === activeCategory);
+
+  // ✅ INSTANT WHATSAPP LINK GENERATOR (No Scanning!)
+  const getWhatsAppLink = (product: Product) => {
+    const orderId = `ORD-${Date.now().toString().slice(-6)}`;
+    const message = encodeURIComponent(
+      `✅ *ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n` +
+      `*Ref:* ${orderId}\n` +
+      `*Product:* ${product.name}\n` +
+      `*Total:* $${product.price.toFixed(2)} USD\n\n` +
+      `🌍 *INTERNATIONAL CARD PAYMENT*\nPay securely by Visa/Mastercard:\nhttps://super-digital-markets-co9n.vercel.app/payment?amount=${product.price}&item=${encodeURIComponent(product.name)}\n\n` +
+      `🇿🇦 *SOUTH AFRICA (INSTANT EFT)*\nBank: Capitec\nAcc: 1975933441\nBranch: 470010 (Local)\nSWIFT/BIC: CABLZAJJ\nRef: ${orderId}\nUse "Immediate Payment" for instant delivery.\n\n⚡ Reply PAID for automatic delivery.`
+    );
+    
+    // Your WhatsApp Number
+    return `https://wa.me/27743868889?text=${message}`;
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white font-sans">
@@ -109,7 +125,7 @@ export default function ProductsPage() {
             key={product.id} 
             className="group relative bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-cyan-500/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/10 flex flex-col h-full"
           >
-            {/* Image Container - Fixed Height ensures consistency */}
+            {/* Image Container */}
             <div className="relative w-full h-48 shrink-0 overflow-hidden bg-gray-800">
               <img 
                 src={product.image} 
@@ -130,21 +146,38 @@ export default function ProductsPage() {
               )}
             </div>
 
-            {/* Content Area - Flex column pushes footer down */}
+            {/* Content Area */}
             <div className="p-5 flex flex-col flex-grow">
               <h3 className="text-lg font-bold text-white mb-1">{product.name}</h3>
               <p className="text-gray-400 text-sm mb-4 line-clamp-2">{product.description}</p>
               
-              {/* FOOTER: Price + Button (Always visible at bottom) */}
-              <div className="mt-auto pt-4 border-t border-gray-800 flex items-center justify-between w-full">
-                <span className="text-xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
+              {/* FOOTER: Price + Buttons */}
+              <div className="mt-auto pt-4 border-t border-gray-800 flex flex-col gap-3 w-full">
                 
+                {/* Price Row */}
+                <div className="flex items-center justify-between">
+                   <span className="text-xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
+                   
+                   {/* Direct Checkout Button (Clean Flow) */}
+                   <a 
+                     href={`/checkout?item=${encodeURIComponent(product.name)}&amount=${product.price}`}
+                     className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-lg shadow-cyan-500/20 whitespace-nowrap"
+                   >
+                     Buy Now
+                   </a>
+                </div>
+
+                {/* WhatsApp Quick Order Button (Instant Link) */}
                 <a 
-                  href={`/checkout?item=${encodeURIComponent(product.name)}&amount=${product.price}`}
-                  className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-cyan-500/20 whitespace-nowrap"
+                  href={getWhatsAppLink(product)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-all shadow-lg shadow-green-500/20"
                 >
-                  Buy Now
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.262.489 1.694.626.712.226 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.14 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  WhatsApp Order
                 </a>
+
               </div>
             </div>
           </div>
