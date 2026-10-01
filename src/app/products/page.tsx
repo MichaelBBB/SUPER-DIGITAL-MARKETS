@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link'; // Ensure Next.js Link is imported for navigation
 
 // ✅ TYPE DEFINITION
 type Product = {
@@ -13,7 +14,7 @@ type Product = {
   image: string; // Local path from public/images
 };
 
-// ✅ YOUR 30 PRODUCTS WITH REAL IMAGES & UPDATED BANK LOGIC READY
+// ✅ YOUR 30 PRODUCTS WITH REAL LOCAL IMAGES & UPDATED BANK LOGIC
 const PRODUCTS: Product[] = [
   { id: 1, name: 'ChatGPT Plus', description: "OpenAI's GPT-4 powered assistant.", price: 20.00, badge: 'HOT', category: 'AI Tools', image: '/images/chatgpt.jpg' },
   { id: 2, name: 'Adobe Creative Cloud', description: 'Full suite of Adobe apps.', price: 54.99, badge: 'POPULAR', category: 'Creative', image: '/images/adobe-cc.jpg' },
@@ -80,14 +81,21 @@ export default function ProductsPage() {
       <header className="border-b border-gray-800 sticky top-0 z-50 bg-gray-950/95 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold tracking-tighter text-cyan-400">SUPER DIGITAL</h1>
+          
+          {/* Navigation Links */}
           <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-300">
-            <a href="/" className="hover:text-white transition-colors">Home</a>
-            <a href="/products" className="text-white underline decoration-cyan-400 decoration-2">Products</a>
-            <a href="/checkout" className="hover:text-white transition-colors">Checkout</a>
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            <Link href="/products" className="text-white underline decoration-cyan-400 decoration-2">Products</Link>
+            <Link href="/checkout" className="hover:text-white transition-colors">Checkout</Link>
           </nav>
-          <button className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-full text-sm font-semibold transition-all shadow-lg shadow-cyan-500/20">
+
+          {/* Shop Now Button - FIXED to be a proper Link */}
+          <Link 
+            href="/products" 
+            className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-full text-sm font-semibold transition-all shadow-lg shadow-cyan-500/20"
+          >
             Shop Now
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -127,7 +135,7 @@ export default function ProductsPage() {
             key={product.id} 
             className="group relative bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-cyan-500/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/10 flex flex-col h-full"
           >
-            {/* Image Container */}
+            {/* Image Container - Uses LOCAL FILE PATH */}
             <div className="relative w-full h-48 shrink-0 overflow-hidden bg-gray-800">
               <img 
                 src={product.image} 
@@ -161,12 +169,12 @@ export default function ProductsPage() {
                    <span className="text-xl font-bold text-cyan-400">${product.price.toFixed(2)}</span>
                    
                    {/* Direct Checkout Button (Clean Flow) */}
-                   <a 
+                   <Link 
                      href={`/checkout?item=${encodeURIComponent(product.name)}&amount=${product.price}`}
                      className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-lg shadow-cyan-500/20 whitespace-nowrap"
                    >
                      Buy Now
-                   </a>
+                   </Link>
                 </div>
 
                 {/* WhatsApp Quick Order Button (Instant Link) */}
