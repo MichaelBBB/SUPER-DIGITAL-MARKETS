@@ -57,7 +57,7 @@ export default function ProductsPage() {
     ? PRODUCTS 
     : PRODUCTS.filter(p => p.category === activeCategory);
 
-  // ✅ INSTANT WHATSAPP LINK GENERATOR (Smart Redirect to App)
+  // ✅ INSTANT WHATSAPP LINK GENERATOR (Fixed Login Loop + Branch Code)
   const getWhatsAppLink = (product: Product) => {
     const orderId = `ORD-${Date.now().toString().slice(-6)}`;
     
@@ -68,11 +68,11 @@ export default function ProductsPage() {
       `*Product:* ${product.name}\n` +
       `*Total:* $${product.price.toFixed(2)} USD\n\n` +
       `🌍 *INTERNATIONAL CARD PAYMENT*\nPay securely by Visa/Mastercard:\nhttps://super-digital-markets-co9n.vercel.app/payment?amount=${product.price}&item=${encodeURIComponent(product.name)}\n\n` +
-      `🇿🇦 *SOUTH AFRICA (INSTANT EFT)*\nBank: Capitec\nAcc: 1975933441\nBranch: 470010 (Local)\nSWIFT/BIC: CABLZAJJ\nRef: ${orderId}\nUse "Immediate Payment" for instant delivery.\n\n⚡ Reply PAID for automatic delivery.`
+      `🇿🇦 *SOUTH AFRICA (INSTANT EFT)*\nBank: Capitec\nAcc: 1975933441\nLocal Branch: 470010\nSWIFT/BIC: CABLZAJJ\nRef: ${orderId}\nUse "Immediate Payment" for instant delivery.\n\n⚡ Reply PAID for automatic delivery.`
     );
     
-    // Your WhatsApp Number
-    return `https://wa.me/27743868889?text=${message}`;
+    // ⚡ THE FIX: Using api.whatsapp.com instead of wa.me prevents the login loop
+    return `https://api.whatsapp.com/send?phone=27743868889&text=${message}`;
   };
 
   return (
