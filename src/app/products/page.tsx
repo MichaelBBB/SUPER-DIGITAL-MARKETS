@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link'; // Ensure Next.js Link is imported for navigation
+import Link from 'next/link';
 
 // ✅ TYPE DEFINITION
 type Product = {
@@ -14,7 +14,7 @@ type Product = {
   image: string; // Local path from public/images
 };
 
-// ✅ YOUR 30 PRODUCTS WITH REAL LOCAL IMAGES & UPDATED BANK LOGIC
+// ✅ YOUR 30 PRODUCTS WITH REAL LOCAL IMAGES & CORRECTED SPELLING
 const PRODUCTS: Product[] = [
   { id: 1, name: 'ChatGPT Plus', description: "OpenAI's GPT-4 powered assistant.", price: 20.00, badge: 'HOT', category: 'AI Tools', image: '/images/chatgpt.jpg' },
   { id: 2, name: 'Adobe Creative Cloud', description: 'Full suite of Adobe apps.', price: 54.99, badge: 'POPULAR', category: 'Creative', image: '/images/adobe-cc.jpg' },
@@ -57,13 +57,13 @@ export default function ProductsPage() {
     ? PRODUCTS 
     : PRODUCTS.filter(p => p.category === activeCategory);
 
-  // ✅ INSTANT WHATSAPP LINK GENERATOR (Updated Branch Code CABLZAJJ)
+  // ✅ INSTANT WHATSAPP LINK GENERATOR (Smart Redirect to App)
   const getWhatsAppLink = (product: Product) => {
     const orderId = `ORD-${Date.now().toString().slice(-6)}`;
     
-    // Constructing the message with CORRECTED Branch Code: CABLZAJJ
+    // Constructing the message with CORRECTED Branch Code: CABLZAJJ and Spelling: SUPER DIGITAL
     const message = encodeURIComponent(
-      `✅ *ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n` +
+      `✅ *ORDER CONFIRMED - SUPER DIGITAL*\n\n` +
       `*Ref:* ${orderId}\n` +
       `*Product:* ${product.name}\n` +
       `*Total:* $${product.price.toFixed(2)} USD\n\n` +
@@ -80,6 +80,7 @@ export default function ProductsPage() {
       {/* Header */}
       <header className="border-b border-gray-800 sticky top-0 z-50 bg-gray-950/95 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+          {/* ✅ FIXED TYPO: SUPER DIGITAL */}
           <h1 className="text-2xl font-bold tracking-tighter text-cyan-400">SUPER DIGITAL</h1>
           
           {/* Navigation Links */}
@@ -89,7 +90,7 @@ export default function ProductsPage() {
             <Link href="/checkout" className="hover:text-white transition-colors">Checkout</Link>
           </nav>
 
-          {/* Shop Now Button - FIXED to be a proper Link */}
+          {/* Shop Now Button */}
           <Link 
             href="/products" 
             className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-full text-sm font-semibold transition-all shadow-lg shadow-cyan-500/20"
