@@ -16,6 +16,10 @@ const CATALOG = [
   { name: 'Photo Enhancement Suite', price: 45 },
   { name: 'Brand Kit Deluxe', price: 65 },
   { name: 'Video Template Bundle', price: 55 },
+  { name: 'Claude Pro', price: 20 },
+  { name: 'ExpressVPN', price: 6.67 },
+  { name: 'LastPass Premium', price: 3 },
+  { name: 'Dashlane Premium', price: 4.99 },
 ];
 
 function CheckoutInner() {
@@ -28,10 +32,17 @@ function CheckoutInner() {
   const amount = rawAmount === 10.99 ? 0 : rawAmount;
 
   const [selected, setSelected] = useState(itemName);
-  const currentPrice = selected ? (CATALOG.find(p => p.name === selected)?.price || amount) : amount;
+  
+  // Determine final price: Use catalog price if selected, otherwise URL amount
+  const currentPrice = selected 
+    ? (CATALOG.find(p => p.name === selected)?.price ?? amount) 
+    : amount;
 
-  // UNIVERSAL MESSAGE FOR ALL COUNTRIES (USA, INDIA, CHINA, SA)
-  const msg = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ORD-${Math.floor(Math.random() * 900000) + 100000}\n*Product:* ${selected || 'Digital Product'}\n*Total:* $${currentPrice} USD\n\n--- HOW TO PAY ---\n\n INTERNATIONAL BUYERS (USA, India, China):\nPay securely via Visa/Mastercard here:\nhttps://super-digital-markets-co9n.vercel.app/payment?amount=${currentPrice}&item=${encodeURIComponent(selected || 'Digital+Product')}\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010\nSWIFT/BIC: CABLZAJJ\nRef: Use your Order Ref above.\nUse "Immediate Payment" for instant delivery.\n\nReply PAID after transfer for automatic delivery.`;
+  // Generate unique Order Ref
+  const orderRef = 'ORD-' + Math.floor(Math.random() * 900000 + 100000);
+
+  // HARD-CODED CORRECT SPELLING: SUPER DIGITAL MARKETS
+  const msg = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${selected || 'Digital Product'}\n*Total:* $${currentPrice} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS (USA, India, China):\nPay securely via Visa/Mastercard here:\nhttps://super-digital-markets-co9n.vercel.app/payment?amount=${currentPrice}&item=${encodeURIComponent(selected || 'Digital+Product')}\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010\nSWIFT/BIC: CABLZAJJ\nRef: ${orderRef}\nUse "Immediate Payment" for instant delivery.\n\nReply PAID after transfer for automatic delivery.`;
 
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
 
