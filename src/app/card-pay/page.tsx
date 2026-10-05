@@ -40,8 +40,6 @@ function CheckoutInner() {
   const msg = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${selected || 'Digital Product'}\n*Total:* $${currentPrice} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS (USA, India, China):\nUse the Blue "Pay Securely By Card" button above.\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010\nSWIFT/BIC: CABLZAJJ\nRef: ${orderRef}\nUse "Immediate Payment" for instant delivery.\n\nReply PAID after transfer for automatic delivery.`;
 
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-
-  // HARDCODED ABSOLUTE URL TO PEACH GATEWAY
   const peachUrl = `https://super-digital-markets-co9n.vercel.app/payment?amount=${currentPrice}&item=${encodeURIComponent(selected || 'Digital+Product')}`;
 
   return (
@@ -71,8 +69,6 @@ function CheckoutInner() {
         </div>
 
         <div className="space-y-4">
-          
-          {/* BLUE BUTTON: DIRECT TO PEACH CARD FORM */}
           <a 
             href={peachUrl}
             target="_blank" 
@@ -88,14 +84,13 @@ function CheckoutInner() {
             <span className="border-b border-gray-700 flex-grow"></span>
           </div>
 
-          {/* GREEN BUTTON: WHATSAPP */}
           <a 
             href={waLink} 
             target="_blank" 
             rel="noopener noreferrer"
             className="block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all transform hover:scale-105"
           >
-            📲 Chat On WhatsApp To Buy (Capitec EFT)
+             Chat On WhatsApp To Buy (Capitec EFT)
           </a>
         </div>
 
