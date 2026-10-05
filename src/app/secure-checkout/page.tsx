@@ -46,9 +46,6 @@ function CheckoutInner() {
 
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
 
-  // DIRECT ABSOLUTE URL TO PEACH GATEWAY (/payment route loads the real card form)
-  const peachGatewayUrl = `https://super-digital-markets-co9n.vercel.app/payment?amount=${currentPrice}&item=${encodeURIComponent(selected || 'Digital+Product')}`;
-
   return (
     <div className="min-h-screen bg-black text-white p-6 font-sans">
       <div className="max-w-md mx-auto space-y-6">
@@ -79,14 +76,14 @@ function CheckoutInner() {
         {/* Action Buttons Area */}
         <div className="space-y-4">
           
-          {/* Option 1: CARD PAYMENT (BLUE BUTTON) -> Direct Absolute URL to /payment */}
+          {/* Option 1: CARD PAYMENT (BLUE BUTTON) -> HARD ABSOLUTE URL */}
           <a 
-            href={peachGatewayUrl} 
+            href={`https://super-digital-markets-co9n.vercel.app/payment?amount=${currentPrice}&item=${encodeURIComponent(selected || 'Digital+Product')}`}
             target="_blank" 
             rel="noopener noreferrer"
             className="block w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all transform hover:scale-105"
           >
-            💳 Pay Securely By Card (Visa/Mastercard)
+             Pay Securely By Card (Visa/Mastercard)
           </a>
 
           {/* Divider */}
