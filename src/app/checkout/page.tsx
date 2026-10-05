@@ -46,9 +46,9 @@ function CheckoutInner() {
 
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
 
-  // Direct Link to REAL Peach Gateway (/payment route handles redirection or iframe)
-  // This ensures the user sees the FULL card form we saw in your screenshots.
-  const peachGatewayUrl = `/payment?amount=${currentPrice}&item=${encodeURIComponent(selected || 'Digital+Product')}`;
+  // DIRECT ABSOLUTE URL TO PEACH GATEWAY (/payment route loads the real card form)
+  // Using full domain ensures no relative path confusion
+  const peachGatewayUrl = `https://super-digital-markets-co9n.vercel.app/payment?amount=${currentPrice}&item=${encodeURIComponent(selected || 'Digital+Product')}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-6 font-sans">
@@ -80,7 +80,7 @@ function CheckoutInner() {
         {/* Action Buttons Area */}
         <div className="space-y-4">
           
-          {/* Option 1: CARD PAYMENT (BLUE BUTTON) -> Goes to /payment which loads Peach Form */}
+          {/* Option 1: CARD PAYMENT (BLUE BUTTON) -> Direct Absolute URL to /payment */}
           <a 
             href={peachGatewayUrl} 
             target="_blank" 
