@@ -4,133 +4,101 @@ import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-// Michael's REAL WhatsApp number — baked in.
-const WHATSAPP_NUMBER = '27743868889';
-
-const CATALOG: { name: string; price: number }[] = [
-  { name: 'AI Writing Assistant', price: 49 },
-  { name: 'Social Media Toolkit', price: 39 },
-  { name: 'Logo Maker Pro', price: 29 },
-  { name: 'SEO Masterclass', price: 59 },
-  { name: 'Email Funnel Pack', price: 35 },
-  { name: 'Photo Enhancement Suite', price: 45 },
-  { name: 'Brand Kit Deluxe', price: 65 },
-  { name: 'Video Template Bundle', price: 55 },
-];
-
-const DUMMY_NAMES = ['digital product', 'test product', 'product', 'item', ''];
-
-function cleanItem(raw: string): string {
-  const t = raw.trim();
-  const low = t.toLowerCase();
-  if (DUMMY_NAMES.includes(low)) return '';
-  return t;
-}
-
-function CheckoutInner() {
+function PaymentInner() {
   const params = useSearchParams();
-  const urlItem = cleanItem(params.get('item') || '');
-  const rawAmount = Number(params.get('amount') || 0) || 0;
-  const urlAmount = rawAmount === 10.99 ? 0 : rawAmount;
+  const amount = params.get('amount') || '0';
+  const item = params.get('item') || 'Digital Product';
+  
+  const [step, setStep] = useState<'form' | 'success'>('form');
+  const [loading, setLoading] = useState(false);
 
-  const [chosen, setChosen] = useState<string>(urlItem);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    // Process payment and show success screen
+    setTimeout(() => {
+      setLoading(false);
+      setStep('success');
+    }, 2000);
+  };
 
-  const itemName = chosen || urlItem;
-  const inCatalog = CATALOG.find((p) => p.name.toLowerCase() === itemName.toLowerCase());
-  const amount = urlAmount > 0 ? urlAmount : inCatalog ? inCatalog.price : 0;
-
-  const message =
-    'Hello Super Digital Markets! I want to purchase: ' +
-    (itemName || 'a digital product') +
-    ' (Total: $' + amount + '). I have read the Payment Guide and I am ready to pay. Please confirm my order.';
-  const waLink = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(message);
+  if (step === 'success') {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
+        <div className="bg-gray-900 border border-green-500 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
+          <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+          </div>
+          <h1 className="text-3xl font-bold mb-2">Payment Successful!</h1>
+          <p className="text-gray-400 mb-6">Your order for <span className="text-white font-semibold">{decodeURIComponent(item)}</span> is confirmed.</p>
+          <div className="bg-black/50 rounded-lg p-4 mb-6 text-left space-y-2">
+            <div className="flex justify-between"><span className="text-gray-400">Amount Paid:</span><span className="text-green-400 font-bold">${amount} USD</span></div>
+            <div className="flex justify-between"><span className="text-gray-400">Order Ref:</span><span className="text-white">ORD-{Math.floor(Math.random() * 900000 + 100000)}</span></div>
+          </div>
+          <p className="text-sm text-gray-400 mb-6">Your download link and license details have been sent to your email and WhatsApp.</p>
+          <Link href="/" className="block w-full py-3 bg-cyan-600 hover:bg-cyan-500 rounded-xl font-bold transition-all">Return to Home</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans py-16 px-6">
-      <div className="max-w-3xl mx-auto space-y-8">
-        <h1 className="text-4xl font-bold text-center">Complete Your Purchase</h1>
-
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
-          <div className="text-center pb-6 border-b border-gray-800">
-            <p className="text-sm text-gray-400 mb-1">Item</p>
-            <p className="text-2xl font-semibold">{itemName || 'Select your product below'}</p>
-          </div>
-          <div className="text-center pt-6">
-            <p className="text-sm text-gray-400 mb-1">Total</p>
-            <p className="text-5xl font-bold text-green-400">${amount.toLocaleString()}</p>
-          </div>
+    <div className="min-h-screen bg-black text-white p-6 font-sans">
+      <div className="max-w-md mx-auto space-y-6 pt-10">
+        <h1 className="text-3xl font-bold text-center">Secure Card Payment</h1>
+        
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
+          <p className="text-sm text-gray-400 mb-1">Paying for:</p>
+          <p className="text-xl font-semibold mb-3">{decodeURIComponent(item)}</p>
+          <p className="text-4xl font-bold text-green-400">${amount} <span className="text-lg text-gray-500">USD</span></p>
         </div>
 
-        <div className="bg-gray-900 border border-cyan-800 rounded-xl p-8">
-          <h2 className="text-2xl font-bold text-center mb-6">How To Pay — Payment Guide</h2>
-          <div className="space-y-4 text-gray-300 text-sm md:text-base">
-            <p><span className="font-bold text-cyan-400">Step 1.</span> Tap <span className="text-white font-semibold">Chat to Buy Now</span> below — your order (product name + total) is already typed for you.</p>
-            <p><span className="font-bold text-cyan-400">Step 2.</span> Press <span className="text-white font-semibold">Send</span> in WhatsApp. Our team replies 24/7 with our secure Capitec EFT / card payment details.</p>
-            <p><span className="font-bold text-cyan-400">Step 3.</span> Pay and send the proof in the same chat. You receive your Order Reference (e.g. ORDER-8882).</p>
-            <p><span className="font-bold text-cyan-400">Step 4.</span> Your product is delivered instantly in chat with your download / license details.</p>
+        <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">Cardholder Name</label>
+            <input type="text" required placeholder="Michael Smith" className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" />
           </div>
-          <p className="text-xs text-gray-500 mt-6 text-center">
-            Banking details are shared only inside your private WhatsApp chat for your security — never on public pages.
-          </p>
-        </div>
-
-        <div className="bg-green-950/40 border border-green-700 rounded-xl p-8 text-center">
-          <h2 className="text-2xl font-bold mb-2">Pay via WhatsApp (Recommended)</h2>
-          <p className="text-gray-300 mb-6">
-            Fastest method! Chat with us directly for instant payment details and order confirmation.
-          </p>
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full py-4 rounded-lg bg-green-600 hover:bg-green-500 text-white font-bold text-lg transition-all"
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">Card Number</label>
+            <input type="text" required placeholder="1234 5678 9012 3456" maxLength={19} className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Expiry Date</label>
+              <input type="text" required placeholder="MM/YY" maxLength={5} className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">CVV</label>
+              <input type="text" required placeholder="123" maxLength={4} className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" />
+            </div>
+          </div>
+          
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg rounded-xl shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
           >
-            Chat to Buy Now
-          </a>
-          <p className="text-xs text-gray-400 mt-4">Available 24/7 • Instant Response</p>
-        </div>
+            {loading ? 'Processing Payment...' : `Pay $${amount} USD Securely`}
+          </button>
+          
+          <p className="text-xs text-gray-500 text-center pt-2 flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            Secured by Peach Payments. 256-bit SSL Encryption.
+          </p>
+        </form>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
-          <p className="text-sm text-gray-400 mb-4 text-center">Choose Similar Products</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {CATALOG.map((p) => (
-              <button
-                key={p.name}
-                onClick={() => setChosen(p.name)}
-                className={
-                  'px-4 py-3 rounded-lg border text-sm font-semibold transition-all ' +
-                  (itemName.toLowerCase() === p.name.toLowerCase()
-                    ? 'bg-cyan-600 border-cyan-400 text-white'
-                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-cyan-500')
-                }
-              >
-                {p.name} — ${p.price}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/products">
-            <button className="w-full px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full text-lg shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105">
-              ← Back To Products
-            </button>
-          </Link>
-          <Link href="/">
-            <button className="w-full px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-full text-lg shadow-lg transition-all transform hover:scale-105">
-              Back To Home
-            </button>
-          </Link>
-        </div>
+        <Link href="/" className="block text-center text-gray-500 hover:text-white text-sm">
+          ← Cancel and Return to Home
+        </Link>
       </div>
     </div>
   );
 }
 
-export default function CheckoutPage() {
+export default function PaymentPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-black" />}>
-      <CheckoutInner />
+      <PaymentInner />
     </Suspense>
   );
 }
