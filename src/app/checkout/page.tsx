@@ -33,7 +33,7 @@ function CheckoutInner() {
 
   const [selected, setSelected] = useState(itemName);
   
-  // Determine final price: Use catalog price if selected, otherwise URL amount
+  // Determine final price
   const currentPrice = selected 
     ? (CATALOG.find(p => p.name === selected)?.price ?? amount) 
     : amount;
@@ -42,9 +42,13 @@ function CheckoutInner() {
   const orderRef = 'ORD-' + Math.floor(Math.random() * 900000 + 100000);
 
   // HARD-CODED CORRECT SPELLING: SUPER DIGITAL MARKETS
-  const msg = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${selected || 'Digital Product'}\n*Total:* $${currentPrice} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS (USA, India, China):\nPay securely via Visa/Mastercard here:\nhttps://super-digital-markets-co9n.vercel.app/payment?amount=${currentPrice}&item=${encodeURIComponent(selected || 'Digital+Product')}\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010\nSWIFT/BIC: CABLZAJJ\nRef: ${orderRef}\nUse "Immediate Payment" for instant delivery.\n\nReply PAID after transfer for automatic delivery.`;
+  const msg = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${selected || 'Digital Product'}\n*Total:* $${currentPrice} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS (USA, India, China):\nUse the Blue "Pay Securely By Card" button above.\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010\nSWIFT/BIC: CABLZAJJ\nRef: ${orderRef}\nUse "Immediate Payment" for instant delivery.\n\nReply PAID after transfer for automatic delivery.`;
 
   const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+
+  // Direct Link to REAL Peach Gateway (/payment route handles redirection or iframe)
+  // This ensures the user sees the FULL card form we saw in your screenshots.
+  const peachGatewayUrl = `/payment?amount=${currentPrice}&item=${encodeURIComponent(selected || 'Digital+Product')}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-6 font-sans">
@@ -73,20 +77,36 @@ function CheckoutInner() {
           )}
         </div>
 
-        {/* Preview of what the customer sees */}
-        <div className="bg-blue-900/20 border border-blue-800 rounded-xl p-4 text-xs text-gray-300 whitespace-pre-wrap">
-          {msg.split('\n').slice(0, 5).join('\n')}...
-        </div>
+        {/* Action Buttons Area */}
+        <div className="space-y-4">
+          
+          {/* Option 1: CARD PAYMENT (BLUE BUTTON) -> Goes to /payment which loads Peach Form */}
+          <a 
+            href={peachGatewayUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all transform hover:scale-105"
+          >
+            💳 Pay Securely By Card (Visa/Mastercard)
+          </a>
 
-        {/* Big Green Button */}
-        <a 
-          href={waLink} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all"
-        >
-          Chat on WhatsApp to Buy
-        </a>
+          {/* Divider */}
+          <div className="flex items-center justify-center gap-2 text-gray-500 text-xs uppercase tracking-wider">
+            <span className="border-b border-gray-700 flex-grow"></span>
+            Or Chat For EFT
+            <span className="border-b border-gray-700 flex-grow"></span>
+          </div>
+
+          {/* Option 2: WHATSAPP EFT (GREEN BUTTON) */}
+          <a 
+            href={waLink} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all transform hover:scale-105"
+          >
+            📲 Chat On WhatsApp To Buy (Capitec EFT)
+          </a>
+        </div>
 
         <Link href="/" className="block text-center text-gray-500 hover:text-white text-sm mt-4">
           ← Back to Home
