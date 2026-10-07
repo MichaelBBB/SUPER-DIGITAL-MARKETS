@@ -11,63 +11,162 @@ function PaymentInner() {
 
   const itemName = ['', 'digital product', 'test product'].includes(urlItem.toLowerCase()) ? 'Digital Product' : urlItem;
   const amount = rawAmount > 0 && rawAmount !== 10.99 ? rawAmount : 0;
-
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
-
+  
+  // Generate Order Ref
   const orderRef = 'ORD-' + Math.floor(Math.random() * 900000 + 100000);
 
+  // State for Card Payment
+  const [cardStatus, setCardStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+
   const startPeach = async () => {
-    setStatus('loading');
+    setCardStatus('loading');
     const payload = { item: itemName, amount };
     const endpoints = ['/api/peach-checkout', '/api/peach/create-checkout'];
+    
     for (const endpoint of endpoints) {
       try {
-        const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch(endpoint, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify(payload) 
+        });
         if (!res.ok) continue;
         const text = await res.text();
         let url = '';
-        try { const j = JSON.parse(text); url = j.url || j.redirectUrl || j.paymentUrl || j.link || ''; } catch { if (text.trim().startsWith('http')) url = text.trim(); }
-        if (url) { window.location.href = url; return; }
-      } catch {}
+        try { 
+          const j = JSON.parse(text); 
+          url = j.url || j.redirectUrl || j.paymentUrl || j.link || ''; 
+        } catch { 
+          if (text.trim().startsWith('http')) url = text.trim(); 
+        }
+        if (url) { 
+          window.location.href = url; 
+          return; 
+        }
+      } catch (err) {
+        console.error(`Failed at ${endpoint}`, err);
+      }
     }
-    setStatus('error');
+    setCardStatus('error');
   };
 
-  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS (USA, India, China):\nUse the Blue "Pay Securely By Card" button.\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010\nSWIFT/BIC: CABLZAJJ\nRef: ${orderRef}\nUse "Immediate Payment" for instant delivery.\n\nReply PAID after transfer for automatic delivery.`;
+  // WhatsApp Link
+  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS:\nUse the "Pay Now by Card" button.\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010\nRef: ${orderRef}\n\nReply PAID after transfer.`;
   const waLink = `https://web.whatsapp.com/send?phone=27743868889&text=${encodeURIComponent(waMessage)}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-6 font-sans">
-      <div className="max-w-md mx-auto space-y-6 pt-10">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">SUPER DIGITAL Marketplace</h1>
-          <p className="text-xs text-gray-600 mt-1">Secure Checkout vFinal</p>
-        </div>
-
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-3">
-          <div className="flex justify-between"><span className="text-gray-400">Product:</span><span className="font-semibold text-right">{itemName}</span></div>
-          <div className="flex justify-between items-center"><span className="text-gray-400">Total Due:</span><span className="font-bold text-green-400 text-2xl">${amount} USD</span></div>
-        </div>
-
-        <button onClick={startPeach} disabled={status === 'loading'} className="block w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all transform hover:scale-105 disabled:opacity-50">
-          {status === 'loading' ? 'Connecting to Peach...' : '💳 Pay Securely By Card (Visa/Mastercard)'}
-        </button>
-
-        {status === 'error' && (
-          <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-sm text-red-300 text-center">
-            Could not reach Peach Gateway. Please use the WhatsApp button below.
+      <div className="max-w-6xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div className="inline-block px-3 py-1 bg-green-900/30 border border-green-800 rounded-full text-green-400 text-xs font-bold mb-2">
+              ✅ ORDER CONFIRMED
+            </div>
+            <span className="text-gray-400 text-sm ml-2">Ref: {orderRef}</span>
+            <h1 className="text-3xl font-bold mt-2">Checkout: {itemName}</h1>
+            <p className="text-gray-400">Choose your preferred instant payment method below.</p>
           </div>
-        )}
-
-        <div className="flex items-center justify-center gap-2 text-gray-500 text-xs uppercase tracking-wider">
-          <span className="border-b border-gray-700 flex-grow"></span>Or<span className="border-b border-gray-700 flex-grow"></span>
+          <div className="text-right">
+            <p className="text-4xl font-bold text-cyan-400">${amount} USD</p>
+            <p className="text-gray-500 text-sm">(SA customers: transfer ZAR equivalent)</p>
+          </div>
         </div>
 
-        <a href={waLink} target="_blank" rel="noopener noreferrer" className="block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all transform hover:scale-105">
-          📲 Chat on WhatsApp To Buy
-        </a>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Left Column: Payment Methods */}
+          <div className="space-y-6">
+            
+            {/* Card Payment Box */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+              <h2 className="text-xl font-bold text-cyan-400 mb-2 flex items-center gap-2">
+                🌍 Card Payment (USA, India, China, International)
+              </h2>
+              <p className="text-gray-400 text-sm mb-4">Visa / Mastercard accepted. Fully automated and instant.</p>
+              
+              <button 
+                onClick={startPeach}
+                disabled={cardStatus === 'loading'}
+                className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-all transform hover:scale-105 disabled:opacity-50"
+              >
+                {cardStatus === 'loading' ? 'Connecting...' : 'Pay Now by Card'}
+              </button>
+              
+              {cardStatus === 'error' && (
+                <p className="text-red-400 text-sm mt-2 text-center">
+                  Could not reach Peach Gateway. Please use WhatsApp or EFT below.
+                </p>
+              )}
+            </div>
 
-        <Link href="/" className="block text-center text-gray-500 hover:text-white text-sm mt-4">← Cancel and Return to Home</Link>
+            {/* Instant EFT / WhatsApp Box */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+              <h2 className="text-xl font-bold text-green-400 mb-2 flex items-center gap-2">
+                🇿 Instant EFT (South Africa)
+              </h2>
+              <p className="text-gray-400 text-sm mb-4">
+                Sends your confirmed order with instant payment instructions via WhatsApp.
+              </p>
+              
+              <a 
+                href={waLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-full py-4 bg-gray-800 hover:bg-gray-700 border border-green-800 text-green-400 font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                Send Confirmed Order on WhatsApp
+              </a>
+            </div>
+
+          </div>
+
+          {/* Right Column: Capitec Bank Details */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 h-fit">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-cyan-400">CAPITEC BANK DETAILS</h2>
+              <button 
+                onClick={() => navigator.clipboard.writeText(`Capitec\nAcc: 1975933441\nBranch: 470010\nRef: ${orderRef}`)}
+                className="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded text-xs text-gray-300"
+              >
+                Copy Details
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-black/50 p-4 rounded-lg">
+                <p className="text-gray-500 text-xs mb-1">Account Holder</p>
+                <p className="font-bold text-white">SUPER DIGITAL</p>
+              </div>
+              <div className="bg-black/50 p-4 rounded-lg">
+                <p className="text-gray-500 text-xs mb-1">Account Number</p>
+                <p className="font-bold text-cyan-400">1975933441</p>
+              </div>
+              <div className="bg-black/50 p-4 rounded-lg">
+                <p className="text-gray-500 text-xs mb-1">Branch Code</p>
+                <p className="font-bold text-white">470010</p>
+              </div>
+              <div className="bg-black/50 p-4 rounded-lg">
+                <p className="text-gray-500 text-xs mb-1">Reference</p>
+                <p className="font-bold text-yellow-400">{orderRef}</p>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
+              <p className="text-yellow-200 text-sm">
+                ⚡ SA customers: Select "Immediate Payment" in your bank app for delivery within minutes.
+              </p>
+            </div>
+          </div>
+
+        </div>
+        
+        <div className="text-center pt-8">
+           <Link href="/" className="text-gray-500 hover:text-white text-sm">← Cancel and Return to Home</Link>
+        </div>
+
       </div>
     </div>
   );
