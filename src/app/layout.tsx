@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Super Digital Markets",
-  description: "Premium digital products, software, and courses. Instant global delivery.",
+  description: "Premium digital products.",
 };
 
 export default function RootLayout({
