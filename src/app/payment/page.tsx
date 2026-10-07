@@ -14,7 +14,13 @@ function PaymentInner() {
   const amount = rawAmount > 0 && rawAmount !== 10.99 ? rawAmount : 0;
 
   // State to toggle between Card Form and EFT Info
-  const [view, setView] = useState<'card' | 'eft'>('card');
+  const [view, setView] = useState<'card' | 'whatsapp'>('card');
+
+  // Generate WhatsApp Link
+  const orderRef = 'ORD-' + Math.floor(Math.random() * 900000 + 100000);
+  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS (USA, India, China):\nUse the Blue "Pay Securely By Card" button above.\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010\nSWIFT/BIC: CABLZAJJ\nRef: ${orderRef}\nUse "Immediate Payment" for instant delivery.\n\nReply PAID after transfer for automatic delivery.`;
+  
+  const waLink = `https://web.whatsapp.com/send?phone=27743868889&text=${encodeURIComponent(waMessage)}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-6 font-sans">
@@ -48,16 +54,18 @@ function PaymentInner() {
           >
             💳 Pay By Card
           </button>
-          <button
-            onClick={() => setView('eft')}
-            className={`py-3 px-4 rounded-lg font-bold transition-all ${
-              view === 'eft' 
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`py-3 px-4 rounded-lg font-bold transition-all text-center ${
+              view === 'whatsapp' 
                 ? 'bg-green-600 text-white shadow-lg scale-105' 
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
             }`}
           >
-            🏦 Capitec EFT
-          </button>
+            📲 Chat on WhatsApp
+          </a>
         </div>
 
         {/* VIEW 1: MANUAL CARD FORM (Matches Screenshots 3, 4, 5) */}
@@ -139,43 +147,29 @@ function PaymentInner() {
           </form>
         )}
 
-        {/* VIEW 2: CAPITec EFT INFO (Matches Screenshots 1 & 2) */}
-        {view === 'eft' && (
-          <div className="bg-gray-900 border border-green-800 rounded-xl p-6 space-y-4 animate-fadeIn">
+        {/* VIEW 2: WHATSAPP INFO (Matches Screenshot) */}
+        {view === 'whatsapp' && (
+          <div className="bg-gray-900 border border-green-800 rounded-xl p-6 space-y-4 animate-fadeIn text-center">
              <div className="text-center">
-                <h2 className="font-bold text-lg text-green-400 mb-2">🇿 Capitec Instant EFT</h2>
-                <p className="text-xs text-gray-400">Transfer directly to our account using the details below.</p>
+                <h2 className="font-bold text-lg text-green-400 mb-2">📲 Chat on WhatsApp</h2>
+                <p className="text-xs text-gray-400">Click the button above to open WhatsApp Web with your order details pre-filled.</p>
              </div>
              
-             <div className="space-y-2 text-sm">
-                <div className="flex justify-between border-b border-gray-800 pb-2">
-                   <span className="text-gray-400">Bank:</span>
-                   <span className="font-bold text-white">Capitec</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-800 pb-2">
-                   <span className="text-gray-400">Account No:</span>
-                   <span className="font-mono text-white">1975933441</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-800 pb-2">
-                   <span className="text-gray-400">Branch Code:</span>
-                   <span className="font-mono text-white">470010</span>
-                </div>
-                <div className="flex justify-between border-b border-gray-800 pb-2">
-                   <span className="text-gray-400">SWIFT/BIC:</span>
-                   <span className="font-mono text-white">CABLZAJJ</span>
-                </div>
-                <div className="flex justify-between pt-2">
-                   <span className="text-gray-400">Reference:</span>
-                   <span className="font-mono text-cyan-400 font-bold">ORD-{Math.floor(Math.random() * 900000 + 100000)}</span>
-                </div>
+             <div className="bg-black/50 rounded-lg p-4 text-xs text-gray-300 space-y-2 text-left">
+                <p className="font-bold text-white">Order Details:</p>
+                <p>Product: <b className="text-white">{itemName}</b></p>
+                <p>Total: <b className="text-green-400">${amount} USD</b></p>
+                <p>Ref: <b className="text-cyan-400">{orderRef}</b></p>
              </div>
 
-             <div className="bg-black/50 rounded-lg p-4 text-xs text-gray-300 space-y-2">
-                <p className="font-bold text-white">What happens next:</p>
-                <p>1. Pay the exact total (${amount}) from your banking app using the reference above.</p>
-                <p>2. Email proof of payment to <b className="text-white">payments@superdigital.store</b>.</p>
-                <p>3. Your product is delivered instantly after verification.</p>
-             </div>
+             <a 
+                href={waLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-lg rounded-xl text-center shadow-lg transition-all transform hover:scale-105 mt-4"
+             >
+                Open WhatsApp Web
+             </a>
           </div>
         )}
 
