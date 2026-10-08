@@ -2,22 +2,25 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const amount = body.amount;
+    const body = await request.json().catch(() => ({}));
+    const amount = body.amount || '0.00';
 
-    if (!amount) {
-      return NextResponse.json({ error: 'Missing amount' }, { status: 400 });
-    }
+    // Log exactly what Vercel is passing to the server
+    const peachKeys = Object.keys(process.env).filter(k => k.toUpperCase().includes('PEACH'));
+    console.log('--- PEACH DEBUG START ---');
+    console.log('Keys found in Vercel:', peachKeys);
+    console.log('PEACH_AUTH_TOKEN exists:', !!process.env.PEACH_AUTH_TOKEN);
+    console.log('PEACH_ENTITY_ID exists:', !!process.env.PEACH_ENTITY_ID);
+    console.log('--- PEACH DEBUG END ---');
 
-    // Check for common naming variations
-    const token = process.env.PEACH_AUTH_TOKEN || process.env.PEACH_TOKEN || process.env.AUTH_TOKEN;
-    const entityId = process.env.PEACH_ENTITY_ID || process.env.ENTITY_ID;
-
-    // Log to Vercel Function Logs so we can see what's happening
-    console.log('Peach Debug - Token exists:', !!token, 'Entity exists:', !!entityId);
+    const token = process.env.PEACH_AUTH_TOKEN;
+    const entityId = process.env.PEACH_ENTITY_ID;
 
     if (!token || !entityId) {
-      return NextResponse.json({ error: 'Internal server configuration error' }, { status: 500 });
+      return NextResponse.json(
+        { error: `Config error. Found keys: ${peachKeys.join(', ')}` }, 
+        { status: 500 }
+      );
     }
 
     const payload = new URLSearchParams({
@@ -49,6 +52,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Peach API failed', details: data }, { status: 400 });
 
   } catch (error) {
+    console.error('Server error:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
