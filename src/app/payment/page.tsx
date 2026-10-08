@@ -50,9 +50,9 @@ function PaymentInner() {
     setCardStatus('error');
   };
 
-  // WhatsApp Link
-  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS:\nUse the "Pay Now by Card" button.\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010\nRef: ${orderRef}\n\nReply PAID after transfer.`;
-  const waLink = `https://web.whatsapp.com/send?phone=27743868889&text=${encodeURIComponent(waMessage)}`;
+  // WhatsApp Link using wa.me (more reliable than web.whatsapp.com for initial connection)
+  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS:\nUse the "Pay Now by Card" button.\n\n SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010 / CABLZAJJ\nRef: ${orderRef}\n\nReply PAID after transfer.`;
+  const waLink = `https://wa.me/27743868889?text=${encodeURIComponent(waMessage)}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-6 font-sans">
@@ -95,9 +95,10 @@ function PaymentInner() {
               </button>
               
               {cardStatus === 'error' && (
-                <p className="text-red-400 text-sm mt-2 text-center">
-                  Could not reach Peach Gateway. Please use WhatsApp or EFT below.
-                </p>
+                <div className="mt-4 p-4 bg-red-900/30 border border-red-800 rounded-lg">
+                  <p className="text-red-400 text-sm font-bold">Could not reach Peach Gateway.</p>
+                  <p className="text-gray-400 text-xs mt-1">Please use the WhatsApp button or EFT details below. Ensure your Vercel Environment Variables for Peach are set correctly.</p>
+                </div>
               )}
             </div>
 
@@ -128,7 +129,7 @@ function PaymentInner() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-cyan-400">CAPITEC BANK DETAILS</h2>
               <button 
-                onClick={() => navigator.clipboard.writeText(`Capitec\nAcc: 1975933441\nBranch: 470010\nRef: ${orderRef}`)}
+                onClick={() => navigator.clipboard.writeText(`Capitec\nAcc: 1975933441\nBranch: 470010 / CABLZAJJ\nRef: ${orderRef}`)}
                 className="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded text-xs text-gray-300"
               >
                 Copy Details
@@ -146,7 +147,7 @@ function PaymentInner() {
               </div>
               <div className="bg-black/50 p-4 rounded-lg">
                 <p className="text-gray-500 text-xs mb-1">Branch Code</p>
-                <p className="font-bold text-white">470010</p>
+                <p className="font-bold text-white">470010 / CABLZAJJ</p>
               </div>
               <div className="bg-black/50 p-4 rounded-lg">
                 <p className="text-gray-500 text-xs mb-1">Reference</p>
@@ -156,7 +157,7 @@ function PaymentInner() {
 
             <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
               <p className="text-yellow-200 text-sm">
-                ⚡ SA customers: Select "Immediate Payment" in your bank app for delivery within minutes.
+                 SA customers: Select "Immediate Payment" in your bank app for delivery within minutes.
               </p>
             </div>
           </div>
