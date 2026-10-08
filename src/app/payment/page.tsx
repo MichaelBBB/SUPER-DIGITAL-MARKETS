@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -12,11 +12,14 @@ function PaymentInner() {
   const itemName = ['', 'digital product', 'test product'].includes(urlItem.toLowerCase()) ? 'Digital Product' : urlItem;
   const amount = rawAmount > 0 && rawAmount !== 10.99 ? rawAmount : 0;
   
-  // Generate Order Ref
-  const orderRef = 'ORD-' + Math.floor(Math.random() * 900000 + 100000);
-
-  // State for Card Payment
+  // State for order reference - generated once on mount
+  const [orderRef, setOrderRef] = useState('');
   const [cardStatus, setCardStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+
+  // Generate order reference ONCE when component mounts
+  useEffect(() => {
+    setOrderRef('ORD-' + Math.floor(Math.random() * 900000 + 100000));
+  }, []);
 
   const startPeach = async () => {
     setCardStatus('loading');
@@ -50,8 +53,9 @@ function PaymentInner() {
     setCardStatus('error');
   };
 
-  // WhatsApp Link using wa.me (more reliable than web.whatsapp.com for initial connection)
-  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS:\nUse the "Pay Now by Card" button.\n\n SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010 / CABLZAJJ\nRef: ${orderRef}\n\nReply PAID after transfer.`;
+  // WhatsApp Link - using wa.me for better reliability
+  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS:\nUse the "Pay Now by Card" button.\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010 / CABLZAJJ\nRef: ${orderRef}\n\nReply PAID after transfer.`;
+  
   const waLink = `https://wa.me/27743868889?text=${encodeURIComponent(waMessage)}`;
 
   return (
@@ -64,7 +68,7 @@ function PaymentInner() {
             <div className="inline-block px-3 py-1 bg-green-900/30 border border-green-800 rounded-full text-green-400 text-xs font-bold mb-2">
               ✅ ORDER CONFIRMED
             </div>
-            <span className="text-gray-400 text-sm ml-2">Ref: {orderRef}</span>
+            <span className="text-gray-400 text-sm ml-2">Ref: {orderRef || 'Generating...'}</span>
             <h1 className="text-3xl font-bold mt-2">Checkout: {itemName}</h1>
             <p className="text-gray-400">Choose your preferred instant payment method below.</p>
           </div>
@@ -97,12 +101,12 @@ function PaymentInner() {
               {cardStatus === 'error' && (
                 <div className="mt-4 p-4 bg-red-900/30 border border-red-800 rounded-lg">
                   <p className="text-red-400 text-sm font-bold">Could not reach Peach Gateway.</p>
-                  <p className="text-gray-400 text-xs mt-1">Please use the WhatsApp button or EFT details below. Ensure your Vercel Environment Variables for Peach are set correctly.</p>
+                  <p className="text-gray-400 text-xs mt-1">Please use WhatsApp or EFT below.</p>
                 </div>
               )}
             </div>
 
-            {/* Instant EFT / WhatsApp Box */}
+            {/* WhatsApp Box */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
               <h2 className="text-xl font-bold text-green-400 mb-2 flex items-center gap-2">
                 🇿 Instant EFT (South Africa)
@@ -151,13 +155,13 @@ function PaymentInner() {
               </div>
               <div className="bg-black/50 p-4 rounded-lg">
                 <p className="text-gray-500 text-xs mb-1">Reference</p>
-                <p className="font-bold text-yellow-400">{orderRef}</p>
+                <p className="font-bold text-yellow-400">{orderRef || 'Loading...'}</p>
               </div>
             </div>
 
             <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
               <p className="text-yellow-200 text-sm">
-                 SA customers: Select "Immediate Payment" in your bank app for delivery within minutes.
+                ⚡ SA customers: Select "Immediate Payment" in your bank app for delivery within minutes.
               </p>
             </div>
           </div>
@@ -175,7 +179,7 @@ function PaymentInner() {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center">Loading checkout...</div>}>
       <PaymentInner />
     </Suspense>
   );
