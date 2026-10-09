@@ -12,11 +12,9 @@ function PaymentInner() {
   const itemName = ['', 'digital product', 'test product'].includes(urlItem.toLowerCase()) ? 'Digital Product' : urlItem;
   const amount = rawAmount > 0 && rawAmount !== 10.99 ? rawAmount : 0;
   
-  // State for order reference - generated once on mount
   const [orderRef, setOrderRef] = useState('');
   const [cardStatus, setCardStatus] = useState<'idle' | 'loading' | 'error'>('idle');
 
-  // Generate order reference ONCE when component mounts
   useEffect(() => {
     setOrderRef('ORD-' + Math.floor(Math.random() * 900000 + 100000));
   }, []);
@@ -24,45 +22,39 @@ function PaymentInner() {
   const startPeach = async () => {
     setCardStatus('loading');
     const payload = { item: itemName, amount };
-    const endpoints = ['/api/peach-checkout', '/api/peach/create-checkout'];
     
-    for (const endpoint of endpoints) {
-      try {
-        const res = await fetch(endpoint, { 
-          method: 'POST', 
-          headers: { 'Content-Type': 'application/json' }, 
-          body: JSON.stringify(payload) 
-        });
-        if (!res.ok) continue;
-        const text = await res.text();
-        let url = '';
-        try { 
-          const j = JSON.parse(text); 
-          url = j.url || j.redirectUrl || j.paymentUrl || j.link || ''; 
-        } catch { 
-          if (text.trim().startsWith('http')) url = text.trim(); 
-        }
-        if (url) { 
-          window.location.href = url; 
-          return; 
-        }
-      } catch (err) {
-        console.error(`Failed at ${endpoint}`, err);
+    try {
+      const res = await fetch('/api/peach-checkout', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(payload) 
+      });
+      
+      if (!res.ok) {
+        setCardStatus('error');
+        return;
       }
+      
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setCardStatus('error');
+      }
+    } catch (err) {
+      setCardStatus('error');
     }
-    setCardStatus('error');
   };
 
-  // WhatsApp Link - using wa.me for better reliability
-  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS:\nUse the "Pay Now by Card" button.\n\n🇿 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010 / CABLZAJJ\nRef: ${orderRef}\n\nReply PAID after transfer.`;
+  // Universal WhatsApp Link (Works best on mobile, shows QR on desktop)
+  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS:\nUse the "Pay Now by Card" button.\n\n SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010 / CABLZAJJ\nRef: ${orderRef}\n\nReply PAID after transfer.`;
   
-  const waLink = `https://wa.me/27743868889?text=${encodeURIComponent(waMessage)}`;
+  const waLink = `https://api.whatsapp.com/send?phone=27743868889&text=${encodeURIComponent(waMessage)}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-6 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="inline-block px-3 py-1 bg-green-900/30 border border-green-800 rounded-full text-green-400 text-xs font-bold mb-2">
@@ -80,10 +72,8 @@ function PaymentInner() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          {/* Left Column: Payment Methods */}
           <div className="space-y-6">
             
-            {/* Card Payment Box */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
               <h2 className="text-xl font-bold text-cyan-400 mb-2 flex items-center gap-2">
                 🌍 Card Payment (USA, India, China, International)
@@ -106,7 +96,6 @@ function PaymentInner() {
               )}
             </div>
 
-            {/* WhatsApp Box */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
               <h2 className="text-xl font-bold text-green-400 mb-2 flex items-center gap-2">
                 🇿 Instant EFT (South Africa)
@@ -128,7 +117,6 @@ function PaymentInner() {
 
           </div>
 
-          {/* Right Column: Capitec Bank Details */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 h-fit">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-cyan-400">CAPITEC BANK DETAILS</h2>
