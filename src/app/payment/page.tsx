@@ -9,15 +9,11 @@ function PaymentInner() {
   const urlItem = (params.get('item') || '').trim();
   const rawAmount = Number(params.get('amount') || 0);
 
-  const itemName = ['', 'digital product', 'test product'].includes(urlItem.toLowerCase()) ? 'Digital Product' : urlItem;
-  const amount = rawAmount > 0 && rawAmount !== 10.99 ? rawAmount : 0;
+  const itemName = urlItem || 'Digital Product';
+  const amount = rawAmount > 0 ? rawAmount : 10;
   
-  const [orderRef, setOrderRef] = useState('');
+  const [orderRef] = useState('ORD-' + Math.floor(Math.random() * 900000 + 100000));
   const [cardStatus, setCardStatus] = useState<'idle' | 'loading' | 'error'>('idle');
-
-  useEffect(() => {
-    setOrderRef('ORD-' + Math.floor(Math.random() * 900000 + 100000));
-  }, []);
 
   const startPeach = async () => {
     setCardStatus('loading');
@@ -30,37 +26,40 @@ function PaymentInner() {
         body: JSON.stringify(payload) 
       });
       
+      const data = await res.json().catch(() => ({ error: 'Could not parse response' }));
+      
       if (!res.ok) {
+        const errorMsg = `ERROR TYPE: ${data.error}\n\nDetails: ${JSON.stringify(data, null, 2)}`;
+        alert(errorMsg);
         setCardStatus('error');
         return;
       }
       
-      const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
       } else {
+        alert('No URL returned: ' + JSON.stringify(data));
         setCardStatus('error');
       }
-    } catch (err) {
+    } catch (err: any) {
+      alert('FETCH ERROR: ' + err.message);
       setCardStatus('error');
     }
   };
 
-  // Universal WhatsApp Link (Works best on mobile, shows QR on desktop)
-  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS:\nUse the "Pay Now by Card" button.\n\n SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010 / CABLZAJJ\nRef: ${orderRef}\n\nReply PAID after transfer.`;
+  const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS:\nUse the "Pay Now by Card" button.\n\n🇿🇦 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010 / CABLZAJJ\nRef: ${orderRef}\n\nReply PAID after transfer.`;
   
   const waLink = `https://api.whatsapp.com/send?phone=27743868889&text=${encodeURIComponent(waMessage)}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-6 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
-        
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="inline-block px-3 py-1 bg-green-900/30 border border-green-800 rounded-full text-green-400 text-xs font-bold mb-2">
               ✅ ORDER CONFIRMED
             </div>
-            <span className="text-gray-400 text-sm ml-2">Ref: {orderRef || 'Generating...'}</span>
+            <span className="text-gray-400 text-sm ml-2">Ref: {orderRef}</span>
             <h1 className="text-3xl font-bold mt-2">Checkout: {itemName}</h1>
             <p className="text-gray-400">Choose your preferred instant payment method below.</p>
           </div>
@@ -71,9 +70,7 @@ function PaymentInner() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
           <div className="space-y-6">
-            
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
               <h2 className="text-xl font-bold text-cyan-400 mb-2 flex items-center gap-2">
                 🌍 Card Payment (USA, India, China, International)
@@ -98,7 +95,7 @@ function PaymentInner() {
 
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
               <h2 className="text-xl font-bold text-green-400 mb-2 flex items-center gap-2">
-                🇿 Instant EFT (South Africa)
+                🇿🇦 Instant EFT (South Africa)
               </h2>
               <p className="text-gray-400 text-sm mb-4">
                 Sends your confirmed order with instant payment instructions via WhatsApp.
@@ -114,7 +111,6 @@ function PaymentInner() {
                 Send Confirmed Order on WhatsApp
               </a>
             </div>
-
           </div>
 
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 h-fit">
@@ -143,7 +139,7 @@ function PaymentInner() {
               </div>
               <div className="bg-black/50 p-4 rounded-lg">
                 <p className="text-gray-500 text-xs mb-1">Reference</p>
-                <p className="font-bold text-yellow-400">{orderRef || 'Loading...'}</p>
+                <p className="font-bold text-yellow-400">{orderRef}</p>
               </div>
             </div>
 
@@ -153,13 +149,11 @@ function PaymentInner() {
               </p>
             </div>
           </div>
-
         </div>
         
         <div className="text-center pt-8">
            <Link href="/" className="text-gray-500 hover:text-white text-sm">← Cancel and Return to Home</Link>
         </div>
-
       </div>
     </div>
   );
