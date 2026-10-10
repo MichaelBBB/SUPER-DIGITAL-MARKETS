@@ -35,18 +35,19 @@ export async function POST(request: Request) {
       shopperResultUrl: 'https://super-digital-markets-co9n.vercel.app/payment',
     };
 
-    // Official signature: alphabetical keys, name+value concatenated, HMAC-SHA256
+    // Official Peach signature: alphabetical keys, name+value, HMAC-SHA256
     const message = Object.keys(params).sort().map((k) => k + params[k]).join('');
     const signature = sign(message, secret);
 
     const formBody = new URLSearchParams({ ...params, signature });
 
-    const bases = process.env.PEACH_API_URL
-      ? [process.env.PEACH_API_URL]
-      : ['https://secure.peachpayments.com', 'https://testsecure.peachpayments.com'];
+    // ONLY the correct Peach hosts. No environment variable can override this.
+    const bases = [
+      'https://secure.peachpayments.com',
+      'https://testsecure.peachpayments.com',
+    ];
 
-    let lastStatus = 0;
-    let lastData: any = null;
+    const attempts: any[] = [];
 
     for (const base of bases) {
       const res = await fetch(base + '/checkout/initiate', {
@@ -61,9 +62,7 @@ export async function POST(request: Request) {
 
       const text = await res.text();
       let data: any;
-      try { data = JSON.parse(text); } catch { data = { rawResponse: text.slice(0, 400) }; }
-      lastStatus = res.status;
-      lastData = data;
+      try { data = JSON.parse(text); } catch { data = { rawResponse: text.slice(0, 300) }; }
 
       if (res.ok) {
         const url = data.redirectUrl || data.url || data.checkoutUrl || '';
@@ -72,12 +71,13 @@ export async function POST(request: Request) {
         }
         return NextResponse.json({ error: 'NO REDIRECT URL', peachResponse: data }, { status: 500 });
       }
+
+      attempts.push({ host: base, status: res.status, response: data });
     }
 
     return NextResponse.json({
-      error: 'PEACH REJECTED',
-      statusCode: lastStatus,
-      peachResponse: lastData,
+      error: 'PEACH REJECTED ON ALL HOSTS',
+      attempts: attempts,
     }, { status: 500 });
 
   } catch (error: any) {
