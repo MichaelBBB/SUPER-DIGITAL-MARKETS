@@ -10,22 +10,25 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const amount = parseFloat(String(body.amount ?? '10.00')).toFixed(2);
 
-    const entityId = process.env.PEACH_ENTITY_ID || '';
-    const secret =
-      process.env.PEACH_SECRET_TOKEN ||
-      process.env.PEACH_BEARER_TOKEN ||
-      process.env.PEACH_AUTH_TOKEN ||
-      '';
+    const entityId = (process.env.PEACH_ENTITY_ID || '').trim();
 
-    if (!entityId || !secret) {
+    // Collect EVERY candidate secret and trim hidden spaces/newlines
+    const candidates: Record<string, string> = {};
+    for (const name of ['PEACH_SECRET_TOKEN', 'PEACH_BEARER_TOKEN', 'PEACH_AUTH_TOKEN']) {
+      const v = (process.env[name] || '').trim();
+      if (v) candidates[name] = v;
+    }
+    const names = Object.keys(candidates);
+
+    if (!entityId || names.length === 0) {
       return NextResponse.json({
         error: 'MISSING KEYS',
         entityIdFound: !!entityId,
-        secretFound: !!secret,
+        secretSourcesFound: names,
       }, { status: 500 });
     }
 
-    const params: Record<string, string> = {
+    const baseParams: Record<string, string> = {
       'authentication.entityId': entityId,
       amount,
       currency: 'USD',
@@ -35,13 +38,9 @@ export async function POST(request: Request) {
       shopperResultUrl: 'https://super-digital-markets-co9n.vercel.app/payment',
     };
 
-    // Official Peach signature: alphabetical keys, name+value, HMAC-SHA256
-    const message = Object.keys(params).sort().map((k) => k + params[k]).join('');
-    const signature = sign(message, secret);
+    // Official signature: alphabetical keys, name+value concatenated, HMAC-SHA256
+    const message = Object.keys(baseParams).sort().map((k) => k + baseParams[k]).join('');
 
-    const formBody = new URLSearchParams({ ...params, signature });
-
-    // ONLY the correct Peach hosts. No environment variable can override this.
     const bases = [
       'https://secure.peachpayments.com',
       'https://testsecure.peachpayments.com',
@@ -50,34 +49,40 @@ export async function POST(request: Request) {
     const attempts: any[] = [];
 
     for (const base of bases) {
-      const res = await fetch(base + '/checkout/initiate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Accept: 'application/json',
-          Referer: 'https://super-digital-markets-co9n.vercel.app',
-        },
-        body: formBody.toString(),
-      });
+      for (const name of names) {
+        const signature = sign(message, candidates[name]);
+        const formBody = new URLSearchParams({ ...baseParams, signature });
 
-      const text = await res.text();
-      let data: any;
-      try { data = JSON.parse(text); } catch { data = { rawResponse: text.slice(0, 300) }; }
+        const res = await fetch(base + '/checkout/initiate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Accept: 'application/json',
+            Referer: 'https://super-digital-markets-co9n.vercel.app',
+          },
+          body: formBody.toString(),
+        });
 
-      if (res.ok) {
-        const url = data.redirectUrl || data.url || data.checkoutUrl || '';
-        if (url) {
-          return NextResponse.json({ url, checkoutId: data.id || data.checkoutId });
+        const text = await res.text();
+        let data: any;
+        try { data = JSON.parse(text); } catch { data = { rawResponse: text.slice(0, 300) }; }
+
+        if (res.ok) {
+          const url = data.redirectUrl || data.url || data.checkoutUrl || '';
+          if (url) {
+            return NextResponse.json({ url, checkoutId: data.id || data.checkoutId, workedWith: name, host: base });
+          }
+          return NextResponse.json({ error: 'NO REDIRECT URL', peachResponse: data }, { status: 500 });
         }
-        return NextResponse.json({ error: 'NO REDIRECT URL', peachResponse: data }, { status: 500 });
-      }
 
-      attempts.push({ host: base, status: res.status, response: data });
+        attempts.push({ host: base, secretUsed: name, status: res.status, response: data });
+      }
     }
 
     return NextResponse.json({
       error: 'PEACH REJECTED ON ALL HOSTS',
-      attempts: attempts,
+      entityIdStart: entityId.slice(0, 8),
+      attempts,
     }, { status: 500 });
 
   } catch (error: any) {
