@@ -47,11 +47,11 @@ function PaymentInner() {
     const message = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Product:* ${itemName}\n*Amount:* $${amount} USD\n*Ref:* ${orderRef}\n\nI want to pay via Instant EFT.`;
     
     if (isMobile) {
+      // Mobile: Open WhatsApp app directly
       window.location.href = `whatsapp://send?phone=27743868889&text=${encodeURIComponent(message)}`;
     } else {
-      // Desktop: Copy to clipboard AND open WhatsApp Web directly (no alert)
-      navigator.clipboard.writeText(message);
-      window.open(`https://web.whatsapp.com/send?phone=27743868889&text=${encodeURIComponent(message)}`, '_blank');
+      // Desktop: Open WhatsApp Web in SAME tab (preserves session)
+      window.location.href = `https://web.whatsapp.com/send?phone=27743868889&text=${encodeURIComponent(message)}`;
     }
   };
 
@@ -135,7 +135,6 @@ function PaymentInner() {
                     required
                   />
                 </div>
-                {/* FIXED: Now BLUE (cyan-600) instead of green */}
                 <button 
                   type="submit"
                   disabled={processing}
@@ -157,10 +156,10 @@ function PaymentInner() {
           {/* WhatsApp */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
             <h2 className="text-xl font-bold text-green-400 flex items-center gap-2">
-              🇦 Instant EFT (South Africa)
+               Instant EFT (South Africa)
             </h2>
             <p className="text-gray-400 text-sm">
-              {isMobile ? 'Opens WhatsApp app directly' : 'Copies message + opens WhatsApp Web'}
+              {isMobile ? 'Opens WhatsApp app directly' : 'Opens WhatsApp Web'}
             </p>
             <button 
               onClick={handleWhatsApp}
@@ -168,6 +167,9 @@ function PaymentInner() {
             >
               Send Order on WhatsApp
             </button>
+            <p className="text-gray-500 text-xs">
+              Note: If WhatsApp Web shows a QR code, scan it once with your phone. After that, it will remember you.
+            </p>
           </div>
         </div>
 
