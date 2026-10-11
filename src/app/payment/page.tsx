@@ -17,7 +17,6 @@ function PaymentInner() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Detect mobile device
     setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
   }, []);
 
@@ -25,10 +24,8 @@ function PaymentInner() {
     e.preventDefault();
     setProcessing(true);
     
-    // Simulate payment processing (replace with real Peach API call)
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Save sale to API (links to live trackers)
     await fetch('/api/sales', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -50,13 +47,11 @@ function PaymentInner() {
     const message = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Product:* ${itemName}\n*Amount:* $${amount} USD\n*Ref:* ${orderRef}\n\nI want to pay via Instant EFT.`;
     
     if (isMobile) {
-      // Mobile: Open WhatsApp app directly (no login needed)
       window.location.href = `whatsapp://send?phone=27743868889&text=${encodeURIComponent(message)}`;
     } else {
-      // Desktop: Copy to clipboard + open WhatsApp Web
+      // Desktop: Copy to clipboard AND open WhatsApp Web directly (no alert)
       navigator.clipboard.writeText(message);
       window.open(`https://web.whatsapp.com/send?phone=27743868889&text=${encodeURIComponent(message)}`, '_blank');
-      alert('Message copied to clipboard! Paste it in WhatsApp Web.');
     }
   };
 
@@ -140,10 +135,11 @@ function PaymentInner() {
                     required
                   />
                 </div>
+                {/* FIXED: Now BLUE (cyan-600) instead of green */}
                 <button 
                   type="submit"
                   disabled={processing}
-                  className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg disabled:opacity-50"
+                  className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg disabled:opacity-50"
                 >
                   {processing ? 'Processing...' : 'Complete Payment'}
                 </button>
