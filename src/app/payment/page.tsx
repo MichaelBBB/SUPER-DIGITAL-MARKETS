@@ -25,8 +25,6 @@ function PaymentInner() {
   const ALIPAY_ID = 'YourAlipayPhoneOrEmail@alipay.com'; 
   const UPI_ID = 'YourName@okicici'; 
 
-  const message = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Product:* ${itemName}\n*Amount:* $${amount} USD\n*Ref:* ${orderRef}\n\nI want to pay.`;
-
   const handleCardPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setProcessing(true);
@@ -48,9 +46,11 @@ function PaymentInner() {
 
   const handleWhatsApp = () => {
     if (isMobile) {
-      window.location.href = `https://wa.me/27743868889?text=${encodeURIComponent(message)}`;
+      // Mobile: Opens WhatsApp app directly to new chat screen
+      window.location.href = 'whatsapp://';
     } else {
-      window.location.href = `https://web.whatsapp.com/send?phone=27743868889&text=${encodeURIComponent(message)}`;
+      // Desktop: Opens WhatsApp Web to main screen (no pre-filled contact)
+      window.location.href = 'https://web.whatsapp.com';
     }
   };
 
@@ -123,13 +123,14 @@ function PaymentInner() {
             )}
           </div>
 
-          {/* 2. WhatsApp */}
+          {/* 2. WhatsApp - OPENS BLANK SCREEN */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
             <h2 className="text-xl font-bold text-green-400 flex items-center gap-2">💬 WhatsApp</h2>
-            <p className="text-gray-400 text-sm">{isMobile ? 'Opens WhatsApp app directly' : 'Opens WhatsApp Web'}</p>
+            <p className="text-gray-400 text-sm">{isMobile ? 'Opens WhatsApp app' : 'Opens WhatsApp Web'}</p>
             <button onClick={handleWhatsApp} className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2">
-              Chat on WhatsApp
+              Open WhatsApp
             </button>
+            <p className="text-gray-500 text-xs text-center">Then search for: +27 74 386 8889</p>
           </div>
 
           {/* 3. Google Pay - YELLOW BLOCK */}
@@ -155,7 +156,7 @@ function PaymentInner() {
 
         {/* Capitec Bank Details */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-xl font-bold text-cyan-400 mb-6">🇿 CAPITEC BANK DETAILS</h2>
+          <h2 className="text-xl font-bold text-cyan-400 mb-6">🇦 CAPITEC BANK DETAILS</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-black/50 p-4 rounded-lg">
               <p className="text-gray-500 text-xs mb-1">Account Holder</p>
