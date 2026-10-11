@@ -1,5 +1,4 @@
 'use client';
-
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -9,40 +8,52 @@ function PaymentInner() {
   const urlItem = (params.get('item') || '').trim();
   const rawAmount = Number(params.get('amount') || 0);
 
-  const itemName = urlItem || 'Digital Product';
-  const amount = rawAmount > 0 ? rawAmount : 10;
-
+  const itemName = urlItem || 'ExpressVPN';
+  const amount = rawAmount > 0 ? rawAmount : 6.67;
+  
   const [orderRef] = useState('ORD-' + Math.floor(Math.random() * 900000 + 100000));
   const [cardStatus, setCardStatus] = useState<'idle' | 'loading' | 'error'>('idle');
 
   const startPeach = async () => {
     setCardStatus('loading');
+    const payload = { item: itemName, amount };
+    
     try {
-      const res = await fetch('/api/peach-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ item: itemName, amount }),
+      const res = await fetch('/api/peach-checkout', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(payload) 
       });
+      
       const data = await res.json().catch(() => ({ error: 'Could not parse response' }));
-      if (res.ok && data.url) {
-        window.location.href = data.url;
+      
+      if (!res.ok) {
+        alert('ERROR: ' + JSON.stringify(data, null, 2));
+        setCardStatus('error');
         return;
       }
-      alert('PEACH SAID: ' + JSON.stringify(data, null, 2));
-      setCardStatus('error');
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('No URL returned: ' + JSON.stringify(data));
+        setCardStatus('error');
+      }
     } catch (err: any) {
-      alert('NETWORK ERROR: ' + err.message);
+      alert('FETCH ERROR: ' + err.message);
       setCardStatus('error');
     }
   };
 
   const waMessage = `*ORDER CONFIRMED - SUPER DIGITAL MARKETS*\n\n*Ref:* ${orderRef}\n*Product:* ${itemName}\n*Total:* $${amount} USD\n\n--- HOW TO PAY ---\n\n🌍 INTERNATIONAL BUYERS:\nUse the "Pay Now by Card" button.\n\n🇿🇦 SOUTH AFRICA (INSTANT EFT):\nBank: Capitec\nAcc: 1975933441\nBranch: 470010 / CABLZAJJ\nRef: ${orderRef}\n\nReply PAID after transfer.`;
-
+  
   const waLink = `https://api.whatsapp.com/send?phone=27743868889&text=${encodeURIComponent(waMessage)}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-6 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
+        
+        {/* Header with Product Name */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div className="inline-block px-3 py-1 bg-green-900/30 border border-green-800 rounded-full text-green-400 text-xs font-bold mb-2">
@@ -54,26 +65,29 @@ function PaymentInner() {
           </div>
           <div className="text-right">
             <p className="text-4xl font-bold text-cyan-400">${amount} USD</p>
-            <p className="text-gray-500 text-sm">(SA customers: transfer ZAR equivalent)</p>
+            <p className="text-gray-300 text-sm font-semibold">{itemName}</p>
+            <p className="text-gray-500 text-xs">(SA customers: transfer ZAR equivalent)</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
+            
+            {/* Card Payment */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
               <h2 className="text-xl font-bold text-cyan-400 mb-2 flex items-center gap-2">
-                🌍 Card Payment (USA, India, China, International)
+                 Card Payment (USA, India, China, International)
               </h2>
-              <p className="text-gray-400 text-sm mb-4">Visa / Mastercard / Google Pay / Apple Pay. Fully automated and instant.</p>
-
-              <button
+              <p className="text-gray-400 text-sm mb-4">Visa / Mastercard accepted. Fully automated and instant.</p>
+              
+              <button 
                 onClick={startPeach}
                 disabled={cardStatus === 'loading'}
                 className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-all transform hover:scale-105 disabled:opacity-50"
               >
-                {cardStatus === 'loading' ? 'Connecting to Peach...' : 'Pay Now by Card'}
+                {cardStatus === 'loading' ? 'Connecting...' : 'Pay Now by Card'}
               </button>
-
+              
               {cardStatus === 'error' && (
                 <div className="mt-4 p-4 bg-red-900/30 border border-red-800 rounded-lg">
                   <p className="text-red-400 text-sm font-bold">Could not reach Peach Gateway.</p>
@@ -82,17 +96,18 @@ function PaymentInner() {
               )}
             </div>
 
+            {/* WhatsApp Button */}
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
               <h2 className="text-xl font-bold text-green-400 mb-2 flex items-center gap-2">
-                🇿🇦 Instant EFT (South Africa)
+                🇦 Instant EFT (South Africa)
               </h2>
               <p className="text-gray-400 text-sm mb-4">
                 Sends your confirmed order with instant payment instructions via WhatsApp.
               </p>
-
-              <a
-                href={waLink}
-                target="_blank"
+              
+              <a 
+                href={waLink} 
+                target="_blank" 
                 rel="noopener noreferrer"
                 className="w-full py-4 bg-gray-800 hover:bg-gray-700 border border-green-800 text-green-400 font-bold rounded-lg transition-all flex items-center justify-center gap-2"
               >
@@ -102,10 +117,11 @@ function PaymentInner() {
             </div>
           </div>
 
+          {/* Capitec Bank Details */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 h-fit">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-cyan-400">CAPITEC BANK DETAILS</h2>
-              <button
+              <button 
                 onClick={() => navigator.clipboard.writeText(`Capitec\nAcc: 1975933441\nBranch: 470010 / CABLZAJJ\nRef: ${orderRef}`)}
                 className="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded text-xs text-gray-300"
               >
@@ -134,14 +150,14 @@ function PaymentInner() {
 
             <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
               <p className="text-yellow-200 text-sm">
-                ⚡ SA customers: Select "Immediate Payment" in your bank app for delivery within minutes.
+                 SA customers: Select "Immediate Payment" in your bank app for delivery within minutes.
               </p>
             </div>
           </div>
         </div>
-
+        
         <div className="text-center pt-8">
-          <Link href="/" className="text-gray-500 hover:text-white text-sm">← Cancel and Return to Home</Link>
+           <Link href="/" className="text-gray-500 hover:text-white text-sm">← Cancel and Return to Home</Link>
         </div>
       </div>
     </div>
