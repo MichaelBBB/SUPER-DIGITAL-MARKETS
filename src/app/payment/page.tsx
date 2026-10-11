@@ -63,6 +63,10 @@ function PaymentInner() {
     }
   };
 
+  const handleAlipay = () => {
+    copyToClipboard(ALIPAY_ID, 'Alipay ID');
+  };
+
   if (success) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
@@ -102,10 +106,10 @@ function PaymentInner() {
           
           {/* 1. Card Payment */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-cyan-400 flex items-center gap-2">💳 Card Payment (USA / Global)</h2>
+            <h2 className="text-xl font-bold text-cyan-400 flex items-center gap-2">💳 Card Payment</h2>
             <p className="text-gray-400 text-sm">Visa / Mastercard accepted. Instant.</p>
             {!showCardForm ? (
-              <button onClick={() => setShowCardForm(true)} className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-all">Pay Now by Card</button>
+              <button onClick={() => setShowCardForm(true)} className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-all">Pay Now by Card</button>
             ) : (
               <form onSubmit={handleCardPayment} className="space-y-3">
                 <input type="text" placeholder="Card Number" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} className="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white" required />
@@ -121,39 +125,39 @@ function PaymentInner() {
 
           {/* 2. WhatsApp */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-green-400 flex items-center gap-2">💬 WhatsApp (USA / Global)</h2>
+            <h2 className="text-xl font-bold text-green-400 flex items-center gap-2">💬 WhatsApp</h2>
             <p className="text-gray-400 text-sm">{isMobile ? 'Opens WhatsApp app directly' : 'Opens WhatsApp Web'}</p>
-            <button onClick={handleWhatsApp} className="w-full py-4 bg-green-700 hover:bg-green-600 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2">
+            <button onClick={handleWhatsApp} className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2">
               Chat on WhatsApp
             </button>
           </div>
 
-          {/* 3. Google Pay (India) - YELLOW BUTTON */}
+          {/* 3. Google Pay (Official Button Style) */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">🇮🇳 Google Pay / UPI (India)</h2>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">🇮🇳 Google Pay (India)</h2>
             <p className="text-gray-400 text-sm">{isMobile ? 'Click to open Google Pay app' : 'Click to copy UPI ID'}</p>
-            <button onClick={handleGooglePay} className="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-black font-bold rounded-lg transition-all flex items-center justify-center gap-2">
-              {isMobile ? 'Pay with Google Pay' : 'Copy UPI ID'}
+            {/* Official G Pay Button Style */}
+            <button onClick={handleGooglePay} className="w-full py-3 bg-black border border-white hover:bg-gray-900 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2">
+              <span className="text-xl font-bold text-white">G</span> <span className="text-lg">Pay</span>
             </button>
             <p className="text-gray-500 text-xs text-center">ID: {UPI_ID}</p>
           </div>
 
-          {/* 4. Alipay (China) - RED BUTTON */}
+          {/* 4. Alipay (Official Button Style) */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">🇨🇳 Alipay (China)</h2>
-            <p className="text-gray-400 text-sm">Copy ID and search in Alipay app.</p>
-            <div className="bg-black/50 p-3 rounded-lg border border-gray-700 flex justify-between items-center">
-              <span className="text-white font-mono font-bold text-sm truncate mr-2">{ALIPAY_ID}</span>
-              <button onClick={() => copyToClipboard(ALIPAY_ID, 'Alipay ID')} className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-sm whitespace-nowrap">
-                Copy ID
-              </button>
-            </div>
+            <p className="text-gray-400 text-sm">Click to copy Alipay ID</p>
+            {/* Official Alipay Button Style (Blue) */}
+            <button onClick={handleAlipay} className="w-full py-3 bg-[#1677FF] hover:bg-[#4096ff] text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-lg">
+              Alipay
+            </button>
+            <p className="text-gray-500 text-xs text-center">ID: {ALIPAY_ID}</p>
           </div>
         </div>
 
         {/* Capitec Bank Details */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-xl font-bold text-cyan-400 mb-6">🇿🇦 CAPITEC BANK DETAILS</h2>
+          <h2 className="text-xl font-bold text-cyan-400 mb-6">🇿 CAPITEC BANK DETAILS</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-black/50 p-4 rounded-lg">
               <p className="text-gray-500 text-xs mb-1">Account Holder</p>
