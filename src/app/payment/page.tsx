@@ -21,9 +21,8 @@ function PaymentInner() {
     setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
   }, []);
 
-  // TODO: UPDATE THESE WITH YOUR ACTUAL IDs
-  const ALIPAY_ID = 'YourAlipayPhoneOrEmail@alipay.com'; 
-  const UPI_ID = 'YourName@okicici'; 
+  const ALIPAY_ID = 'YourAlipayPhoneOrEmail@alipay.com';
+  const UPI_ID = 'YourName@okicici';
 
   const handleCardPayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,13 +44,29 @@ function PaymentInner() {
   };
 
   const handleWhatsApp = () => {
+    const phone = '27743868889';
+
     if (isMobile) {
-      // Mobile: Opens WhatsApp app directly to your number (LHS chat list, RHS chat box)
-      window.location.href = 'https://wa.me/27743868889';
-    } else {
-      // Desktop: Opens WhatsApp Web. LHS shows their chats, RHS opens chat with your number.
-      window.location.href = 'https://web.whatsapp.com/send?phone=27743868889';
+      // Cellphone: opens the WhatsApp APP directly, blank chat on RHS for the client
+      window.location.href = `https://wa.me/${phone}`;
+      return;
     }
+
+    // Laptop: launch the INSTALLED WhatsApp desktop app first
+    const appUrl = `whatsapp://send?phone=${phone}`;
+    const webUrl = `https://web.whatsapp.com/send?phone=${phone}`;
+
+    let appOpened = false;
+    const onBlur = () => { appOpened = true; };
+    window.addEventListener('blur', onBlur, { once: true });
+
+    window.location.href = appUrl;
+
+    // If the app did not open within 1.5s, fall back to WhatsApp Web
+    setTimeout(() => {
+      window.removeEventListener('blur', onBlur);
+      if (!appOpened) window.location.href = webUrl;
+    }, 1500);
   };
 
   const handleGooglePay = () => {
@@ -85,7 +100,6 @@ function PaymentInner() {
     <div className="min-h-screen bg-black text-white p-4 md:p-6">
       <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-block px-4 py-1 bg-green-900/30 border border-green-800 rounded-full text-green-400 text-xs font-bold">✅ ORDER CONFIRMED</div>
           <h1 className="text-3xl md:text-4xl font-bold">Checkout: {itemName}</h1>
@@ -94,17 +108,14 @@ function PaymentInner() {
           <p className="text-gray-500 text-sm">Ref: {orderRef}</p>
         </div>
 
-        {/* Global Notification */}
         {copiedText && (
           <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 font-bold">
             ✅ {copiedText} copied to clipboard!
           </div>
         )}
 
-        {/* Payment Options Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* 1. Card Payment */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
             <h2 className="text-xl font-bold text-cyan-400 flex items-center gap-2">💳 Card Payment</h2>
             <p className="text-gray-400 text-sm">Visa / Mastercard accepted. Instant.</p>
@@ -123,19 +134,17 @@ function PaymentInner() {
             )}
           </div>
 
-          {/* 2. WhatsApp - LHS Chat List, RHS Chat Box */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
             <h2 className="text-xl font-bold text-green-400 flex items-center gap-2">💬 WhatsApp</h2>
-            <p className="text-gray-400 text-sm">{isMobile ? 'Opens WhatsApp app' : 'Opens WhatsApp Web'}</p>
+            <p className="text-gray-400 text-sm">{isMobile ? 'Opens WhatsApp app' : 'Opens your installed WhatsApp app'}</p>
             <button onClick={handleWhatsApp} className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2">
               Open WhatsApp to Chat
             </button>
-            <p className="text-gray-500 text-xs text-center">Type your order details on the right to receive your product.</p>
+            <p className="text-gray-500 text-xs text-center">The client types their order on the right side.</p>
           </div>
 
-          {/* 3. Google Pay - YELLOW BLOCK */}
           <div className="bg-yellow-400 border border-yellow-500 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-black flex items-center gap-2">🇳 Google Pay (India)</h2>
+            <h2 className="text-xl font-bold text-black flex items-center gap-2">🇮🇳 Google Pay (India)</h2>
             <p className="text-gray-900 text-sm font-medium">{isMobile ? 'Click to open Google Pay app' : 'Click to copy UPI ID'}</p>
             <button onClick={handleGooglePay} className="w-full py-3 bg-black hover:bg-gray-900 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-lg">
               <span className="text-2xl font-bold text-white">G</span> <span className="text-xl">Pay</span>
@@ -143,9 +152,8 @@ function PaymentInner() {
             <p className="text-gray-900 text-xs font-medium text-center">ID: {UPI_ID}</p>
           </div>
 
-          {/* 4. Alipay - RED BLOCK */}
           <div className="bg-red-600 border border-red-700 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">🇳 Alipay (China)</h2>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">🇨🇳 Alipay (China)</h2>
             <p className="text-white text-sm font-medium">Click to copy Alipay ID</p>
             <button onClick={handleAlipay} className="w-full py-3 bg-white hover:bg-gray-200 text-red-600 font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-lg">
               Copy Alipay ID
@@ -154,9 +162,8 @@ function PaymentInner() {
           </div>
         </div>
 
-        {/* Capitec Bank Details */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-xl font-bold text-cyan-400 mb-6">🇿🇦 CAPITEC BANK DETAILS</h2>
+          <h2 className="text-xl font-bold text-cyan-400 mb-6">🇿 CAPITEC BANK DETAILS</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-black/50 p-4 rounded-lg">
               <p className="text-gray-500 text-xs mb-1">Account Holder</p>
