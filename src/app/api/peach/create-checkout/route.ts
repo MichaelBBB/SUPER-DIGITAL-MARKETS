@@ -9,12 +9,8 @@ export async function POST(request: Request) {
     const secretToken = process.env.PEACH_SECRET_TOKEN;
 
     if (!entityId || !secretToken) {
-      console.error('Missing credentials:', { 
-        hasEntityId: !!entityId, 
-        hasSecretToken: !!secretToken 
-      });
       return NextResponse.json(
-        { error: 'Missing Peach credentials' },
+        { error: 'Missing credentials' },
         { status: 500 }
       );
     }
@@ -47,6 +43,16 @@ export async function POST(request: Request) {
       body: payload.toString(),
     });
 
+    // Check if response is OK before trying to parse JSON
+    if (!response.ok) {
+      const textResponse = await response.text();
+      console.error('Peach Payments error:', textResponse);
+      return NextResponse.json(
+        { error: 'Payment service error', details: textResponse },
+        { status: response.status }
+      );
+    }
+
     const data = await response.json();
 
     if (data.result.code === '000.000.000' || data.result.code === '000.100.110') {
@@ -56,16 +62,15 @@ export async function POST(request: Request) {
         orderId: orderId,
       });
     } else {
-      console.error('Peach Error:', data);
       return NextResponse.json(
-        { success: false, error: data.result.description },
+        { success: false, error: data.result.description || 'Payment failed' },
         { status: 400 }
       );
     }
   } catch (error) {
-    console.error('Server Error:', error);
+    console.error('Checkout error:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
