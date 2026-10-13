@@ -1,56 +1,72 @@
 import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
-
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const amount = body.amount || '0.00';
-    const currency = body.currency || 'USD';
-    const item = body.item || 'Super Digital Markets Purchase';
+    const body = await request.json();
+    const { amount, currency, orderId } = body;
 
-    const entityId = process.env.PEACH_ENTITY_ID || '';
-    const authToken = process.env.PEACH_AUTH_TOKEN || '';
-    const isTest = process.env.PEACH_TEST_MODE === 'true';
-    
-    const baseUrl = isTest 
-      ? 'https://test.oppwa.com/v1/checkouts' 
-      : 'https://oppwa.com/v1/checkouts';
+    const entityId = process.env.NEXT_PUBLIC_PEACH_ENTITY_ID;
+    const secretToken = process.env.PEACH_SECRET_TOKEN;
 
-    if (!entityId || !authToken) {
-      return NextResponse.json({ error: 'Peach credentials missing in environment variables' }, { status: 500 });
+    if (!entityId || !secretToken) {
+      console.error('Missing credentials:', { 
+        hasEntityId: !!entityId, 
+        hasSecretToken: !!secretToken 
+      });
+      return NextResponse.json(
+        { error: 'Missing Peach credentials' },
+        { status: 500 }
+      );
     }
 
-    const params = new URLSearchParams();
-    params.append('entityId', entityId);
-    params.append('amount', String(amount));
-    params.append('currency', currency);
-    params.append('paymentType', 'DB'); 
-    params.append('merchantInvoiceId', `INV-${Date.now()}`);
-    params.append('merchantMemo', item);
+    const authHeader = 'Basic ' + Buffer.from(`${entityId}:${secretToken}`).toString('base64');
+    const peachUrl = 'https://eu-prod.oppwa.com/v1/checkouts';
 
-    const res = await fetch(baseUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString(),
+    const payload = new URLSearchParams({
+      entity_id: entityId,
+      amount: amount.toString(),
+      currency: currency || 'ZAR',
+      paymentType: 'DB',
+      merchant_transaction_id: orderId || `ORDER-${Date.now()}`,
+      customer_givenName: 'Guest',
+      customer_surname: 'User',
+      customer_email: 'guest@example.com',
+      billing_street1: '123 Main St',
+      billing_city: 'Johannesburg',
+      billing_state: 'GP',
+      billing_postcode: '2000',
+      billing_country: 'ZA',
     });
 
-    const data = await res.json();
+    const response = await fetch(peachUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: payload.toString(),
+    });
 
-    if (data.id) {
-      return NextResponse.json({ checkoutId: data.id, url: data.redirectUrl });
+    const data = await response.json();
+
+    if (data.result.code === '000.000.000' || data.result.code === '000.100.110') {
+      return NextResponse.json({
+        success: true,
+        checkoutUrl: data.buildUrl,
+        orderId: orderId,
+      });
+    } else {
+      console.error('Peach Error:', data);
+      return NextResponse.json(
+        { success: false, error: data.result.description },
+        { status: 400 }
+      );
     }
-
-    return NextResponse.json({ error: 'Failed to get checkout ID', details: data }, { status: 400 });
-
-  } catch (err: any) {
-    return NextResponse.json({ error: 'Server error', details: err.message }, { status: 500 });
+  } catch (error) {
+    console.error('Server Error:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
-}
-
-export async function GET() {
-  return NextResponse.json({ status: 'create-checkout active' });
 }
