@@ -45,28 +45,11 @@ function PaymentInner() {
 
   const handleWhatsApp = () => {
     const phone = '27743868889';
-
     if (isMobile) {
-      // Cellphone: opens the WhatsApp APP directly, blank chat on RHS for the client
       window.location.href = `https://wa.me/${phone}`;
-      return;
+    } else {
+      window.location.href = `https://web.whatsapp.com/send?phone=${phone}`;
     }
-
-    // Laptop: launch the INSTALLED WhatsApp desktop app first
-    const appUrl = `whatsapp://send?phone=${phone}`;
-    const webUrl = `https://web.whatsapp.com/send?phone=${phone}`;
-
-    let appOpened = false;
-    const onBlur = () => { appOpened = true; };
-    window.addEventListener('blur', onBlur, { once: true });
-
-    window.location.href = appUrl;
-
-    // If the app did not open within 1.5s, fall back to WhatsApp Web
-    setTimeout(() => {
-      window.removeEventListener('blur', onBlur);
-      if (!appOpened) window.location.href = webUrl;
-    }, 1500);
   };
 
   const handleGooglePay = () => {
@@ -90,7 +73,7 @@ function PaymentInner() {
           <h1 className="text-3xl font-bold text-green-400">Payment Successful!</h1>
           <p className="text-gray-400">Order: {orderRef}</p>
           <p className="text-2xl font-bold text-cyan-400">${amount} USD</p>
-          <button onClick={() => window.location.href = '/'} className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-bold">Return to Home</button>
+          <a href="/home" className="inline-block px-6 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-bold">Return to Home</a>
         </div>
       </div>
     );
@@ -99,7 +82,7 @@ function PaymentInner() {
   return (
     <div className="min-h-screen bg-black text-white p-4 md:p-6">
       <div className="max-w-5xl mx-auto space-y-8">
-        
+
         <div className="text-center space-y-3">
           <div className="inline-block px-4 py-1 bg-green-900/30 border border-green-800 rounded-full text-green-400 text-xs font-bold">✅ ORDER CONFIRMED</div>
           <h1 className="text-3xl md:text-4xl font-bold">Checkout: {itemName}</h1>
@@ -115,7 +98,7 @@ function PaymentInner() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
+
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
             <h2 className="text-xl font-bold text-cyan-400 flex items-center gap-2">💳 Card Payment</h2>
             <p className="text-gray-400 text-sm">Visa / Mastercard accepted. Instant.</p>
@@ -136,7 +119,7 @@ function PaymentInner() {
 
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
             <h2 className="text-xl font-bold text-green-400 flex items-center gap-2">💬 WhatsApp</h2>
-            <p className="text-gray-400 text-sm">{isMobile ? 'Opens WhatsApp app' : 'Opens your installed WhatsApp app'}</p>
+            <p className="text-gray-400 text-sm">{isMobile ? 'Opens WhatsApp app chat' : 'Opens WhatsApp Web chat screen'}</p>
             <button onClick={handleWhatsApp} className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2">
               Open WhatsApp to Chat
             </button>
@@ -185,7 +168,7 @@ function PaymentInner() {
         </div>
 
         <div className="text-center pb-8">
-          <a href="/" className="text-gray-500 hover:text-white text-sm">← Cancel and Return to Home</a>
+          <a href="/home" className="text-gray-500 hover:text-white text-sm">← Cancel and Return to Home</a>
         </div>
       </div>
     </div>
