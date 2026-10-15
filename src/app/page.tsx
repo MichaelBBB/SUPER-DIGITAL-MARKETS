@@ -1,17 +1,24 @@
 export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
-      {/* Earth Background with Dusk Overlay - Dramatic with City Lights */}
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072&auto=format&fit=crop')" }}
-      >
-        {/* Dusk Gradient: Darker overall to simulate dusk, allowing city lights to pop */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/85"></div>
+      
+      {/* DRAMATIC DUSK BACKGROUND WITH GLOWING CITY LIGHTS */}
+      <div className="absolute inset-0 z-0">
+        {/* Real Night Earth Image so the lights actually glow */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center animate-[pulse_10s_ease-in-out_infinite]"
+          style={{ 
+            backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')",
+            transform: 'scale(1.1)'
+          }}
+        ></div>
+        {/* Subtle dusk overlay to make text readable but let lights shine */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(0,0,0,0.6)_100%)]"></div>
       </div>
 
       {/* Navigation Bar */}
-      <nav className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md">
+      <nav className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/20">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-xs font-bold text-black">SD</div>
           <span className="font-bold text-lg tracking-wide">SUPER DIGITAL</span>
@@ -49,16 +56,16 @@ export default function Home() {
           <span className="text-yellow-400">Delivered Instantly.</span>
         </h1>
         
-        <p className="text-lg md:text-xl text-gray-300 max-w-2xl mb-10 leading-relaxed drop-shadow-lg">
+        <p className="text-lg md:text-xl text-gray-200 max-w-2xl mb-10 leading-relaxed drop-shadow-lg">
           From AI tools to creative software — shop in USD, pay your way,
           receive instantly. Trusted by buyers across 3 continents.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <a href="/products" className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-full font-bold text-lg transition-all shadow-lg shadow-blue-900/20">
+          <a href="/products" className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-full font-bold text-lg transition-all shadow-lg shadow-blue-900/40 hover:scale-105">
             Browse Products
           </a>
-          <a href="/payment?item=ExpressVPN&amount=6.67" className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-full font-bold text-lg transition-all shadow-lg shadow-green-900/20">
+          <a href="/payment?item=ExpressVPN&amount=6.67" className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-full font-bold text-lg transition-all shadow-lg shadow-green-900/40 hover:scale-105">
             Complete Your Purchase
           </a>
         </div>
