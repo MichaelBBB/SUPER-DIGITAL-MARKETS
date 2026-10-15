@@ -1,13 +1,13 @@
 export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
-      {/* Brighter Earth Background */}
+      {/* Earth Background with Dusk Overlay - Dramatic with City Lights */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072&auto=format&fit=crop')" }}
       >
-        {/* Reduced opacity from 70% to 20% to make it much brighter */}
-        <div className="absolute inset-0 bg-black/20"></div>
+        {/* Dusk Gradient: Darker overall to simulate dusk, allowing city lights to pop */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/85"></div>
       </div>
 
       {/* Navigation Bar */}
@@ -49,7 +49,7 @@ export default function Home() {
           <span className="text-yellow-400">Delivered Instantly.</span>
         </h1>
         
-        <p className="text-lg md:text-xl text-gray-300 max-w-2xl mb-10 leading-relaxed">
+        <p className="text-lg md:text-xl text-gray-300 max-w-2xl mb-10 leading-relaxed drop-shadow-lg">
           From AI tools to creative software — shop in USD, pay your way,
           receive instantly. Trusted by buyers across 3 continents.
         </p>
