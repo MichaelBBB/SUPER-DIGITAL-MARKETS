@@ -1,12 +1,13 @@
 export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
-      {/* Earth Background - Direct URL so it works immediately */}
+      {/* Brighter Earth Background */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')" }}
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072&auto=format&fit=crop')" }}
       >
-        <div className="absolute inset-0 bg-black/70"></div>
+        {/* Reduced opacity from 70% to 20% to make it much brighter */}
+        <div className="absolute inset-0 bg-black/20"></div>
       </div>
 
       {/* Navigation Bar */}
