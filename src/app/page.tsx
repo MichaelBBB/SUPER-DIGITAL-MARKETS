@@ -2,20 +2,20 @@ export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
       
-      {/* DRAMATIC DUSK BACKGROUND WITH GLOWING CITY LIGHTS */}
+      {/* SATELLITE & EARTH BACKGROUND WITH DUSK LIGHTING */}
       <div className="absolute inset-0 z-0">
-        {/* Real Earth at Night Satellite Image */}
+        {/* Real Earth with Satellite Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
-            backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')" 
+            backgroundImage: "url('https://images.unsplash.com/photo-1446776877081-d282a0f896e2?q=80&w=2072&auto=format&fit=crop')" 
           }}
         ></div>
         
-        {/* Dusk Gradient: Darker at top/bottom, slightly transparent in the middle so the continent lights GLOW */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-900/40 to-slate-950/90"></div>
+        {/* Dusk Gradient: Darker at top/bottom, transparent in middle so lights and satellite GLOW */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-900/30 to-slate-950/80"></div>
         
-        {/* Subtle vignette to focus attention on the center */}
+        {/* Vignette to focus attention on the center */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(0,0,0,0.6)_100%)]"></div>
       </div>
 
