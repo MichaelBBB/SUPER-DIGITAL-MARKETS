@@ -15,7 +15,7 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-black text-white p-6">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 pt-8">
           <h1 className="text-4xl md:text-5xl font-bold text-cyan-400">All Products</h1>
           <p className="text-gray-400">Premium digital products delivered instantly</p>
         </div>
@@ -25,7 +25,7 @@ export default function ProductsPage() {
             <div key={idx} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4 hover:border-cyan-600 transition-all">
               <div className="text-xs text-cyan-400 font-bold uppercase">{product.category}</div>
               <h2 className="text-xl font-bold">{product.name}</h2>
-              <p className="text-3xl font-bold text-cyan-400">${product.price} USD/mo</p>
+              <p className="text-3xl font-bold text-cyan-400">${product.price} USD</p>
               <a 
                 href={`/payment?item=${encodeURIComponent(product.name)}&amount=${product.price}`}
                 className="block w-full text-center py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-bold transition-all"
@@ -36,7 +36,7 @@ export default function ProductsPage() {
           ))}
         </div>
 
-        <div className="text-center pt-8">
+        <div className="text-center pt-8 pb-12">
           <a href="/" className="text-gray-500 hover:text-white text-sm">← Back to Home</a>
         </div>
       </div>
