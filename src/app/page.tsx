@@ -1,23 +1,13 @@
 export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
-      
-      {/* DRAMATIC DUSK BACKGROUND WITH GLOWING CITY LIGHTS */}
-      <div className="absolute inset-0 z-0">
-        {/* Real Night Earth Image so the lights actually glow */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center animate-[pulse_10s_ease-in-out_infinite]"
-          style={{ 
-            backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')",
-            transform: 'scale(1.1)'
-          }}
-        ></div>
-        {/* Subtle dusk overlay to make text readable but let lights shine */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(0,0,0,0.6)_100%)]"></div>
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072&auto=format&fit=crop')" }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/85"></div>
       </div>
 
-      {/* Navigation Bar */}
       <nav className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/20">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-xs font-bold text-black">SD</div>
@@ -39,7 +29,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Sub-header Banner */}
       <div className="relative z-10 flex justify-center py-4">
         <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-black/40 backdrop-blur-md text-xs font-semibold tracking-wider">
           <span className="text-cyan-400">● LIVE GLOBAL MARKETPLACE</span>
@@ -48,7 +37,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Hero Section */}
       <main className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-16 pb-32 max-w-5xl mx-auto">
         <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-6 drop-shadow-2xl">
           The World's <span className="text-cyan-400">Top 30</span><br />
