@@ -1,33 +1,70 @@
 export default function Home() {
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <div className="max-w-4xl mx-auto space-y-8 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-cyan-400 pt-8">SUPER DIGITAL MARKETS</h1>
-        <p className="text-gray-400">Premium digital products delivered instantly</p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-3">
-            <h2 className="text-xl font-bold text-white">ExpressVPN (12 Months)</h2>
-            <p className="text-gray-400 text-sm">Full activation, instant delivery</p>
-            <p className="text-3xl font-bold text-cyan-400">$6.67 USD</p>
-            <a href="/payment?item=ExpressVPN&amount=6.67" className="block w-full text-center py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-bold">
-              CLICK HERE TO PAY
-            </a>
-          </div>
-
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-3">
-            <h2 className="text-xl font-bold text-white">Custom Order</h2>
-            <p className="text-gray-400 text-sm">Any product, any quantity — order via WhatsApp</p>
-            <a href="https://wa.me/27743868889" className="block w-full text-center py-3 bg-green-600 hover:bg-green-500 rounded-lg font-bold">
-              Order on WhatsApp
-            </a>
-          </div>
-        </div>
-
-        <a href="/live-trackers" className="inline-block text-gray-500 hover:text-white text-sm underline">
-          View Live Sales Trackers
-        </a>
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* Background - Earth from Space */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80"></div>
+        {/* Replace with your actual earth image in /public folder */}
+        <img 
+          src="/earth-bg.jpg" 
+          alt="Earth Background" 
+          className="w-full h-full object-cover"
+        />
       </div>
+
+      {/* Navigation Bar */}
+      <nav className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-gray-800/50 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center text-xs font-bold">SD</div>
+          <span className="font-bold text-lg tracking-wide">SUPER DIGITAL</span>
+        </div>
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+          <a href="/" className="hover:text-white transition-colors">Home</a>
+          <a href="/products" className="hover:text-white transition-colors">Products</a>
+          <a href="/payment?item=ExpressVPN&amount=6.67" className="hover:text-white transition-colors">Checkout</a>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-green-900/50 bg-green-900/20 text-green-400 text-xs font-bold">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            LIVE
+          </div>
+          <a href="/payment?item=ExpressVPN&amount=6.67" className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-full text-sm font-bold transition-all">
+            Shop Now
+          </a>
+        </div>
+      </nav>
+
+      {/* Sub-header Banner */}
+      <div className="relative z-10 flex justify-center py-3">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-800/50 bg-black/40 backdrop-blur-md text-xs font-semibold tracking-wider">
+          <span className="text-cyan-400">● LIVE GLOBAL MARKETPLACE</span>
+          <span className="text-gray-600">•</span>
+          <span className="text-gray-300">USA • India • China • South Africa</span>
+        </div>
+      </div>
+
+      {/* Hero Section */}
+      <main className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-20 pb-32 max-w-5xl mx-auto">
+        <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-6 drop-shadow-2xl">
+          The World's <span className="text-cyan-400">Top 30</span><br />
+          Digital Products<br />
+          <span className="text-yellow-400">Delivered Instantly.</span>
+        </h1>
+        
+        <p className="text-lg md:text-xl text-gray-300 max-w-2xl mb-10 leading-relaxed">
+          From AI tools to creative software — shop in USD, pay your way,
+          receive instantly. Trusted by buyers across 3 continents.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <a href="/products" className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-full font-bold text-lg transition-all shadow-lg shadow-blue-900/20">
+            Browse Products
+          </a>
+          <a href="/payment?item=ExpressVPN&amount=6.67" className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-full font-bold text-lg transition-all shadow-lg shadow-green-900/20">
+            Complete Your Purchase
+          </a>
+        </div>
+      </main>
     </div>
   );
 }
