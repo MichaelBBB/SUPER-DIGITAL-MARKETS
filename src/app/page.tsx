@@ -4,20 +4,19 @@ export default function Home() {
       
       {/* 1. SATELLITE ORBITING EARTH BACKGROUND */}
       <div className="absolute inset-0 z-0">
-        {/* This is the correct satellite orbiting Earth image */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
-            backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')" 
+            backgroundImage: "url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072&auto=format&fit=crop')" 
           }}
         ></div>
         
-        {/* 2. DUSK OVERLAY (Lets lights glow, keeps text readable) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70"></div>
+        {/* 2. LIGHTER RADIAL OVERLAY (Keeps center readable, leaves satellite visible at the top) */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(0,0,0,0.2)_0%,_rgba(0,0,0,0.7)_100%)]"></div>
       </div>
 
-      {/* 3. NAVIGATION BAR (Restored) */}
-      <nav className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/40">
+      {/* 3. NAVIGATION BAR */}
+      <nav className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/20">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-xs font-bold text-black">SD</div>
           <span className="font-bold text-lg tracking-wide">SUPER DIGITAL</span>
