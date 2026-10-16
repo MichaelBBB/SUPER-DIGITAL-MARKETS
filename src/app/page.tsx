@@ -2,25 +2,26 @@ export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
       
-      {/* 1. BACKGROUND: The exact image from your screenshot */}
+      {/* 1. BACKGROUND: Satellite Image forced into Dusk/Night with Glowing Lights */}
       <div className="absolute inset-0 z-0">
+        {/* The Image with CSS Filters to crush daylight and create dusk */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
-            // This is the image with the satellite in the top right
-            backgroundImage: "url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072&auto=format&fit=crop')" 
+            backgroundImage: "url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072&auto=format&fit=crop')",
+            filter: "brightness(0.25) contrast(1.3) saturate(1.5)" 
           }}
         ></div>
         
-        {/* 2. DUSK EFFECT: Dims the background slightly as you requested */}
-        <div className="absolute inset-0 bg-black/40"></div>
-        
-        {/* 3. LIGHTS EFFECT: Adds a warm glow at the bottom to simulate city lights */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(255,200,0,0.25)_0%,_transparent_60%)]"></div>
+        {/* The Glowing City Lights Overlay (Orange/Yellow glow at the bottom) */}
+        <div 
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(255,140,0,0.6)_0%,_rgba(255,69,0,0.3)_30%,_transparent_60%)]"
+          style={{ mixBlendMode: 'screen' }}
+        ></div>
       </div>
 
-      {/* 4. NAVIGATION BAR */}
-      <nav className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/30">
+      {/* 2. NAVIGATION BAR */}
+      <nav className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/40">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-xs font-bold text-black">SD</div>
           <span className="font-bold text-lg tracking-wide">SUPER DIGITAL</span>
@@ -41,7 +42,7 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* 5. SUB-HEADER BANNER */}
+      {/* 3. SUB-HEADER BANNER */}
       <div className="relative z-10 flex justify-center py-4">
         <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-black/40 backdrop-blur-md text-xs font-semibold tracking-wider">
           <span className="text-cyan-400">● LIVE GLOBAL MARKETPLACE</span>
@@ -50,7 +51,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 6. HERO SECTION */}
+      {/* 4. HERO SECTION */}
       <main className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-16 pb-32 max-w-5xl mx-auto">
         <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-6 drop-shadow-2xl">
           The World's <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]">Top 30</span><br />
