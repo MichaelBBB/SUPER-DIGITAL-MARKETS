@@ -2,22 +2,21 @@ export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
       
-      {/* 1. BACKGROUND: Satellite Image forced into Dusk/Night with Glowing Lights */}
+      {/* 1. BACKGROUND: Original Image with Dusk & Subtle Lights */}
       <div className="absolute inset-0 z-0">
-        {/* The Image with CSS Filters to crush daylight and create dusk */}
+        {/* The Original Image (Satellite & Earth) */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
-            backgroundImage: "url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072&auto=format&fit=crop')",
-            filter: "brightness(0.25) contrast(1.3) saturate(1.5)" 
+            backgroundImage: "url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072&auto=format&fit=crop')" 
           }}
         ></div>
         
-        {/* The Glowing City Lights Overlay (Orange/Yellow glow at the bottom) */}
-        <div 
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(255,140,0,0.6)_0%,_rgba(255,69,0,0.3)_30%,_transparent_60%)]"
-          style={{ mixBlendMode: 'screen' }}
-        ></div>
+        {/* Dusk Overlay: Darkens the sky to night, leaves Earth visible */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-slate-900/60 to-transparent"></div>
+        
+        {/* Subtle City Lights Glow: Thin, golden glow at the bottom ONLY (No red splotch) */}
+        <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-yellow-500/20 via-amber-500/5 to-transparent mix-blend-screen"></div>
       </div>
 
       {/* 2. NAVIGATION BAR */}
