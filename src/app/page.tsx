@@ -2,24 +2,31 @@ export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
       
-      {/* 1. BACKGROUND: Original Image with Dusk & Subtle Lights */}
+      {/* 1. BACKGROUND: Earth at Night with City Lights */}
       <div className="absolute inset-0 z-0">
-        {/* The Original Image (Satellite & Earth) */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
-            backgroundImage: "url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072&auto=format&fit=crop')" 
+            backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')" 
           }}
         ></div>
         
-        {/* Dusk Overlay: Darkens the sky to night, leaves Earth visible */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-slate-900/60 to-transparent"></div>
-        
-        {/* Subtle City Lights Glow: Thin, golden glow at the bottom ONLY (No red splotch) */}
-        <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-yellow-500/20 via-amber-500/5 to-transparent mix-blend-screen"></div>
+        {/* Dusk Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/70"></div>
       </div>
 
-      {/* 2. NAVIGATION BAR */}
+      {/* 2. SATELLITE: Layered on top right */}
+      <div 
+        className="absolute top-0 right-0 w-[500px] h-[500px] z-10 opacity-90"
+        style={{ 
+          backgroundImage: "url('https://pngimg.com/uploads/satellite/satellite_PNG13.png')",
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'top right'
+        }}
+      ></div>
+
+      {/* 3. NAVIGATION BAR */}
       <nav className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/40">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-xs font-bold text-black">SD</div>
@@ -41,7 +48,7 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* 3. SUB-HEADER BANNER */}
+      {/* 4. SUB-HEADER BANNER */}
       <div className="relative z-10 flex justify-center py-4">
         <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-black/40 backdrop-blur-md text-xs font-semibold tracking-wider">
           <span className="text-cyan-400">● LIVE GLOBAL MARKETPLACE</span>
@@ -50,7 +57,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 4. HERO SECTION */}
+      {/* 5. HERO SECTION */}
       <main className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-16 pb-32 max-w-5xl mx-auto">
         <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-6 drop-shadow-2xl">
           The World's <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]">Top 30</span><br />
