@@ -123,7 +123,7 @@ function PaymentInner() {
 
           {/* RED PANEL: ALIPAY */}
           <div className="bg-red-600 border border-red-700 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">🇳 Alipay (China)</h2>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">🇨🇳 Alipay (China)</h2>
             <p className="text-white text-sm font-medium">Click to copy Alipay ID</p>
             <button onClick={() => copyToClipboard(ALIPAY_ID, 'Alipay ID')} className="w-full py-3 bg-white hover:bg-gray-200 text-red-600 font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-lg">
               Copy Alipay ID
@@ -133,7 +133,7 @@ function PaymentInner() {
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-xl font-bold text-cyan-400 mb-6">🇿 CAPITEC BANK DETAILS</h2>
+          <h2 className="text-xl font-bold text-cyan-400 mb-6">🇿🇦 CAPITEC BANK DETAILS</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-black/50 p-4 rounded-lg">
               <p className="text-gray-500 text-xs mb-1">Account Holder</p>
