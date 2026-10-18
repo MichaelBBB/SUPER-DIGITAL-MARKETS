@@ -27,10 +27,7 @@ function PaymentInner() {
   const handleCardPayment = (e: React.FormEvent) => {
     e.preventDefault();
     setProcessing(true);
-    setTimeout(() => {
-      setProcessing(false);
-      setSuccess(true);
-    }, 2000);
+    setTimeout(() => { setProcessing(false); setSuccess(true); }, 2000);
   };
 
   const copyToClipboard = (text: string, label: string) => {
@@ -41,11 +38,8 @@ function PaymentInner() {
 
   const handleWhatsApp = () => {
     const phone = '27743868889';
-    if (isMobile) {
-      window.location.href = `https://wa.me/${phone}`;
-    } else {
-      window.open(`https://web.whatsapp.com/send?phone=${phone}`, '_blank');
-    }
+    if (isMobile) { window.location.href = `https://wa.me/${phone}`; } 
+    else { window.open(`https://web.whatsapp.com/send?phone=${phone}`, '_blank'); }
   };
 
   if (success) {
@@ -57,8 +51,8 @@ function PaymentInner() {
           <p className="text-gray-400">Order: {orderRef}</p>
           <p className="text-2xl font-bold text-cyan-400">${amount.toFixed(2)} USD</p>
           <div className="flex flex-col gap-4 pt-4">
-            <a href="/" className="block w-full py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-bold transition-all">Return to Home</a>
-            <a href="/products" className="block w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-bold transition-all">Return to Products</a>
+            <a href="/" className="block w-full py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-bold">Return to Home</a>
+            <a href="/products" className="block w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-bold">Return to Products</a>
           </div>
         </div>
       </div>
@@ -82,12 +76,10 @@ function PaymentInner() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* BLUE BUTTON: CARD */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-blue-400 flex items-center gap-2">💳 Card Payment</h2>
-            <p className="text-gray-400 text-sm">Visa / Mastercard accepted. Instant.</p>
+            <h2 className="text-xl font-bold text-blue-400">💳 Card Payment</h2>
             {!showCardForm ? (
-              <button onClick={() => setShowCardForm(true)} className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all">Pay Now by Card</button>
+              <button onClick={() => setShowCardForm(true)} className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg">Pay Now by Card</button>
             ) : (
               <form onSubmit={handleCardPayment} className="space-y-3">
                 <input type="text" placeholder="Card Number" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} className="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white" required />
@@ -95,69 +87,43 @@ function PaymentInner() {
                   <input type="text" placeholder="MM/YY" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="px-4 py-3 bg-black border border-gray-700 rounded-lg text-white" required />
                   <input type="text" placeholder="CVV" value={cvv} onChange={(e) => setCvv(e.target.value)} className="px-4 py-3 bg-black border border-gray-700 rounded-lg text-white" required />
                 </div>
-                <button type="submit" disabled={processing} className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg disabled:opacity-50">{processing ? 'Processing...' : 'Complete Payment'}</button>
+                <button type="submit" disabled={processing} className="w-full py-3 bg-blue-600 text-white font-bold rounded-lg disabled:opacity-50">{processing ? 'Processing...' : 'Complete Payment'}</button>
                 <button type="button" onClick={() => setShowCardForm(false)} className="w-full py-2 text-gray-400 text-sm">Cancel</button>
               </form>
             )}
           </div>
 
-          {/* GREEN BUTTON: WHATSAPP */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-green-400 flex items-center gap-2">💬 WhatsApp</h2>
-            <p className="text-gray-400 text-sm">{isMobile ? 'Opens WhatsApp app chat' : 'Opens WhatsApp Web chat screen'}</p>
-            <button onClick={handleWhatsApp} className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2">
-              Open WhatsApp to Chat
-            </button>
-            <p className="text-gray-500 text-xs text-center">The client types their order on the right side.</p>
+            <h2 className="text-xl font-bold text-green-400">💬 WhatsApp</h2>
+            <button onClick={handleWhatsApp} className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg">Open WhatsApp to Chat</button>
           </div>
 
-          {/* YELLOW PANEL: GOOGLE PAY */}
           <div className="bg-yellow-400 border border-yellow-500 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-black flex items-center gap-2">🇮🇳 Google Pay (India)</h2>
-            <p className="text-gray-900 text-sm font-medium">{isMobile ? 'Click to open Google Pay app' : 'Click to copy UPI ID'}</p>
-            <button onClick={() => copyToClipboard(UPI_ID, 'Google Pay UPI ID')} className="w-full py-3 bg-black hover:bg-gray-900 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-lg">
-              <span className="text-2xl font-bold text-white">G</span> <span className="text-xl">Pay</span>
-            </button>
-            <p className="text-gray-900 text-xs font-medium text-center">ID: {UPI_ID}</p>
+            <h2 className="text-xl font-bold text-black">🇮🇳 Google Pay (India)</h2>
+            <button onClick={() => copyToClipboard(UPI_ID, 'Google Pay UPI ID')} className="w-full py-3 bg-black text-white font-bold rounded-lg">Copy UPI ID</button>
+            <p className="text-black text-xs text-center">ID: {UPI_ID}</p>
           </div>
 
-          {/* RED PANEL: ALIPAY */}
           <div className="bg-red-600 border border-red-700 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">🇨🇳 Alipay (China)</h2>
-            <p className="text-white text-sm font-medium">Click to copy Alipay ID</p>
-            <button onClick={() => copyToClipboard(ALIPAY_ID, 'Alipay ID')} className="w-full py-3 bg-white hover:bg-gray-200 text-red-600 font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-lg">
-              Copy Alipay ID
-            </button>
-            <p className="text-white text-xs font-medium text-center">ID: {ALIPAY_ID}</p>
+            <h2 className="text-xl font-bold text-white">🇨🇳 Alipay (China)</h2>
+            <button onClick={() => copyToClipboard(ALIPAY_ID, 'Alipay ID')} className="w-full py-3 bg-white text-red-600 font-bold rounded-lg">Copy Alipay ID</button>
+            <p className="text-white text-xs text-center">ID: {ALIPAY_ID}</p>
           </div>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
           <h2 className="text-xl font-bold text-cyan-400 mb-6">🇿🇦 CAPITEC BANK DETAILS</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-black/50 p-4 rounded-lg">
-              <p className="text-gray-500 text-xs mb-1">Account Holder</p>
-              <p className="font-bold text-white">SUPER DIGITAL</p>
-            </div>
-            <div className="bg-black/50 p-4 rounded-lg">
-              <p className="text-gray-500 text-xs mb-1">Account Number</p>
-              <p className="font-bold text-cyan-400">1975933441</p>
-            </div>
-            <div className="bg-black/50 p-4 rounded-lg">
-              <p className="text-gray-500 text-xs mb-1">Branch Code</p>
-              <p className="font-bold text-white">470010 / CABLZAJJ</p>
-            </div>
-            <div className="bg-black/50 p-4 rounded-lg">
-              <p className="text-gray-500 text-xs mb-1">Reference</p>
-              <p className="font-bold text-yellow-400">{orderRef}</p>
-            </div>
+            <div className="bg-black/50 p-4 rounded-lg"><p className="text-gray-500 text-xs mb-1">Account Holder</p><p className="font-bold text-white">SUPER DIGITAL</p></div>
+            <div className="bg-black/50 p-4 rounded-lg"><p className="text-gray-500 text-xs mb-1">Account Number</p><p className="font-bold text-cyan-400">1975933441</p></div>
+            <div className="bg-black/50 p-4 rounded-lg"><p className="text-gray-500 text-xs mb-1">Branch Code</p><p className="font-bold text-white">470010 / CABLZAJJ</p></div>
+            <div className="bg-black/50 p-4 rounded-lg"><p className="text-gray-500 text-xs mb-1">Reference</p><p className="font-bold text-yellow-400">{orderRef}</p></div>
           </div>
         </div>
 
-        {/* FOOTER: CANCEL TO HOME + RETURN TO PRODUCTS */}
         <div className="text-center pb-8 space-y-3">
-          <a href="/" className="block text-gray-400 hover:text-white text-sm transition-colors">← Cancel and Return to Home</a>
-          <a href="/products" className="block text-cyan-400 hover:text-cyan-300 text-sm transition-colors">← Return to Products</a>
+          <a href="/" className="block text-gray-400 hover:text-white text-sm">← Cancel and Return to Home</a>
+          <a href="/products" className="block text-cyan-400 hover:text-cyan-300 text-sm">← Return to Products</a>
         </div>
       </div>
     </div>
