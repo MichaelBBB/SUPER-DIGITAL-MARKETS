@@ -38,8 +38,11 @@ function PaymentInner() {
 
   const handleWhatsApp = () => {
     const phone = '27743868889';
-    if (isMobile) { window.location.href = `https://wa.me/${phone}`; }
-    else { window.open(`https://web.whatsapp.com/send?phone=${phone}`, '_blank'); }
+    const text = encodeURIComponent(
+      `Hello Super Digital Markets! I want to purchase: ${itemName} (Total: $${amount.toFixed(2)}). Ref: ${orderRef}. I am ready to pay. Please confirm my order.`
+    );
+    if (isMobile) { window.location.href = `https://wa.me/${phone}?text=${text}`; }
+    else { window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${text}`, '_blank'); }
   };
 
   if (success) {
@@ -98,6 +101,7 @@ function PaymentInner() {
             <h2 className="text-xl font-bold text-green-400 flex items-center gap-2">💬 WhatsApp</h2>
             <p className="text-gray-400 text-sm">{isMobile ? 'Opens your installed WhatsApp app' : 'Opens WhatsApp Web chat screen'}</p>
             <button onClick={handleWhatsApp} className="w-full py-3 bg-green-500 hover:bg-green-400 text-white font-bold rounded-lg transition-all">Open WhatsApp to Chat</button>
+            <p className="text-gray-500 text-xs text-center">The order message is pre-written for the client — no bars, no extras.</p>
           </div>
 
           <div className="bg-yellow-400 border border-yellow-500 rounded-xl p-6 space-y-4">
