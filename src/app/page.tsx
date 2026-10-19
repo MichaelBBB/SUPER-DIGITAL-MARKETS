@@ -65,7 +65,7 @@ export default function Home() {
         
         <p className="text-lg md:text-xl text-gray-200 max-w-2xl mb-10 leading-relaxed drop-shadow-lg">
           From AI tools to creative software — shop in USD, pay your way,
-          receive instantly. Trusted by buyers across 3 continents.
+          receive instantly. Trusted by buyers across 4 continents.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4">
