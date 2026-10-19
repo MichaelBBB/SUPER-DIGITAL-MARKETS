@@ -1,151 +1,82 @@
-'use client';
-import { useState } from 'react';
-
-const products = [
-  { name: 'ChatGPT Plus', price: 20.00, category: 'AI Tools', badge: 'HOT', desc: 'Advanced AI assistant with GPT-4, DALL-E, browsing, and plugins.', flags: ['🇺🇸','🇳','🇨🇳'], img: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop' },
-  { name: 'Adobe Creative Cloud', price: 54.99, category: 'Creative', badge: 'POPULAR', desc: 'Full suite of creative apps: Photoshop, Illustrator, Premiere, and more.', flags: ['🇺🇸','🇮🇳','🇿'], img: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&auto=format&fit=crop' },
-  { name: 'Netflix Premium', price: 22.99, category: 'Entertainment', badge: 'HOT', desc: '4K streaming on 4 screens. Unlimited movies, shows, and documentaries.', flags: ['🇺🇸','🇮🇳','🇿🇦'], img: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=800&auto=format&fit=crop' },
-  { name: 'Microsoft 365 Business', price: 12.50, category: 'Business', badge: 'POPULAR', desc: 'Word, Excel, PowerPoint, Teams, and 1TB OneDrive. For business and personal use.', flags: ['🇺🇸','🇮🇳','🇿'], img: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop' },
-  { name: 'Spotify Premium', price: 9.99, category: 'Entertainment', badge: 'POPULAR', desc: 'Ad-free music, offline listening, unlimited skips. 100M+ songs and podcasts.', flags: ['🇺🇸','🇮🇳','🇦'], img: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop' },
-  { name: 'NordVPN', price: 3.99, category: 'Security', badge: 'POPULAR', desc: 'Military-grade encryption, 5,500+ servers in 60 countries. No-logs policy.', flags: ['🇸','🇮🇳','🇨🇳'], img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop' },
-  { name: 'Canva Pro', price: 12.99, category: 'Creative', badge: 'NEW', desc: 'Premium design templates, Brand Kit, background remover, and 100M+ stock assets.', flags: ['🇺🇸','🇮🇳','🇿🇦'], img: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&auto=format&fit=crop' },
-  { name: 'Grammarly Premium', price: 12.00, category: 'Productivity', badge: 'POPULAR', desc: 'AI writing assistant with advanced grammar, clarity, and plagiarism detection.', flags: ['🇺🇸','🇮🇳','🇨🇳'], img: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&auto=format&fit=crop' },
-  { name: 'Zoom Pro', price: 14.99, category: 'Business', badge: 'HOT', desc: 'Unlimited meetings up to 30 hours, 100 participants, cloud recording, admin controls.', flags: ['🇺','🇮🇳','🇦'], img: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop' },
-  { name: 'Notion Plus', price: 8.00, category: 'Productivity', badge: 'POPULAR', desc: 'All-in-one workspace for notes, wikis, databases, and project management.', flags: ['🇺','🇮🇳','🇨🇳'], img: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&auto=format&fit=crop' },
-  { name: 'Figma Professional', price: 12.00, category: 'Creative', badge: 'HOT', desc: 'Collaborative UI/UX design tool. Real-time multiplayer, unlimited projects, dev mode.', flags: ['🇸','🇮🇳','🇿🇦'], img: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&auto=format&fit=crop' },
-  { name: 'Dropbox Plus', price: 9.99, category: 'Productivity', badge: 'POPULAR', desc: '2TB cloud storage, Smart Sync, version history, and secure file sharing.', flags: ['🇺🇸','🇮','🇨🇳'], img: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&auto=format&fit=crop' },
-  { name: 'LastPass Premium', price: 3.00, category: 'Security', badge: 'POPULAR', desc: 'Secure password manager with dark web monitoring, 1GB encrypted storage.', flags: ['🇸','🇮🇳','🇿🇦'], img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop' },
-  { name: 'Cursor AI Pro', price: 20.00, category: 'AI Tools', badge: 'NEW', desc: 'AI-first code editor built on VS Code. Write, edit, and debug with GPT-4 natively.', flags: ['🇺🇸','🇮🇳','🇨'], img: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop' },
-  { name: 'Midjourney Standard', price: 24.00, category: 'AI Tools', badge: 'HOT', desc: 'AI image generation. 15 GPU hours/month, unlimited relaxed generations.', flags: ['🇺🇸','🇮','🇿🇦'], img: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop' },
-  { name: 'GitHub Copilot', price: 10.00, category: 'AI Tools', badge: 'HOT', desc: 'AI pair programmer. Real-time code suggestions, multi-language support.', flags: ['🇸','🇮🇳','🇨🇳'], img: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop' },
-  { name: 'Slack Pro', price: 7.25, category: 'Business', badge: 'POPULAR', desc: 'Team messaging with unlimited message history, Huddles, and 10+ app integrations.', flags: ['🇺🇸','🇮🇳','🇿'], img: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop' },
-  { name: 'Dashlane Premium', price: 4.99, category: 'Security', badge: 'POPULAR', desc: 'Password manager with VPN, dark web monitoring, and phishing alerts.', flags: ['🇺🇸','🇮','🇨🇳'], img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop' },
-  { name: 'Adobe Photoshop', price: 22.99, category: 'Creative', badge: 'POPULAR', desc: 'Industry-standard photo editing and compositing. AI-powered tools, Neural Filters.', flags: ['🇸','🇮🇳','🇿🇦'], img: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&auto=format&fit=crop' },
-  { name: 'Claude Pro', price: 20.00, category: 'AI Tools', badge: 'NEW', desc: "Anthropic's advanced AI assistant. 200K context window, priority access.", flags: ['🇺🇸','🇮','🇨🇳'], img: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop' },
-  { name: 'Adobe Premiere Pro', price: 22.99, category: 'Creative', badge: 'HOT', desc: 'Professional video editing with AI auto-reframe, speech-to-text, and Lumetri color.', flags: ['🇺🇸','🇳','🇿🇦'], img: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop' },
-  { name: 'Asana Premium', price: 10.99, category: 'Business', badge: 'POPULAR', desc: 'Project management with Gantt charts, workflow automation, and advanced reporting.', flags: ['🇸','🇮🇳','🇨🇳'], img: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop' },
-  { name: 'ExpressVPN', price: 6.67, category: 'Security', badge: 'HOT', desc: 'Ultra-fast VPN with 3,000+ servers, split tunneling, and 24/7 support.', flags: ['🇺🇸','🇮🇳','🇿'], img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop' },
-  { name: 'YouTube Premium', price: 13.99, category: 'Entertainment', badge: 'POPULAR', desc: 'Ad-free YouTube, background play, offline downloads, and YouTube Music included.', flags: ['🇺🇸','🇮🇳','🇨'], img: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=800&auto=format&fit=crop' },
-  { name: '1Password', price: 2.99, category: 'Security', badge: 'POPULAR', desc: 'Password manager with Travel Mode, Watchtower security alerts, and family sharing.', flags: ['🇺🇸','🇮🇳','🇿'], img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop' },
-  { name: 'Monday.com Pro', price: 9.00, category: 'Business', badge: 'NEW', desc: 'Visual work OS with automations, integrations, and real-time collaboration dashboards.', flags: ['🇺🇸','🇳','🇨🇳'], img: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop' },
-  { name: 'Perplexity Pro', price: 20.00, category: 'AI Tools', badge: 'NEW', desc: 'AI-powered search engine with real-time web access, citations, and image generation.', flags: ['🇺🇸','🇳','🇿🇦'], img: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&auto=format&fit=crop' },
-  { name: 'Loom Business', price: 12.50, category: 'Productivity', badge: 'POPULAR', desc: 'Async video messaging. Screen + cam recording, AI summaries, team workspace.', flags: ['🇺🇸','🇮🇳','🇨'], img: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&auto=format&fit=crop' },
-  { name: 'Webflow CMS', price: 14.00, category: 'Business', badge: 'NEW', desc: 'No-code website builder with CMS, hosting, and custom domain. Export clean code.', flags: ['🇺','🇮🇳','🇦'], img: 'https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&auto=format&fit=crop' },
-  { name: 'ElevenLabs Starter', price: 5.00, category: 'AI Tools', badge: 'NEW', desc: 'AI voice cloning and text-to-speech. 30,000 characters/month, 10+ voice styles.', flags: ['🇺🇸','🇮🇳','🇨'], img: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop' },
-];
-
-const categories = ['All', 'AI Tools', 'Creative', 'Entertainment', 'Business', 'Productivity', 'Security'];
-
-export default function ProductsPage() {
-  const [activeCategory, setActiveCategory] = useState('All');
-
-  const filtered = activeCategory === 'All' 
-    ? products 
-    : products.filter(p => p.category === activeCategory);
-
-  const getBadgeStyle = (badge: string) => {
-    if (badge === 'HOT') return 'bg-orange-500 text-white';
-    if (badge === 'POPULAR') return 'bg-yellow-400 text-black';
-    if (badge === 'NEW') return 'bg-cyan-500 text-white';
-    return 'bg-slate-700 text-white';
-  };
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
-          <div>
-            <p className="text-cyan-400 text-sm font-bold tracking-widest uppercase mb-2">Featured Selection</p>
-            <h1 className="text-4xl md:text-5xl font-bold text-white">
-              Top Digital <span className="text-yellow-400">Products</span>
-            </h1>
-            <p className="text-slate-400 mt-3 max-w-lg">
-              Handpicked bestsellers across every category. Instant delivery worldwide.
-            </p>
+    <div className="min-h-screen text-white relative overflow-hidden font-sans">
+      
+      {/* 1. BACKGROUND: Earth at Night with City Lights */}
+      <div className="absolute inset-0 z-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ 
+            backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')" 
+          }}
+        ></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/70"></div>
+      </div>
+
+      {/* 2. SATELLITE: Layered on top right */}
+      <div 
+        className="absolute top-0 right-0 w-[500px] h-[500px] z-10 opacity-90"
+        style={{ 
+          backgroundImage: "url('https://pngimg.com/uploads/satellite/satellite_PNG13.png')",
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'top right'
+        }}
+      ></div>
+
+      {/* 3. NAVIGATION BAR */}
+      <nav className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/40">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-xs font-bold text-black">SD</div>
+          <span className="font-bold text-lg tracking-wide">SUPER DIGITAL</span>
+        </div>
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+          <a href="/" className="text-white hover:text-cyan-400 transition-colors">Home</a>
+          <a href="/products" className="hover:text-cyan-400 transition-colors">Products</a>
+          <a href="/payment?item=ExpressVPN&amount=6.67" className="hover:text-cyan-400 transition-colors">Checkout</a>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-xs font-bold">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            LIVE
           </div>
-          <button className="px-6 py-3 border border-slate-700 rounded-full text-sm font-semibold text-slate-300 hover:bg-slate-900 transition-all flex items-center gap-2">
-            View All 30 <span className="text-cyan-400">→</span>
-          </button>
+          <a href="/products" className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-full text-sm font-bold transition-all">
+            Shop Now
+          </a>
         </div>
+      </nav>
 
-        {/* Category Filters */}
-        <div className="flex flex-wrap gap-3 mb-12">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
-                activeCategory === cat
-                  ? 'bg-cyan-500 text-slate-950'
-                  : 'bg-slate-900 border border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((product, idx) => (
-            <div key={idx} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition-all flex flex-col group">
-              
-              {/* Image Area */}
-              <div className="relative h-48 overflow-hidden bg-slate-800">
-                <img 
-                  src={product.img} 
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                
-                {/* Badge (Top Left) */}
-                <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold ${getBadgeStyle(product.badge)}`}>
-                  {product.badge}
-                </div>
-
-                {/* Category Tag (Top Right) */}
-                <div className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-medium bg-slate-900/80 backdrop-blur text-slate-300 border border-slate-700/50">
-                  {product.category}
-                </div>
-
-                {/* Price (Floating Right) */}
-                <div className="absolute bottom-4 right-4">
-                  <span className="text-xl font-bold text-cyan-400 drop-shadow-lg">${product.price.toFixed(2)}</span>
-                </div>
-              </div>
-
-              {/* Content Area */}
-              <div className="p-5 flex-grow flex flex-col">
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">{product.category}</p>
-                <h3 className="text-lg font-bold text-white mb-2">{product.name}</h3>
-                <p className="text-slate-400 text-sm mb-4 flex-grow leading-relaxed">{product.desc}</p>
-                
-                {/* Flags */}
-                <div className="flex items-center gap-2 mb-5 text-xs text-slate-500">
-                  <span className="text-sm">{product.flags.join(' ')}</span>
-                  <span>Available in these markets</span>
-                </div>
-
-                {/* Buy Button */}
-                <a 
-                  href={`/payment?item=${encodeURIComponent(product.name)}&amount=${product.price}`}
-                  className="block w-full text-center py-3 bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 rounded-full font-bold text-slate-950 transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-900/20"
-                >
-                  🛒 Buy Now — ${product.price.toFixed(2)}
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer Link */}
-        <div className="text-center mt-16">
-          <a href="/" className="text-slate-500 hover:text-cyan-400 text-sm transition-colors">← Back to Home</a>
+      {/* 4. SUB-HEADER BANNER */}
+      <div className="relative z-10 flex justify-center py-4">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-black/40 backdrop-blur-md text-xs font-semibold tracking-wider">
+          <span className="text-cyan-400">● LIVE GLOBAL MARKETPLACE</span>
+          <span className="text-gray-500">•</span>
+          <span className="text-gray-300">USA • India • China • South Africa</span>
         </div>
       </div>
+
+      {/* 5. HERO SECTION */}
+      <main className="relative z-10 flex flex-col items-center justify-center text-center px-4 pt-16 pb-32 max-w-5xl mx-auto">
+        <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-6 drop-shadow-2xl">
+          The World's <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]">Top 30</span><br />
+          Digital Products<br />
+          <span className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]">Delivered Instantly.</span>
+        </h1>
+        
+        <p className="text-lg md:text-xl text-gray-200 max-w-2xl mb-10 leading-relaxed drop-shadow-lg">
+          From AI tools to creative software — shop in USD, pay your way,
+          receive instantly. Trusted by buyers across 3 continents.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <a href="/products" className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-full font-bold text-lg transition-all shadow-lg shadow-blue-900/40 hover:scale-105">
+            Browse Products
+          </a>
+          <a href="/payment?item=ExpressVPN&amount=6.67" className="px-8 py-4 bg-green-600 hover:bg-green-500 rounded-full font-bold text-lg transition-all shadow-lg shadow-green-900/40 hover:scale-105">
+            Complete Your Purchase
+          </a>
+        </div>
+      </main>
     </div>
   );
 }
