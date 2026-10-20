@@ -2,50 +2,23 @@ export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
       
-      {/* NIGHT EARTH — double-layered so it can never disappear */}
       <div className="absolute inset-0 z-0">
         <div 
           className="absolute inset-0 bg-cover bg-center"
-          style={{ 
-            backgroundColor: '#04060f',
-            backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop'), url('https://images.unsplash.com/photo-1454789548928-9efd52dc4031?q=80&w=2072&auto=format&fit=crop')"
-          }}
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')" }}
         ></div>
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/70"></div>
       </div>
 
-      {/* SATELLITE — built into the code */}
-      <div className="absolute top-0 right-0 w-[520px] h-[520px] z-10 opacity-95 pointer-events-none">
-        <svg viewBox="0 0 500 500" className="w-full h-full" style={{ transform: 'rotate(24deg)' }}>
-          <defs>
-            <linearGradient id="panelGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#b3b7e6" />
-              <stop offset="100%" stopColor="#7d81c0" />
-            </linearGradient>
-            <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#d7dadd" />
-              <stop offset="50%" stopColor="#9aa0a6" />
-              <stop offset="100%" stopColor="#5f6368" />
-            </linearGradient>
-          </defs>
-          <rect x="30" y="215" width="150" height="80" fill="url(#panelGrad)" stroke="#4c4f69" strokeWidth="4" />
-          <line x1="80" y1="215" x2="80" y2="295" stroke="#4c4f69" strokeWidth="3" />
-          <line x1="130" y1="215" x2="130" y2="295" stroke="#4c4f69" strokeWidth="3" />
-          <line x1="30" y1="255" x2="180" y2="255" stroke="#4c4f69" strokeWidth="3" />
-          <rect x="320" y="215" width="150" height="80" fill="url(#panelGrad)" stroke="#4c4f69" strokeWidth="4" />
-          <line x1="370" y1="215" x2="370" y2="295" stroke="#4c4f69" strokeWidth="3" />
-          <line x1="420" y1="215" x2="420" y2="295" stroke="#4c4f69" strokeWidth="3" />
-          <line x1="320" y1="255" x2="470" y2="255" stroke="#4c4f69" strokeWidth="3" />
-          <rect x="180" y="245" width="40" height="20" fill="#6b6f74" />
-          <rect x="280" y="245" width="40" height="20" fill="#6b6f74" />
-          <rect x="215" y="195" width="70" height="120" rx="26" fill="url(#bodyGrad)" stroke="#43464a" strokeWidth="3" />
-          <line x1="250" y1="315" x2="250" y2="350" stroke="#6b6f74" strokeWidth="8" />
-          <ellipse cx="250" cy="375" rx="55" ry="30" fill="#c8ccd0" stroke="#43464a" strokeWidth="3" />
-          <ellipse cx="250" cy="370" rx="38" ry="18" fill="#8f9499" />
-          <line x1="250" y1="370" x2="250" y2="340" stroke="#43464a" strokeWidth="4" />
-          <circle cx="250" cy="338" r="6" fill="#e8eaed" />
-        </svg>
-      </div>
+      <div 
+        className="absolute top-0 right-0 w-[500px] h-[500px] z-10 opacity-90"
+        style={{ 
+          backgroundImage: "url('https://pngimg.com/uploads/satellite/satellite_PNG13.png')",
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'top right'
+        }}
+      ></div>
 
       <nav className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md bg-black/40">
         <div className="flex items-center gap-3">
