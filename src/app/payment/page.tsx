@@ -41,8 +41,9 @@ function PaymentInner() {
     const text = encodeURIComponent(
       `Hello Super Digital Markets! I want to purchase: ${itemName} (Total: $${amount.toFixed(2)}). Ref: ${orderRef}. I am ready to pay. Please confirm my order.`
     );
-    if (isMobile) { window.location.href = `https://wa.me/${phone}?text=${text}`; }
-    else { window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${text}`, '_blank'); }
+    const url = `https://api.whatsapp.com/send?phone=${phone}&text=${text}`;
+    if (isMobile) { window.location.href = url; }
+    else { window.open(url, '_blank'); }
   };
 
   if (success) {
@@ -101,11 +102,11 @@ function PaymentInner() {
             <h2 className="text-xl font-bold text-green-400 flex items-center gap-2">💬 WhatsApp</h2>
             <p className="text-gray-400 text-sm">{isMobile ? 'Opens your installed WhatsApp app' : 'Opens WhatsApp Web chat screen'}</p>
             <button onClick={handleWhatsApp} className="w-full py-3 bg-green-500 hover:bg-green-400 text-white font-bold rounded-lg transition-all">Open WhatsApp to Chat</button>
-            <p className="text-gray-500 text-xs text-center">The order message is pre-written for the client — no bars, no extras.</p>
+            <p className="text-gray-500 text-xs text-center">Desktop: log into web.whatsapp.com once — after that every press opens the chat directly.</p>
           </div>
 
           <div className="bg-yellow-400 border border-yellow-500 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-black flex items-center gap-2">🇮🇳 Google Pay (India)</h2>
+            <h2 className="text-xl font-bold text-black flex items-center gap-2">🇮 Google Pay (India)</h2>
             <p className="text-black text-sm font-medium">Click to copy UPI ID</p>
             <button onClick={() => copyToClipboard(UPI_ID, 'Google Pay UPI ID')} className="w-full py-3 bg-black hover:bg-gray-900 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-lg">
               <span className="text-2xl font-bold">G</span> <span className="text-xl">Pay</span>
