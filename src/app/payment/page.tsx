@@ -23,6 +23,8 @@ function PaymentInner() {
 
   const ALIPAY_ID = 'YourAlipayPhoneOrEmail@alipay.com';
   const UPI_ID = 'YourName@okicici';
+  const WA_PHONE = '27743868889';
+  const orderText = `Hello Super Digital Markets! I want to purchase: ${itemName} (Total: $${amount.toFixed(2)}). Ref: ${orderRef}. I am ready to pay. Please confirm my order.`;
 
   const handleCardPayment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,11 +39,8 @@ function PaymentInner() {
   };
 
   const handleWhatsApp = () => {
-    const phone = '27743868889';
-    const text = encodeURIComponent(
-      `Hello Super Digital Markets! I want to purchase: ${itemName} (Total: $${amount.toFixed(2)}). Ref: ${orderRef}. I am ready to pay. Please confirm my order.`
-    );
-    const url = `https://api.whatsapp.com/send?phone=${phone}&text=${text}`;
+    const text = encodeURIComponent(orderText);
+    const url = `https://api.whatsapp.com/send?phone=${WA_PHONE}&text=${text}`;
     if (isMobile) { window.location.href = url; }
     else { window.open(url, '_blank'); }
   };
@@ -100,9 +99,14 @@ function PaymentInner() {
 
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
             <h2 className="text-xl font-bold text-green-400 flex items-center gap-2">💬 WhatsApp</h2>
-            <p className="text-gray-400 text-sm">{isMobile ? 'Opens your installed WhatsApp app' : 'Opens WhatsApp Web chat screen'}</p>
+            <p className="text-gray-400 text-sm">Opens the customer's own WhatsApp — no login needed on their side.</p>
             <button onClick={handleWhatsApp} className="w-full py-3 bg-green-500 hover:bg-green-400 text-white font-bold rounded-lg transition-all">Open WhatsApp to Chat</button>
-            <p className="text-gray-500 text-xs text-center">Desktop: log into web.whatsapp.com once — after that every press opens the chat directly.</p>
+            <button onClick={() => copyToClipboard(orderText, 'Order message')} className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg transition-all">
+              📋 Copy Order Message (fallback)
+            </button>
+            <p className="text-gray-500 text-xs text-center">
+              Or message us directly: <span className="text-cyan-400 font-mono">+27 74 386 8889</span>
+            </p>
           </div>
 
           <div className="bg-yellow-400 border border-yellow-500 rounded-xl p-6 space-y-4">
@@ -123,7 +127,7 @@ function PaymentInner() {
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <h2 className="text-xl font-bold text-cyan-400 mb-6 flex items-center gap-2">🇿🇦 CAPITEC BANK DETAILS</h2>
+          <h2 className="text-xl font-bold text-cyan-400 mb-6 flex items-center gap-2">🇿 CAPITEC BANK DETAILS</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-black/50 p-4 rounded-lg"><p className="text-gray-500 text-xs mb-1">Account Holder</p><p className="font-bold text-white">SUPER DIGITAL</p></div>
             <div className="bg-black/50 p-4 rounded-lg"><p className="text-gray-500 text-xs mb-1">Account Number</p><p className="font-bold text-cyan-400">1975933441</p></div>
