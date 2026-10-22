@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { deliverProduct } from '@/src/lib/delivery';
+import { deliverProduct } from '@/lib/delivery'; // <-- FIXED IMPORT PATH HERE
 
 export async function POST(req: NextRequest) {
   try {
