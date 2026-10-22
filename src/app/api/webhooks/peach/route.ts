@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { deliverProduct } from '@/lib/delivery'; // <-- FIXED IMPORT PATH HERE
+import { deliverProduct } from '../../../../lib/delivery'; // <-- BULLETPROOF RELATIVE IMPORT
 
 export async function POST(req: NextRequest) {
   try {
