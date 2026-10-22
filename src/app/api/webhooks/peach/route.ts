@@ -1,66 +1,49 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { deliverProduct } from '@/src/lib/delivery';
 
-// webhook v0610
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
-function pickCountry(lower: string): string {
-  const m = lower.match(/"country"\s*:\s*"([^"]+)"/);
-  const c = m ? m[1] : '';
-  if (c.includes('south') || c === 'za' || c === 'rsa') return 'southafrica';
-  if (c.includes('united') || c === 'us' || c === 'usa') return 'usa';
-  if (c.includes('india') || c === 'in') return 'india';
-  if (c.includes('china') || c === 'cn') return 'china';
-  return 'southafrica';
-}
-
-export async function GET() {
-  return NextResponse.json({ ok: true });
-}
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const raw = await req.text();
-    const lower = raw.toLowerCase();
+    // 1. Get the raw data from Peach Payments
+    const rawBody = await req.text();
+    let payload: any;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch {
+      payload = Object.fromEntries(new URLSearchParams(rawBody));
+ are
+    const successCodes = ['000.000.000', '000.100.110', '000.400.000']; // Peach success indicators
+    const isPaid = successCodes.includes(resultCode);
 
-    const hasSuccess = /(successful|succeeded|completed|approved|captured)/.test(lower);
-    const hasFailure = /(failed|declined|cancelled|canceled|refunded)/.test(lower);
-
-    if (!hasSuccess || hasFailure) {
-      return NextResponse.json({ ok: true, ignored: true });
+    if (!isPaid) {
+      return NextResponse.json({ status: 'payment_not_complete' }, { status: 200 });
     }
 
-    const country = pickCountry(lower);
-
-    if (SUPABASE_URL && SUPABASE_KEY) {
-      const headers = {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
-      };
-      const sel = await fetch(`${SUPABASE_URL}/rest/v1/sales_counts?region=eq.${country}&select=count`, {
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-      });
-      const rows = await sel.json().catch(() => []);
-      if (Array.isArray(rows) && rows.length > 0) {
-        const newCount = (Number(rows[0].count) || 0) + 1;
-        await fetch(`${SUPABASE_URL}/rest/v1/sales_counts?region=eq.${country}`, {
-          method: 'PATCH',
-          headers,
-          body: JSON.stringify({ count: newCount }),
-        });
-      } else {
-        await fetch(`${SUPABASE_URL}/rest/v1/sales_counts`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ region: country, count: 1 }),
-        });
-      }
+    // 4. Extract order details (Format we use: PRODUCT_NAME__ORDER_REF)
+    const mti = payload.merchantTransactionId || payload.customParameters?.merchantTransactionId || '';
+    const [productName, orderRef] = mti.split('__');
+    
+    if (!productName || !orderRef) {
+      console.error('Invalid merchantTransactionId format:', mti);
+      return NextResponse.json({ error: 'Invalid order format' }, { status: 400 });
     }
 
-    return NextResponse.json({ ok: true, counted: country });
-  } catch {
-    return NextResponse.json({ ok: true });
+    // 5. Trigger the automated delivery
+    const deliverySuccess = await deliverProduct({
+      productName: productName.trim(),
+      orderRef,
+      amount: Number(payload.amount) /100, // Peach sends amount in cents
+      customerEmail: payload.customParameters?.email || '',
+      customerPhone: payload.customParameters?.phone || ''
+    });
+
+    if (deliverySuccess) {
+      return NextResponse.json({ success: true, message: 'Product delivered' });
+    } else {
+      console.error('Delivery failed for order:', orderRef);
+      return Next. are
+    }
+  } catch (error) {
+    console.error('Webhook processing error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
