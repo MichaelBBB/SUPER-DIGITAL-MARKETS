@@ -13,7 +13,7 @@ export async function deliverProduct(params: DeliveryParams): Promise<boolean> {
   const { productName, orderRef, amount, customerEmail, customerPhone } = params;
 
   try {
-    // 1. Find an available credential in Supabase
+    // 1. Find the product and its specific Quick Start Guide (notes)
     const findRes = await fetch(`${SB_URL}/rest/v1/credentials?select=*&product_name=eq.${encodeURIComponent(productName)}&available=eq.true&limit=1`, {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` }
     });
@@ -26,34 +26,30 @@ export async function deliverProduct(params: DeliveryParams): Promise<boolean> {
 
     const item = credentials[0];
 
-    // 2. Mark it as sold in Supabase
+    // 2. Mark it as sold
     await fetch(`${SB_URL}/rest/v1/credentials?id=eq.${item.id}`, {
       method: 'PATCH',
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ available: false, sold_to: customerEmail || customerPhone, sold_at: new Date().toISOString() })
     });
 
-    // 3. Build the delivery message
+    // 3. Build the INSTANT, BRIEF delivery message
     const message = `
-🎉 Thank you for your purchase from Super Digital Markets!
-
-ORDER REFERENCE: ${orderRef}
+✅ ORDER CONFIRMED: ${orderRef}
 PRODUCT: ${productName}
-AMOUNT PAID: $${amount.toFixed(2)}
+AMOUNT: $${amount.toFixed(2)}
 
-🔑 YOUR ACCESS DETAILS:
-Login/Email: ${item.email}
+🔑 YOUR LOGIN DETAILS:
+Email: ${item.email}
 Password: ${item.password}
-Notes: ${item.notes || 'N/A'}
 
-🎁 YOUR FREE BONUS:
-As a thank you, we've included our "Ultimate Digital Productivity Guide" with this purchase. 
-Download it here: https://your-drive-link-here.com/bonus-guide.pdf
+⚡ QUICK START GUIDE:
+${item.notes || '1. Go to the provider website. 2. Log in with the details above. 3. Enjoy!'}
 
-Need help? Simply reply to this message. Enjoy your product! 🚀
+Need help? Reply to this message.
 `.trim();
 
-    // 4. Send Email (Using Resend)
+    // 4. Send Email (Instant)
     if (customerEmail && process.env.RESEND_API_KEY) {
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -61,13 +57,13 @@ Need help? Simply reply to this message. Enjoy your product! 🚀
         body: JSON.stringify({
           from: 'Super Digital <noreply@superdigitalmarkets.co.za>',
           to: customerEmail,
-          subject: `✅ Instant Delivery: Your ${productName} is ready!`,
+          subject: `✅ Instant Delivery: ${productName}`,
           text: message
         })
-      }).catch(err => console.error('Email send failed:', err));
+      }).catch(err => console.error('Email failed:', err));
     }
 
-    // 5. Log the successful order for the Live Tracker
+    // 5. Log the sale for the Live Tracker
     await fetch(`${SB_URL}/rest/v1/orders`, {
       method: 'POST',
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
@@ -83,7 +79,7 @@ Need help? Simply reply to this message. Enjoy your product! 🚀
 
     return true;
   } catch (error) {
-    console.error('Delivery function error:', error);
+    console.error('Delivery error:', error);
     return false;
   }
 }
