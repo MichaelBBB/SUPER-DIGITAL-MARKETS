@@ -2,6 +2,7 @@ export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
       
+      {/* CORRECT EARTH BACKGROUND */}
       <div className="absolute inset-0 z-0">
         <div 
           className="absolute inset-0 bg-cover bg-center"
@@ -10,6 +11,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/70"></div>
       </div>
 
+      {/* SATELLITE */}
       <div 
         className="absolute top-0 right-0 w-[500px] h-[500px] z-10 opacity-90"
         style={{ 
@@ -69,6 +71,7 @@ export default function Home() {
         </div>
       </main>
 
+      {/* LIVE TRACKERS IFRAME */}
       <section className="relative z-10 max-w-7xl mx-auto px-6 pb-24">
         <div className="flex items-center gap-3 mb-4">
           <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
