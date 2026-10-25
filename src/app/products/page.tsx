@@ -2,84 +2,61 @@
 import { useState } from 'react';
 
 const products = [
-  { name: 'ChatGPT Plus', price: 20.00, category: 'AI Tools', badge: 'HOT', desc: "OpenAI's GPT-4 powered assistant. Advanced reasoning, image generation, and browsing included.", flags: ['🇺🇸','🇮🇳','🇦'], img: '/images/ChatGPTPlus.jpg' },
-  { name: 'Adobe Creative Cloud', price: 54.99, category: 'Creative', badge: 'POPULAR', desc: 'Full suite of Adobe apps — Photoshop, Illustrator, Premiere Pro, and 20+ more.', flags: ['🇺🇸','🇳','🇿🇦'], img: '/images/AdobeCreativeCloud.jpg' },
-  { name: 'Netflix Premium', price: 22.99, category: 'Entertainment', badge: 'HOT', desc: '4K streaming, 4 simultaneous screens, offline downloads. 10,000+ titles worldwide.', flags: ['🇺🇸','🇮🇳','🇦'], img: '/images/NetFlixPremium.jpg' },
-  { name: 'Microsoft 365 Business', price: 12.50, category: 'Business', badge: 'POPULAR', desc: 'Word, Excel, PowerPoint, Teams, and 1TB OneDrive. For business and personal use.', flags: ['🇺🇸','🇮🇳','🇿'], img: '/images/Microsoft 365 Business.jpg' },
-  { name: 'Spotify Premium', price: 9.99, category: 'Entertainment', badge: 'POPULAR', desc: 'Ad-free music, offline listening, unlimited skips. 100M+ songs and podcasts.', flags: ['🇺🇸','🇮','🇿🇦'], img: '/images/SpotifyPremium.jpg' },
-  { name: 'NordVPN', price: 3.99, category: 'Security', badge: 'HOT', desc: 'Military-grade encryption, 5,500+ servers in 60 countries. No-logs policy.', flags: ['🇺🇸','🇮🇳','🇿'], img: '/images/NordVPN.jpg' },
-  { name: 'Canva Pro', price: 12.99, category: 'Creative', badge: 'NEW', desc: 'Premium design templates, Brand Kit, background remover, and 100M+ stock assets.', flags: ['🇺','🇮🇳','🇿🇦'], img: '/images/CanvaPro.jpg' },
-  { name: 'Grammarly Premium', price: 12.00, category: 'Productivity', badge: 'POPULAR', desc: 'AI writing assistant with advanced grammar, clarity, and plagiarism detection.', flags: ['🇺🇸','🇮🇳','🇿'], img: '/images/GrammarlyPremium.jpg' },
-  { name: 'Zoom Pro', price: 14.99, category: 'Business', badge: 'HOT', desc: 'Unlimited meetings up to 30 hours, 100 participants, cloud recording, admin controls.', flags: ['🇸','🇮🇳','🇿🇦'], img: '/images/ZoomPro.jpg' },
-  { name: 'Notion Plus', price: 8.00, category: 'Productivity', badge: 'POPULAR', desc: 'All-in-one workspace for notes, wikis, databases, and project management.', flags: ['🇺🇸','🇮🇳','🇦'], img: '/images/NotionPlus.jpg' },
-  { name: 'Figma Professional', price: 12.00, category: 'Creative', badge: 'HOT', desc: 'Collaborative UI/UX design tool. Real-time multiplayer, unlimited projects, dev mode.', flags: ['🇸','🇮🇳','🇿🇦'], img: '/images/FigmaProfessional.jpg' },
-  { name: 'Dropbox Plus', price: 9.99, category: 'Productivity', badge: 'POPULAR', desc: '2TB cloud storage, Smart Sync, version history, and secure file sharing.', flags: ['🇸','🇮🇳','🇿🇦'], img: '/images/DropBoxPlus.jpg' },
-  { name: 'LastPass Premium', price: 3.00, category: 'Security', badge: 'POPULAR', desc: 'Secure password manager with dark web monitoring, 1GB encrypted storage.', flags: ['🇺','🇮🇳','🇦'], img: '/images/LastPassPremium.jpg' },
-  { name: 'Cursor AI Pro', price: 20.00, category: 'AI Tools', badge: 'NEW', desc: 'AI-first code editor built on VS Code. Write, edit, and debug with GPT-4 natively.', flags: ['🇺🇸','🇳','🇿🇦'], img: '/images/Cursor AI Pro.jpg' },
-  { name: 'Midjourney Standard', price: 24.00, category: 'AI Tools', badge: 'HOT', desc: 'AI image generation. 15 GPU hours/month, unlimited relaxed generations.', flags: ['🇺🇸','🇳','🇿🇦'], img: '/images/MidjourneyStandard.jpg' },
-  { name: 'GitHub Copilot', price: 10.00, category: 'AI Tools', badge: 'HOT', desc: 'AI pair programmer. Real-time code suggestions, multi-language support.', flags: ['🇺🇸','🇮','🇿🇦'], img: '/images/GitHub CoPilot.jpg' },
-  { name: 'Slack Pro', price: 7.25, category: 'Business', badge: 'POPULAR', desc: 'Team messaging with unlimited message history, Huddles, and 10+ app integrations.', flags: ['🇺🇸','🇮🇳','🇿'], img: '/images/SlackPro.jpg' },
-  { name: 'Dashlane Premium', price: 4.99, category: 'Security', badge: 'POPULAR', desc: 'Password manager with VPN, dark web monitoring, and phishing alerts.', flags: ['🇺🇸','🇮🇳','🇿🇦'], img: '/images/DashLanePremium.jpg' },
-  { name: 'Adobe Photoshop', price: 22.99, category: 'Creative', badge: 'POPULAR', desc: 'Industry-standard photo editing and compositing. AI-powered tools, Neural Filters.', flags: ['🇺🇸','🇮🇳','🇿🇦'], img: '/images/AdobePhotoshop.jpg' },
-  { name: 'Claude Pro', price: 20.00, category: 'AI Tools', badge: 'NEW', desc: "Anthropic's advanced AI assistant. 200K context window, priority access.", flags: ['🇺🇸','🇳','🇿🇦'], img: '/images/ClaudePro.jpg' },
-  { name: 'Adobe Premiere Pro', price: 22.99, category: 'Creative', badge: 'HOT', desc: 'Professional video editing with AI auto-reframe, speech-to-text, and Lumetri color.', flags: ['🇺🇸','🇳','🇿🇦'], img: '/images/AdobePremierePro.jpg' },
-  { name: 'Asana Premium', price: 10.99, category: 'Business', badge: 'POPULAR', desc: 'Project management with Gantt charts, workflow automation, and advanced reporting.', flags: ['🇺🇸','🇳','🇿🇦'], img: '/images/Asana Premium.jpg' },
-  { name: 'ExpressVPN', price: 6.67, category: 'Security', badge: 'HOT', desc: 'Ultra-fast VPN with 3,000+ servers, split tunneling, and 24/7 support.', flags: ['🇺🇸','🇮🇳','🇦'], img: '/images/ExpressVPN.jpg' },
-  { name: 'YouTube Premium', price: 13.99, category: 'Entertainment', badge: 'POPULAR', desc: 'Ad-free YouTube, background play, offline downloads, and YouTube Music included.', flags: ['🇺','🇮🇳','🇿🇦'], img: '/images/YouTubePremium.jpg' },
-  { name: '1Password', price: 2.99, category: 'Security', badge: 'POPULAR', desc: 'Password manager with Travel Mode, Watchtower security alerts, and family sharing.', flags: ['🇺🇸','🇳','🇿'], img: '/images/1Password.jpg' },
-  { name: 'Monday.com Pro', price: 9.00, category: 'Business', badge: 'NEW', desc: 'Visual work OS with automations, integrations, and real-time collaboration dashboards.', flags: ['🇺🇸','🇳','🇿🇦'], img: '/images/Monday.comPro.jpg' },
-  { name: 'Perplexity Pro', price: 20.00, category: 'AI Tools', badge: 'NEW', desc: 'AI-powered search engine with real-time web access, citations, and image generation.', flags: ['🇺🇸','🇮🇳','🇿'], img: '/images/PerplexityPro.jpg' },
-  { name: 'Loom Business', price: 12.50, category: 'Productivity', badge: 'POPULAR', desc: 'Async video messaging. Screen + cam recording, AI summaries, team workspace.', flags: ['🇺🇸','🇮🇳','🇦'], img: '/images/Loom Business.jpg' },
-  { name: 'Webflow CMS', price: 14.00, category: 'Business', badge: 'NEW', desc: 'No-code website builder with CMS, hosting, and custom domain. Export clean code.', flags: ['🇺','🇮🇳','🇿🇦'], img: '/images/Webflow CMS.jpg' },
-  { name: 'ElevenLabs Starter', price: 5.00, category: 'AI Tools', badge: 'NEW', desc: 'AI voice cloning and text-to-speech. 30,000 characters/month, 10+ voice styles.', flags: ['🇺🇸','🇮🇳','🇿'], img: '/images/ElevenLabs Starter.jpg' },
+  { name: 'ChatGPT Plus', price: 20.00, category: 'AI Tools', badge: 'HOT', desc: 'OpenAI\'s GPT-4 powered assistant. Advanced reasoning, image generation, and browsing included.', image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&q=80' },
+  { name: 'Adobe Creative Cloud', price: 54.99, category: 'Creative', badge: 'POPULAR', desc: 'Full suite of Adobe apps – Photoshop, Illustrator, Premiere Pro, and 20+ more.', image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=500&q=80' },
+  { name: 'Netflix Premium', price: 22.99, category: 'Entertainment', badge: 'HOT', desc: '4K streaming, 4 simultaneous screens, offline downloads. 10,000+ titles worldwide.', image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=500&q=80' },
+  { name: 'Microsoft 365 Business', price: 12.50, category: 'Business', badge: 'POPULAR', desc: 'Word, Excel, PowerPoint, Teams, and 1TB OneDrive. For business and personal use.', image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&q=80' },
+  { name: 'Spotify Premium', price: 9.99, category: 'Entertainment', badge: 'POPULAR', desc: 'Ad-free music, offline listening, unlimited skips. 100M+ songs and podcasts.', image: 'https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=500&q=80' },
+  { name: 'NordVPN', price: 3.99, category: 'Security', badge: 'HOT', desc: 'Military-grade encryption, 5,500+ servers in 60 countries. No-logs policy.', image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=500&q=80' },
+  { name: 'Canva Pro', price: 12.99, category: 'Creative', badge: 'NEW', desc: 'Premium design templates, Brand Kit, background remover, and 100M+ stock assets.', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=500&q=80' },
+  { name: 'Grammarly Premium', price: 12.00, category: 'Productivity', badge: 'POPULAR', desc: 'AI writing assistant with advanced grammar, clarity, and plagiarism detection.', image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=500&q=80' },
+  { name: 'Zoom Pro', price: 14.99, category: 'Business', badge: 'HOT', desc: 'Unlimited meetings up to 30 hours, 100 participants, cloud recording, admin controls.', image: 'https://images.unsplash.com/photo-1587614203976-365c74645e83?w=500&q=80' },
+  { name: 'Notion Plus', price: 8.00, category: 'Productivity', badge: 'POPULAR', desc: 'All-in-one workspace for notes, wikis, databases, and project management.', image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=500&q=80' },
+  { name: 'Figma Professional', price: 12.00, category: 'Creative', badge: 'HOT', desc: 'Collaborative UI/UX design tool. Real-time multiplayer, unlimited projects, dev mode.', image: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=500&q=80' },
+  { name: 'Dropbox Plus', price: 9.99, category: 'Productivity', badge: 'POPULAR', desc: '2TB cloud storage, Smart Sync, version history, and secure file sharing.', image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=500&q=80' },
+  { name: 'LastPass Premium', price: 3.00, category: 'Security', badge: 'NEW', desc: 'Password manager with dark web monitoring and 1GB encrypted storage.', image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=500&q=80' },
+  { name: 'Cursor AI Pro', price: 20.00, category: 'AI Tools', badge: 'HOT', desc: 'AI-powered code editor. Context-aware suggestions and pair programming.', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&q=80' },
+  { name: 'Midjourney Standard', price: 24.00, category: 'AI Tools', badge: 'POPULAR', desc: 'AI art generation with 15 fast GPU hours/month. Commercial usage rights.', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&q=80' },
+  { name: 'GitHub Copilot', price: 10.00, category: 'AI Tools', badge: 'HOT', desc: 'AI pair programmer for VS Code. Real-time code suggestions and completions.', image: 'https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=500&q=80' },
+  { name: 'Slack Pro', price: 7.25, category: 'Business', badge: 'POPULAR', desc: 'Unlimited message history, integrations, group video calls, and workflows.', image: 'https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=500&q=80' },
+  { name: 'Dashlane Premium', price: 4.99, category: 'Security', badge: 'NEW', desc: 'Password manager with built-in VPN and dark web alerts.', image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=500&q=80' },
+  { name: 'Adobe Photoshop', price: 22.99, category: 'Creative', badge: 'HOT', desc: 'Industry-standard photo editing with Neural Filters and Generative Fill.', image: 'https://images.unsplash.com/photo-1572044162444-ad60f128bdea?w=500&q=80' },
+  { name: 'Claude Pro', price: 20.00, category: 'AI Tools', badge: 'POPULAR', desc: 'Advanced AI with 200K context window. 5x more usage than standard.', image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&q=80' },
+  { name: 'Adobe Premiere Pro', price: 22.99, category: 'Creative', badge: 'HOT', desc: 'Professional video editing with AI-powered text-based editing.', image: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=500&q=80' },
+  { name: 'Asana Premium', price: 10.99, category: 'Business', badge: 'POPULAR', desc: 'Advanced project management with Gantt charts, automations, and portfolios.', image: 'https://images.unsplash.com/photo-1507925921958-8a62f3d1a50d?w=500&q=80' },
+  { name: 'ExpressVPN', price: 6.67, category: 'Security', badge: 'HOT', desc: 'Ultra-fast VPN with 3,000+ servers. Secure Wi-Fi, bypass geo-blocks, stream 4K globally.', image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=500&q=80' },
+  { name: 'YouTube Premium', price: 13.99, category: 'Entertainment', badge: 'POPULAR', desc: 'Ad-free videos, background play, and YouTube Music included.', image: 'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=500&q=80' },
+  { name: '1Password', price: 2.99, category: 'Security', badge: 'NEW', desc: 'Secure password manager with Travel Mode and Watchtower alerts.', image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=500&q=80' },
+  { name: 'Monday.com Pro', price: 9.00, category: 'Business', badge: 'POPULAR', desc: 'Visual work OS with time tracking, automations, and dashboards.', image: 'https://images.unsplash.com/photo-1507925921958-8a62f3d1a50d?w=500&q=80' },
+  { name: 'Perplexity Pro', price: 20.00, category: 'AI Tools', badge: 'HOT', desc: 'AI search engine with Pro Search for deep, cited research. Unlimited queries.', image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&q=80' },
+  { name: 'Loom Business', price: 12.50, category: 'Business', badge: 'NEW', desc: 'Video messaging with AI summaries and unlimited recording for teams.', image: 'https://images.unsplash.com/photo-1587614203976-365c74645e83?w=500&q=80' },
+  { name: 'Webflow CMS', price: 14.00, category: 'Creative', badge: 'POPULAR', desc: 'Advanced CMS items, site search, and premium hosting features.', image: 'https://images.unsplash.com/photo-1547658719-da2b51169166?w=500&q=80' },
+  { name: 'ElevenLabs Starter', price: 5.00, category: 'AI Tools', badge: 'NEW', desc: 'AI voice cloning and text-to-speech. Generate realistic voices in seconds. 30k chars/month.', image: 'https://images.unsplash.com/photo-1614149162883-504ce4d13909?w=500&q=80' },
 ];
 
-const categories = ['All', 'AI Tools', 'Creative', 'Entertainment', 'Business', 'Productivity', 'Security'];
-
 export default function ProductsPage() {
-  const [activeCategory, setActiveCategory] = useState('All');
-
-  const filtered = activeCategory === 'All' 
+  const [filter, setFilter] = useState('All');
+  const categories = ['All', ...new Set(products.map(p => p.category))];
+  
+  const filteredProducts = filter === 'All' 
     ? products 
-    : products.filter(p => p.category === activeCategory);
-
-  const getBadgeStyle = (badge: string) => {
-    if (badge === 'HOT') return 'bg-orange-500 text-white';
-    if (badge === 'POPULAR') return 'bg-yellow-400 text-black';
-    if (badge === 'NEW') return 'bg-cyan-500 text-white';
-    return 'bg-slate-700 text-white';
-  };
+    : products.filter(p => p.category === filter);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="min-h-screen bg-slate-950 text-white p-6 pt-20">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-4xl font-bold text-center mb-8">Top 30 Digital Products</h1>
         
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
-          <div>
-            <p className="text-cyan-400 text-sm font-bold tracking-widest uppercase mb-2">Featured Selection</p>
-            <h1 className="text-4xl md:text-5xl font-bold text-white">
-              Top Digital <span className="text-yellow-400">Products</span>
-            </h1>
-            <p className="text-slate-400 mt-3 max-w-lg">
-              Handpicked bestsellers across every category. Instant delivery worldwide.
-            </p>
-          </div>
-          <button className="px-6 py-3 border border-slate-700 rounded-full text-sm font-semibold text-slate-300 hover:bg-slate-900 transition-all flex items-center gap-2">
-            View All 30 <span className="text-cyan-400">→</span>
-          </button>
-        </div>
-
-        {/* Category Filters */}
-        <div className="flex flex-wrap gap-3 mb-12">
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-3 justify-center mb-12">
           {categories.map(cat => (
             <button
               key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
-                activeCategory === cat
-                  ? 'bg-cyan-500 text-slate-950'
-                  : 'bg-slate-900 border border-slate-800 text-slate-400 hover:border-slate-600 hover:text-white'
+              onClick={() => setFilter(cat)}
+              className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                filter === cat 
+                  ? 'bg-cyan-600 text-white' 
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
               }`}
             >
               {cat}
@@ -88,61 +65,32 @@ export default function ProductsPage() {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((product, idx) => (
-            <div key={idx} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition-all flex flex-col group">
-              
-              {/* Image Area */}
-              <div className="relative h-48 overflow-hidden bg-slate-800">
-                <img 
-                  src={product.img} 
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                
-                {/* Badge (Top Left) */}
-                <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold ${getBadgeStyle(product.badge)}`}>
-                  {product.badge}
-                </div>
-
-                {/* Category Tag (Top Right) */}
-                <div className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-medium bg-slate-900/80 backdrop-blur text-slate-300 border border-slate-700/50">
-                  {product.category}
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((p) => (
+            <div key={p.name} className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-cyan-500 transition-all duration-300 flex flex-col">
+              <div className="h-48 overflow-hidden bg-slate-800 relative">
+                <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                {p.badge && (
+                  <span className="absolute top-3 left-3 px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full">
+                    {p.badge}
+                  </span>
+                )}
               </div>
-
-              {/* Content Area */}
-              <div className="p-5 flex-grow flex flex-col">
-                {/* Title and Price Row */}
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-bold text-white">{product.name}</h3>
-                  <span className="text-lg font-bold text-cyan-400">${product.price.toFixed(2)}</span>
+              <div className="p-6 flex flex-col flex-grow">
+                <h2 className="text-xl font-bold mb-2">{p.name}</h2>
+                <p className="text-slate-400 text-sm mb-4 flex-grow">{p.desc}</p>
+                <div className="flex items-center justify-between mt-auto">
+                  <span className="text-2xl font-bold text-cyan-400">${p.price.toFixed(2)}</span>
+                  <a 
+                    href={`/payment?item=${encodeURIComponent(p.name)}&amount=${p.price}`} 
+                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-bold text-sm transition-colors"
+                  >
+                    Buy Now
+                  </a>
                 </div>
-                
-                <p className="text-slate-400 text-sm mb-4 flex-grow leading-relaxed">{product.desc}</p>
-                
-                {/* Flags */}
-                <div className="flex items-center gap-2 mb-5 text-xs text-slate-500">
-                  <span className="text-sm">{product.flags.join(' ')}</span>
-                  <span>Available in these markets</span>
-                </div>
-
-                {/* Buy Button */}
-                <a 
-                  href={`/payment?item=${encodeURIComponent(product.name)}&amount=${product.price}`}
-                  className="block w-full text-center py-3 bg-cyan-500 hover:bg-cyan-400 rounded-full font-bold text-slate-950 transition-all flex items-center justify-center gap-2 shadow-lg shadow-cyan-900/20"
-                >
-                  🛒 Buy Now — ${product.price.toFixed(2)}
-                </a>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Footer Link */}
-        <div className="text-center mt-16">
-          <a href="/" className="text-slate-500 hover:text-cyan-400 text-sm transition-colors">← Back to Home</a>
         </div>
       </div>
     </div>
