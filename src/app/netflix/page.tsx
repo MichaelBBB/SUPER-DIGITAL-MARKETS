@@ -24,7 +24,7 @@ export default function NetflixPage() {
   };
 
   return (
-    <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#111827', margin: 0, padding: '20px' }}>
+    <main style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', margin: 0, padding: '20px' }}>
       <div className="relative bg-gray-900 rounded-xl overflow-hidden shadow-2xl max-w-sm w-full border border-gray-800">
         <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider z-10 shadow-md">
           HOT
