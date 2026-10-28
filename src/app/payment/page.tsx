@@ -4,8 +4,8 @@ import { useSearchParams } from 'next/navigation';
 
 function PaymentInner() {
   const params = useSearchParams();
-  const itemName = params.get('item') || 'Digital Product';
-  const amount = Number(params.get('amount')) || 0;
+  const itemName = params?.get('item') || 'Digital Product';
+  const amount = Number(params?.get('amount')) || 0;
   const orderRef = 'ORD-' + Math.floor(Math.random() * 900000 + 100000);
 
   const [showCardForm, setShowCardForm] = useState(false);
@@ -110,7 +110,7 @@ function PaymentInner() {
           </div>
 
           <div className="bg-yellow-400 border border-yellow-500 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-bold text-black flex items-center gap-2">🇮 Google Pay (India)</h2>
+            <h2 className="text-xl font-bold text-black flex items-center gap-2">🇮🇳 Google Pay (India)</h2>
             <p className="text-black text-sm font-medium">Click to copy UPI ID</p>
             <button onClick={() => copyToClipboard(UPI_ID, 'Google Pay UPI ID')} className="w-full py-3 bg-black hover:bg-gray-900 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-lg">
               <span className="text-2xl font-bold">G</span> <span className="text-xl">Pay</span>
@@ -127,7 +127,7 @@ function PaymentInner() {
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <h2 className="text-xl font-bold text-cyan-400 mb-6 flex items-center gap-2">🇿 CAPITEC BANK DETAILS</h2>
+          <h2 className="text-xl font-bold text-cyan-400 mb-6 flex items-center gap-2">🇿🇦 CAPITEC BANK DETAILS</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-black/50 p-4 rounded-lg"><p className="text-gray-500 text-xs mb-1">Account Holder</p><p className="font-bold text-white">SUPER DIGITAL</p></div>
             <div className="bg-black/50 p-4 rounded-lg"><p className="text-gray-500 text-xs mb-1">Account Number</p><p className="font-bold text-cyan-400">1975933441</p></div>
