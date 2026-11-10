@@ -13,11 +13,7 @@ const PEACH_CHECKOUT_URL =
 
 export async function POST(request: NextRequest) {
   try {
-    const {
-      productId,
-      email,
-      method,
-    } = await request.json();
+    const { productId, email, method } = await request.json();
 
     if (
       typeof productId !== 'string' ||
@@ -38,11 +34,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabaseUrl =
-      process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey =
-      process.env.SUPABASE_SERVICE_ROLE_KEY;
-
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const clientId = process.env.PEACH_CLIENT_ID;
     const clientSecret = process.env.PEACH_CLIENT_SECRET;
     const merchantId = process.env.PEACH_MERCHANT_ID;
@@ -57,7 +50,6 @@ export async function POST(request: NextRequest) {
       !entityId
     ) {
       console.error('Required server configuration is missing.');
-
       return NextResponse.json(
         { error: 'Payment service configuration is incomplete.' },
         { status: 500 }
@@ -75,13 +67,11 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // Always retrieve the price from the database.
-    const { data: product, error: productError } =
-      await supabase
-        .from('products')
-        .select('id, name, price_usd')
-        .eq('id', productId)
-        .single();
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('id, name, price_usd')
+      .eq('id', productId)
+      .single();
 
     if (
       productError ||
@@ -95,22 +85,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const amount = Number(
-      Number(product.price_usd).toFixed(2)
-    );
-
+    const amount = Number(Number(product.price_usd).toFixed(2));
     const siteUrl = new URL(request.url).origin;
 
-    // Peach requires a unique transaction reference
-    // between 8 and 16 characters.
     const merchantTransactionId =
       'SDM' + randomUUID().replace(/-/g, '').slice(0, 10);
 
     const tokenResponse = await fetch(PEACH_AUTH_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         clientId,
         clientSecret,
@@ -120,11 +103,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!tokenResponse.ok) {
-      console.error(
-        'Peach authentication failed:',
-        tokenResponse.status
-      );
-
+      console.error('Peach authentication failed:', tokenResponse.status);
       return NextResponse.json(
         { error: 'Peach authentication failed. Please contact support.' },
         { status: 502 }
@@ -136,53 +115,40 @@ export async function POST(request: NextRequest) {
 
     if (typeof accessToken !== 'string' || !accessToken) {
       console.error('Peach returned no access token.');
-
       return NextResponse.json(
         { error: 'Peach authentication returned an invalid response.' },
         { status: 502 }
       );
     }
 
-    const checkoutResponse = await fetch(
-      PEACH_CHECKOUT_URL,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'Origin': siteUrl,
-          'Referer': `${siteUrl}/`,
-        },
-        body: JSON.stringify({
-          authentication: {
-            entityId,
-          },
-          merchantTransactionId,
-          amount,
-          currency: 'USD',
-          paymentType: 'DB',
-          nonce: randomUUID(),
-          shopperResultUrl:
-            `${siteUrl}/api/payments/return`,
-          notificationUrl:
-            `${siteUrl}/api/payments/webhook`,
-          customer: {
-            email: email.trim(),
-          },
-          customParameters: {
-            productId: product.id,
-          },
-        }),
-        cache: 'no-store',
-      }
-    );
+    const checkoutResponse = await fetch(PEACH_CHECKOUT_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Origin: siteUrl,
+        Referer: `${siteUrl}/`,
+      },
+      body: JSON.stringify({
+        authentication: { entityId },
+        merchantTransactionId,
+        amount,
+        currency: 'USD',
+        paymentType: 'DB',
+        nonce: randomUUID(),
+        shopperResultUrl: `${siteUrl}/api/payments/return`,
+        notificationUrl: `${siteUrl}/api/webhooks/peach`,
+        customer: { email: email.trim() },
+        customParameters: { productId: product.id },
+      }),
+      cache: 'no-store',
+    });
 
     if (!checkoutResponse.ok) {
       console.error(
         'Peach checkout creation failed:',
         checkoutResponse.status
       );
-
       return NextResponse.json(
         { error: 'Peach could not create checkout. Please try again.' },
         { status: 502 }
@@ -197,14 +163,12 @@ export async function POST(request: NextRequest) {
       !checkout.redirectUrl.startsWith('https://')
     ) {
       console.error('Peach returned an incomplete checkout response.');
-
       return NextResponse.json(
         { error: 'Peach returned an invalid checkout response.' },
         { status: 502 }
       );
     }
 
-    // Record a pending payment before redirecting the customer.
     const { error: insertError } = await supabase
       .from('payments')
       .insert({
@@ -218,9 +182,11 @@ export async function POST(request: NextRequest) {
         'Could not record pending payment:',
         insertError.code
       );
-
       return NextResponse.json(
-        { error: 'The payment record could not be created. Please contact support before retrying.' },
+        {
+          error:
+            'The payment record could not be created. Please contact support before retrying.',
+        },
         { status: 500 }
       );
     }
@@ -233,11 +199,9 @@ export async function POST(request: NextRequest) {
       'Create-payment request failed:',
       error instanceof Error ? error.message : 'Unknown error'
     );
-
     return NextResponse.json(
       { error: 'Unable to start checkout. Please try again.' },
       { status: 500 }
     );
   }
 }
-
