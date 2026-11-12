@@ -2,8 +2,7 @@
 export default function Home() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden font-sans">
-
-      {/* CORRECT EARTH BACKGROUND */}
+      {/* EARTH BACKGROUND */}
       <div className="absolute inset-0 z-0">
         <div
           className="absolute inset-0 bg-cover bg-center"
