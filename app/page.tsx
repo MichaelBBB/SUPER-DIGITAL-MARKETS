@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
@@ -14,8 +13,9 @@ type Product = {
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
-  const productId = searchParams?.get('productId') ?? null;
+  const productId = searchParams.get('productId');
   const router = useRouter();
+
   const [product, setProduct] = useState<Product | null>(null);
   const [productLoading, setProductLoading] = useState(true);
   const [country, setCountry] = useState('ZA');
@@ -30,6 +30,7 @@ function CheckoutContent() {
     async function loadProduct() {
       setProductLoading(true);
       setError('');
+
       if (!productId) {
         setError('No product was selected. Please return to the store.');
         setProductLoading(false);
@@ -43,6 +44,7 @@ function CheckoutContent() {
         .single();
 
       if (cancelled) return;
+
       if (productError || !data) {
         setError('We could not load this product. Please return to the store.');
         setProduct(null);
@@ -62,6 +64,7 @@ function CheckoutContent() {
 
   const handlePayment = async () => {
     if (!product || loading) return;
+
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Please enter a valid delivery email address.');
       return;
@@ -69,6 +72,7 @@ function CheckoutContent() {
 
     setLoading(true);
     setError('');
+
     try {
       const res = await fetch('/api/create-payment', {
         method: 'POST',
@@ -89,6 +93,7 @@ function CheckoutContent() {
           data.error || 'The payment request could not be processed.'
         );
       }
+
       if (data.redirectUrl) {
         window.location.href = data.redirectUrl;
         return;
@@ -108,6 +113,7 @@ function CheckoutContent() {
           router.push(`/success?orderId=${encodeURIComponent(data.orderId)}`);
           return;
         }
+
         throw new Error(
           'Bank details were provided, but the order reference is missing.'
         );
@@ -123,6 +129,7 @@ function CheckoutContent() {
       );
     } catch (err) {
       console.error('Payment error:', err);
+
       setError(
         err instanceof Error
           ? err.message
@@ -140,6 +147,7 @@ function CheckoutContent() {
       </div>
     );
   }
+
   if (!product) {
     return (
       <div className="bg-slate-950 min-h-screen p-6 flex flex-col items-center justify-center text-white">
@@ -155,6 +163,7 @@ function CheckoutContent() {
       </div>
     );
   }
+
   return (
     <div className="bg-slate-950 min-h-screen p-6 text-white font-sans max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">
@@ -166,6 +175,7 @@ function CheckoutContent() {
           <label className="block text-sm text-gray-400">
             Delivery Email
           </label>
+
           <input
             type="email"
             value={email}
@@ -174,6 +184,7 @@ function CheckoutContent() {
             autoComplete="email"
             className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-cyan-500"
           />
+
           <div className="grid grid-cols-2 gap-3 mt-6">
             {[
               { code: 'IN', name: 'Razorpay (India)', flag: '🇮🇳', val: 'razorpay' },
@@ -203,6 +214,7 @@ function CheckoutContent() {
             ))}
           </div>
         </div>
+
         <div className="bg-slate-900 rounded-2xl p-6 border border-slate-700 h-fit">
           <div className="flex gap-4 mb-4">
             <div className="w-20 h-20 bg-slate-800 rounded-lg flex items-center justify-center text-2xl overflow-hidden">
@@ -216,6 +228,7 @@ function CheckoutContent() {
                 '📦'
               )}
             </div>
+
             <div>
               <h3 className="font-bold text-lg">{product.name}</h3>
               <p className="text-cyan-400 font-mono">
@@ -229,6 +242,7 @@ function CheckoutContent() {
               <span>Subtotal</span>
               <span>${product.price_usd.toFixed(2)}</span>
             </div>
+
             <div className="flex justify-between">
               <span>Processing Fee</span>
               <span>$0.88</span>
@@ -239,11 +253,13 @@ function CheckoutContent() {
               <span>${(product.price_usd + 0.88).toFixed(2)}</span>
             </div>
           </div>
+
           {error && (
             <p role="alert" className="mt-4 text-sm text-red-400">
               {error}
             </p>
           )}
+
           <button
             type="button"
             onClick={handlePayment}
@@ -257,6 +273,7 @@ function CheckoutContent() {
     </div>
   );
 }
+
 export default function CheckoutPage() {
   return (
     <Suspense
