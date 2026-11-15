@@ -1,10 +1,6 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,8 +8,30 @@ export async function GET(request: NextRequest) {
     const sessionId = searchParams.get('session_id');
 
     if (!sessionId) {
-      return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Session ID is required' },
+        { status: 400 }
+      );
     }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error(
+        'Payment status API configuration is missing.'
+      );
+
+      return NextResponse.json(
+        { error: 'Payment status service is not configured' },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(
+      supabaseUrl,
+      supabaseServiceKey
+    );
 
     const { data, error } = await supabase
       .from('payments')
@@ -22,15 +40,22 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (error || !data) {
-      return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Payment not found' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ 
-      status: data.status, 
-      amountUSD: data.amount_usd 
+    return NextResponse.json({
+      status: data.status,
+      amountUSD: data.amount_usd,
     });
   } catch (err) {
     console.error('Error fetching payment status:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
