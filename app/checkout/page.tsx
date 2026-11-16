@@ -11,37 +11,48 @@ type Product = {
   image_url?: string | null;
 };
 
+type PaymentMethod = {
+  code: string;
+  name: string;
+  flag: string;
+  val: string;
+};
+
+const paymentMethods: PaymentMethod[] = [
+  { code: 'IN', name: 'Razorpay (India)', flag: '🇮🇳', val: 'razorpay' },
+  { code: 'CN', name: 'Alipay (China)', flag: '🇨🇳', val: 'alipay' },
+  { code: 'US', name: 'Payoneer (USA)', flag: '🇺🇸', val: 'payoneer' },
+  { code: 'ZA', name: 'Peach Payments (SA)', flag: '🇿🇦', val: 'peach' },
+  { code: 'ZA', name: 'Capitec EFT', flag: '🇿🇦', val: 'capitec' },
+  { code: 'GLOBAL', name: 'Card / Google Pay', flag: '🌍', val: 'stripe' },
+];
+
 function CheckoutContent() {
   const searchParams = useSearchParams();
-  const productId = searchParams?.get('productId') ?? null;
   const router = useRouter();
+  const productId = searchParams.get('productId');
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [productLoading, setProductLoading] = useState(true);
+  const [loadingProduct, setLoadingProduct] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [country, setCountry] = useState('ZA');
   const [method, setMethod] = useState('peach');
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadProduct() {
-      setProductLoading(true);
-      setError('');
-
       if (!productId) {
-        setError('No product was selected. Please return to the store.');
-        setProductLoading(false);
+        setError('No product was selected. Please return to the products page and choose a product.');
+        setLoadingProduct(false);
         return;
       }
 
       try {
-        // Load Supabase in the browser, not during build-time prerendering.
+        // Load Supabase in the browser instead of during page prerendering.
         const { supabase } = await import('@/lib/supabase');
-
-        if (cancelled) return;
 
         const { data, error: productError } = await supabase
           .from('products')
@@ -49,40 +60,47 @@ function CheckoutContent() {
           .eq('id', productId)
           .single();
 
-        if (cancelled) return;
+        if (productError) {
+          throw new Error(productError.message);
+        }
 
-        if (productError || !data) {
-          setError('We could not load this product. Please return to the store.');
-          setProduct(null);
-        } else {
+        if (!data) {
+          throw new Error('The selected product could not be found.');
+        }
+
+        if (!cancelled) {
           setProduct(data as Product);
+          setError('');
         }
       } catch (err) {
-        if (cancelled) return;
-
         console.error('Checkout product loading error:', err);
-        setProduct(null);
-        setError(
-          'Checkout could not connect to Supabase. Please check the Supabase environment variables in the Vercel project serving this website.'
-        );
+
+        if (!cancelled) {
+          setError(
+            'We could not load this product. Please check the Supabase configuration and try again.'
+          );
+        }
       } finally {
         if (!cancelled) {
-          setProductLoading(false);
+          setLoadingProduct(false);
         }
       }
     }
 
-    loadProduct();
+    void loadProduct();
 
     return () => {
       cancelled = true;
     };
   }, [productId]);
 
-  const handlePayment = async () => {
-    if (!product || loading) return;
+  async function handlePayment() {
+    if (!product || !productId) {
+      setError('The selected product is not available.');
+      return;
+    }
 
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError('Please enter a valid delivery email address.');
       return;
     }
@@ -91,7 +109,7 @@ function CheckoutContent() {
     setError('');
 
     try {
-      const res = await fetch('/api/create-payment', {
+      const response = await fetch('/api/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -99,15 +117,17 @@ function CheckoutContent() {
           email: email.trim(),
           country,
           method,
-          amount: product.price_usd
-        })
+          amount: product.price_usd,
+        }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error(
-          data.error || 'The payment request could not be processed.'
+          typeof data.error === 'string'
+            ? data.error
+            : 'The payment request could not be completed.'
         );
       }
 
@@ -120,10 +140,7 @@ function CheckoutContent() {
         const details = data.eftDetails;
 
         alert(
-          `Please make an EFT to:\n` +
-          `Bank: ${details.bank}\n` +
-          `Account: ${details.acc}\n` +
-          `Reference: ${details.ref}`
+          `Please make an EFT to:\nBank: ${details.bank}\nAccount: ${details.acc}\nReference: ${details.ref}`
         );
 
         if (data.orderId) {
@@ -131,9 +148,7 @@ function CheckoutContent() {
           return;
         }
 
-        throw new Error(
-          'Bank details were provided, but the order reference is missing.'
-        );
+        throw new Error('Bank transfer details were returned without an order reference.');
       }
 
       if (data.orderId) {
@@ -142,143 +157,155 @@ function CheckoutContent() {
       }
 
       throw new Error(
-        'The payment service did not return a checkout link or order reference.'
+        'The payment service returned no checkout link or order reference. No successful payment has been confirmed.'
       );
     } catch (err) {
       console.error('Payment error:', err);
       setError(
         err instanceof Error
           ? err.message
-          : 'An error occurred. Please try again.'
+          : 'An error occurred while starting the payment. Please try again.'
       );
       setLoading(false);
     }
-  };
+  }
 
-  if (productLoading) {
+  if (loadingProduct) {
     return (
-      <div className="bg-slate-950 min-h-screen flex items-center justify-center text-white">
+      <div className="bg-slate-950 min-h-screen flex items-center justify-center text-white p-6">
         Loading checkout details...
+      </div>
+    );
+  }
+
+  if (error && !product) {
+    return (
+      <div className="bg-slate-950 min-h-screen flex items-center justify-center text-white p-6">
+        <div className="max-w-lg w-full rounded-2xl border border-red-500/30 bg-slate-900 p-6">
+          <h1 className="text-xl font-bold mb-3">Checkout unavailable</h1>
+          <p className="text-red-300 mb-5">{error}</p>
+          <button
+            onClick={() => router.push('/products')}
+            className="bg-cyan-600 hover:bg-cyan-500 rounded-xl px-5 py-3 font-bold"
+          >
+            Return to Products
+          </button>
+        </div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="bg-slate-950 min-h-screen p-6 flex flex-col items-center justify-center text-white">
-        <p role="alert" className="text-center mb-4">
-          {error || 'This product could not be found.'}
-        </p>
-        <button
-          onClick={() => router.push('/')}
-          className="bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-bold"
-        >
-          Return to Store
-        </button>
+      <div className="bg-slate-950 min-h-screen flex items-center justify-center text-white p-6">
+        The selected product is unavailable.
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-950 min-h-screen p-6 text-white font-sans max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">
-        Checkout: {product.name}
-      </h1>
+    <div className="bg-slate-950 min-h-screen p-6 text-white font-sans">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-2xl font-bold mb-6">
+          Checkout: {product.name}
+        </h1>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="space-y-4">
-          <label className="block text-sm text-gray-400">
-            Delivery Email
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            autoComplete="email"
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-cyan-500"
-          />
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <label htmlFor="delivery-email" className="block text-sm text-gray-400">
+              Delivery Email
+            </label>
 
-          <div className="grid grid-cols-2 gap-3 mt-6">
-            {[
-              { code: 'IN', name: 'Razorpay (India)', flag: '🇮🇳', val: 'razorpay' },
-              { code: 'CN', name: 'Alipay (China)', flag: '🇨🇳', val: 'alipay' },
-              { code: 'US', name: 'Payoneer (USA)', flag: '🇺🇸', val: 'payoneer' },
-              { code: 'ZA', name: 'Peach Payments (SA)', flag: '🇿🇦', val: 'peach' },
-              { code: 'ZA', name: 'Capitec EFT', flag: '🇿🇦', val: 'capitec' },
-              { code: 'GLOBAL', name: 'Card / Google Pay', flag: '🌍', val: 'stripe' }
-            ].map((opt) => (
-              <button
-                key={opt.name}
-                type="button"
-                onClick={() => {
-                  setCountry(opt.code);
-                  setMethod(opt.val);
-                  setError('');
-                }}
-                className={`p-4 rounded-xl border text-left transition-all ${
-                  method === opt.val
-                    ? 'border-cyan-500 bg-slate-800 ring-1 ring-cyan-500'
-                    : 'border-slate-700 bg-slate-900 hover:border-slate-500'
-                }`}
-              >
-                <div className="text-2xl mb-1">{opt.flag}</div>
-                <div className="text-sm font-medium">{opt.name}</div>
-              </button>
-            ))}
-          </div>
-        </div>
+            <input
+              id="delivery-email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="your@email.com"
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:outline-none focus:border-cyan-500"
+            />
 
-        <div className="bg-slate-900 rounded-2xl p-6 border border-slate-700 h-fit">
-          <div className="flex gap-4 mb-4">
-            <div className="w-20 h-20 bg-slate-800 rounded-lg flex items-center justify-center text-2xl overflow-hidden">
-              {product.image_url ? (
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="w-full h-full object-cover rounded-lg"
-                />
-              ) : (
-                '📦'
-              )}
+            <div className="grid grid-cols-2 gap-3 mt-6">
+              {paymentMethods.map((option) => (
+                <button
+                  type="button"
+                  key={option.val}
+                  onClick={() => {
+                    setCountry(option.code);
+                    setMethod(option.val);
+                  }}
+                  aria-pressed={method === option.val}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    method === option.val
+                      ? 'border-cyan-500 bg-slate-800 ring-1 ring-cyan-500'
+                      : 'border-slate-700 bg-slate-900 hover:border-slate-500'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{option.flag}</div>
+                  <div className="text-sm font-medium">{option.name}</div>
+                </button>
+              ))}
             </div>
-            <div>
-              <h3 className="font-bold text-lg">{product.name}</h3>
-              <p className="text-cyan-400 font-mono">
-                ${product.price_usd.toFixed(2)} USD
+          </div>
+
+          <div className="bg-slate-900 rounded-2xl p-6 border border-slate-700 h-fit">
+            <div className="flex gap-4 mb-4">
+              <div className="w-20 h-20 shrink-0 bg-slate-800 rounded-lg flex items-center justify-center text-2xl overflow-hidden">
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  '📦'
+                )}
+              </div>
+
+              <div>
+                <h2 className="font-bold text-lg">{product.name}</h2>
+                <p className="text-cyan-400 font-mono">
+                  ${Number(product.price_usd).toFixed(2)} USD
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm text-gray-400 border-t border-slate-700 pt-4">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>${Number(product.price_usd).toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span>Processing Fee</span>
+                <span>$0.88</span>
+              </div>
+
+              <div className="flex justify-between text-lg font-bold text-cyan-400 pt-2 border-t border-slate-700 mt-2">
+                <span>Total</span>
+                <span>
+                  ${(Number(product.price_usd) + 0.88).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            {error && (
+              <p role="alert" className="mt-4 text-sm text-red-300">
+                {error}
               </p>
-            </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handlePayment}
+              disabled={loading}
+              className="w-full mt-6 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
+            >
+              {loading ? 'Processing...' : 'Complete Purchase'}
+            </button>
           </div>
-
-          <div className="space-y-2 text-sm text-gray-400 border-t border-slate-700 pt-4">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>${product.price_usd.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Processing Fee</span>
-              <span>$0.88</span>
-            </div>
-            <div className="flex justify-between text-lg font-bold text-cyan-400 pt-2 border-t border-slate-700 mt-2">
-              <span>Total</span>
-              <span>${(product.price_usd + 0.88).toFixed(2)}</span>
-            </div>
-          </div>
-
-          {error && (
-            <p role="alert" className="mt-4 text-sm text-red-400">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="button"
-            onClick={handlePayment}
-            disabled={loading}
-            className="w-full mt-6 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
-          >
-            {loading ? 'Processing...' : 'Complete Purchase'}
-          </button>
         </div>
       </div>
     </div>
@@ -289,7 +316,7 @@ export default function CheckoutPage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-slate-950 min-h-screen flex items-center justify-center text-white">
+        <div className="bg-slate-950 min-h-screen flex items-center justify-center text-white p-6">
           Loading checkout...
         </div>
       }
