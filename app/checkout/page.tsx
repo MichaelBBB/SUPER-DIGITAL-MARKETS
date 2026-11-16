@@ -2,7 +2,6 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 type Product = {
@@ -38,22 +37,39 @@ function CheckoutContent() {
         return;
       }
 
-      const { data, error: productError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', productId)
-        .single();
+      try {
+        // Load Supabase in the browser, not during build-time prerendering.
+        const { supabase } = await import('@/lib/supabase');
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      if (productError || !data) {
-        setError('We could not load this product. Please return to the store.');
+        const { data, error: productError } = await supabase
+          .from('products')
+          .select('*')
+          .eq('id', productId)
+          .single();
+
+        if (cancelled) return;
+
+        if (productError || !data) {
+          setError('We could not load this product. Please return to the store.');
+          setProduct(null);
+        } else {
+          setProduct(data as Product);
+        }
+      } catch (err) {
+        if (cancelled) return;
+
+        console.error('Checkout product loading error:', err);
         setProduct(null);
-      } else {
-        setProduct(data as Product);
+        setError(
+          'Checkout could not connect to Supabase. Please check the Supabase environment variables in the Vercel project serving this website.'
+        );
+      } finally {
+        if (!cancelled) {
+          setProductLoading(false);
+        }
       }
-
-      setProductLoading(false);
     }
 
     loadProduct();
@@ -130,13 +146,11 @@ function CheckoutContent() {
       );
     } catch (err) {
       console.error('Payment error:', err);
-
       setError(
         err instanceof Error
           ? err.message
           : 'An error occurred. Please try again.'
       );
-
       setLoading(false);
     }
   };
@@ -152,7 +166,7 @@ function CheckoutContent() {
   if (!product) {
     return (
       <div className="bg-slate-950 min-h-screen p-6 flex flex-col items-center justify-center text-white">
-        <p className="text-center mb-4">
+        <p role="alert" className="text-center mb-4">
           {error || 'This product could not be found.'}
         </p>
         <button
@@ -176,7 +190,6 @@ function CheckoutContent() {
           <label className="block text-sm text-gray-400">
             Delivery Email
           </label>
-
           <input
             type="email"
             value={email}
@@ -229,7 +242,6 @@ function CheckoutContent() {
                 '📦'
               )}
             </div>
-
             <div>
               <h3 className="font-bold text-lg">{product.name}</h3>
               <p className="text-cyan-400 font-mono">
@@ -243,12 +255,10 @@ function CheckoutContent() {
               <span>Subtotal</span>
               <span>${product.price_usd.toFixed(2)}</span>
             </div>
-
             <div className="flex justify-between">
               <span>Processing Fee</span>
               <span>$0.88</span>
             </div>
-
             <div className="flex justify-between text-lg font-bold text-cyan-400 pt-2 border-t border-slate-700 mt-2">
               <span>Total</span>
               <span>${(product.price_usd + 0.88).toFixed(2)}</span>
