@@ -30,7 +30,7 @@ const paymentMethods: PaymentMethod[] = [
 function CheckoutContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const productId = searchParams.get('productId');
+  const productId = searchParams?.get('productId') ?? null;
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loadingProduct, setLoadingProduct] = useState(true);
@@ -45,7 +45,9 @@ function CheckoutContent() {
 
     async function loadProduct() {
       if (!productId) {
-        setError('No product was selected. Please return to the products page and choose a product.');
+        setError(
+          'No product was selected. Please return to the products page and choose a product.'
+        );
         setLoadingProduct(false);
         return;
       }
@@ -100,7 +102,10 @@ function CheckoutContent() {
       return;
     }
 
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    if (
+      !email.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+    ) {
       setError('Please enter a valid delivery email address.');
       return;
     }
@@ -144,15 +149,21 @@ function CheckoutContent() {
         );
 
         if (data.orderId) {
-          router.push(`/success?orderId=${encodeURIComponent(data.orderId)}`);
+          router.push(
+            `/success?orderId=${encodeURIComponent(data.orderId)}`
+          );
           return;
         }
 
-        throw new Error('Bank transfer details were returned without an order reference.');
+        throw new Error(
+          'Bank transfer details were returned without an order reference.'
+        );
       }
 
       if (data.orderId) {
-        router.push(`/success?orderId=${encodeURIComponent(data.orderId)}`);
+        router.push(
+          `/success?orderId=${encodeURIComponent(data.orderId)}`
+        );
         return;
       }
 
@@ -212,7 +223,10 @@ function CheckoutContent() {
 
         <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-4">
-            <label htmlFor="delivery-email" className="block text-sm text-gray-400">
+            <label
+              htmlFor="delivery-email"
+              className="block text-sm text-gray-400"
+            >
               Delivery Email
             </label>
 
@@ -244,7 +258,9 @@ function CheckoutContent() {
                   }`}
                 >
                   <div className="text-2xl mb-1">{option.flag}</div>
-                  <div className="text-sm font-medium">{option.name}</div>
+                  <div className="text-sm font-medium">
+                    {option.name}
+                  </div>
                 </button>
               ))}
             </div>
@@ -275,7 +291,9 @@ function CheckoutContent() {
             <div className="space-y-2 text-sm text-gray-400 border-t border-slate-700 pt-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${Number(product.price_usd).toFixed(2)}</span>
+                <span>
+                  ${Number(product.price_usd).toFixed(2)}
+                </span>
               </div>
 
               <div className="flex justify-between">
