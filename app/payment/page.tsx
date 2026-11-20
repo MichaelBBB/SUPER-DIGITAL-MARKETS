@@ -10,9 +10,15 @@ type Product = {
   price_usd: number;
 };
 
+type PaymentStatus = {
+  status: string;
+  amountUSD: number;
+};
+
 function PaymentContent() {
   const searchParams = useSearchParams();
   const item = searchParams?.get('item') || '';
+  const sessionId = searchParams?.get('session_id') || '';
 
   const [product, setProduct] = useState<Product | null>(null);
   const [email, setEmail] = useState('');
@@ -20,18 +26,133 @@ function PaymentContent() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [paymentStatus, setPaymentStatus] =
+    useState<PaymentStatus | null>(null);
+  const [statusMessage, setStatusMessage] = useState(
+    'Checking your payment status...'
+  );
 
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
   const upiId = process.env.NEXT_PUBLIC_UPI_ID || '';
   const alipayId = process.env.NEXT_PUBLIC_ALIPAY_ID || '';
   const bankName = process.env.NEXT_PUBLIC_CAPITEC_BANK_NAME || '';
-  const accountName = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NAME || '';
-  const accountNumber = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NUMBER || '';
+  const accountName =
+    process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NAME || '';
+  const accountNumber =
+    process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NUMBER || '';
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    async function checkPaymentStatus() {
+      if (!sessionId) return;
+
+      setLoading(true);
+      setStatusMessage('Checking your payment status...');
+
+      for (let attempt = 0; attempt < 15; attempt++) {
+        if (cancelled) return;
+
+        try {
+          const response = await fetch(
+            `/api/payments/status?session_id=${encodeURIComponent(sessionId)}`,
+            { cache: 'no-store' }
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              typeof data.error === 'string'
+                ? data.error
+                : 'Payment status is not available yet.'
+            );
+          }
+
+          if (cancelled) return;
+
+          const result: PaymentStatus = {
+            status: String(data.status || 'pending').toLowerCase(),
+            amountUSD: Number(data.amountUSD),
+          };
+
+          setPaymentStatus(result);
+
+          if (result.status === 'completed') {
+            setStatusMessage('Payment confirmed by the payment system.');
+            setLoading(false);
+            return;
+          }
+
+          if (
+            result.status === 'failed' ||
+            result.status === 'cancelled'
+          ) {
+            setStatusMessage(
+              result.status === 'failed'
+                ? 'The payment was not completed. Please contact the store before trying again.'
+                : 'The payment was cancelled. No successful payment has been confirmed.'
+            );
+            setLoading(false);
+            return;
+          }
+
+          if (result.status === 'uncertain') {
+            setStatusMessage(
+              'The payment result needs verification. Please contact the store before trying again.'
+            );
+            setLoading(false);
+            return;
+          }
+
+          setStatusMessage(
+            'Your payment is still being checked. Please do not pay again while we verify it.'
+          );
+        } catch (err) {
+          if (cancelled) return;
+
+          setStatusMessage(
+            err instanceof Error
+              ? err.message
+              : 'Unable to check payment status.'
+          );
+        }
+
+        if (attempt < 14) {
+          await new Promise<void>((resolve) => {
+            timer = setTimeout(resolve, 2000);
+          });
+        }
+      }
+
+      if (!cancelled) {
+        setStatusMessage(
+          'Payment confirmation is taking longer than expected. Please do not pay again. Contact the store and provide your checkout reference.'
+        );
+        setLoading(false);
+      }
+    }
+
+    if (sessionId) {
+      void checkPaymentStatus();
+    }
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [sessionId]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadProduct() {
+      if (sessionId) {
+        setLoading(false);
+        return;
+      }
+
       if (!item) {
         setError('No product was selected. Please return to Products.');
         setLoading(false);
@@ -47,9 +168,7 @@ function PaymentContent() {
           .eq('name', item)
           .maybeSingle();
 
-        if (lookupError) {
-          throw lookupError;
-        }
+        if (lookupError) throw lookupError;
 
         if (!data) {
           throw new Error(
@@ -70,9 +189,7 @@ function PaymentContent() {
           );
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -81,7 +198,7 @@ function PaymentContent() {
     return () => {
       cancelled = true;
     };
-  }, [item]);
+  }, [item, sessionId]);
 
   async function payByCard() {
     if (!product) {
@@ -101,9 +218,7 @@ function PaymentContent() {
     try {
       const response = await fetch('/api/create-payment', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productId: product.id,
           email: email.trim(),
@@ -123,7 +238,6 @@ function PaymentContent() {
       }
 
       if (
-        !data.redirectUrl ||
         typeof data.redirectUrl !== 'string' ||
         !data.redirectUrl.startsWith('https://')
       ) {
@@ -154,7 +268,54 @@ function PaymentContent() {
   if (loading) {
     return (
       <main className="min-h-screen bg-black p-8 text-white">
-        Loading payment details...
+        {sessionId
+          ? 'Checking payment confirmation...'
+          : 'Loading payment details...'}
+      </main>
+    );
+  }
+
+  if (sessionId) {
+    return (
+      <main className="min-h-screen bg-black p-6 text-white sm:p-8">
+        <div className="mx-auto max-w-2xl border border-slate-700 bg-slate-900 p-6 sm:p-8">
+          <h1 className="mb-5 text-2xl font-bold text-cyan-400">
+            Payment Return
+          </h1>
+
+          <p className="mb-4">{statusMessage}</p>
+
+          {paymentStatus?.status === 'completed' && (
+            <div className="mb-5 border border-green-600 bg-green-950 p-4">
+              <p className="font-bold text-green-300">
+                Payment confirmed
+              </p>
+              <p className="mt-2">
+                Amount: US$
+                {Number.isFinite(paymentStatus.amountUSD)
+                  ? paymentStatus.amountUSD.toFixed(2)
+                  : '—'}
+              </p>
+            </div>
+          )}
+
+          <p className="mb-5 break-all text-sm text-gray-400">
+            Checkout reference: {sessionId}
+          </p>
+
+          <a
+            href="/products"
+            className="inline-block bg-cyan-600 px-5 py-3 font-semibold text-white hover:bg-cyan-500"
+          >
+            Return to Products
+          </a>
+
+          <p className="mt-5 text-sm text-gray-400">
+            If confirmation is delayed, keep your checkout reference and
+            contact the store. Do not submit another payment while the
+            original payment is being checked.
+          </p>
+        </div>
       </main>
     );
   }
@@ -231,9 +392,7 @@ function PaymentContent() {
           </section>
 
           <section className="border border-slate-700 bg-slate-900 p-6">
-            <h2 className="mb-4 text-xl text-green-400">
-              💬 WhatsApp
-            </h2>
+            <h2 className="mb-4 text-xl text-green-400">💬 WhatsApp</h2>
             <p className="mb-6 text-sm text-gray-400">
               Contact the store to arrange your order.
             </p>
@@ -242,9 +401,7 @@ function PaymentContent() {
               <a
                 href={`https://wa.me/${whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
                   `Hello, I would like to order ${product?.name || item} for US$${
-                    product
-                      ? Number(product.price_usd).toFixed(2)
-                      : ''
+                    product ? Number(product.price_usd).toFixed(2) : ''
                   }.`
                 )}`}
                 target="_blank"
@@ -262,12 +419,8 @@ function PaymentContent() {
           </section>
 
           <section className="bg-yellow-400 p-6 text-black">
-            <h2 className="mb-4 text-xl">
-              🇮🇳 Google Pay (India)
-            </h2>
-            <p className="mb-6 text-sm">
-              Copy the store&apos;s UPI ID.
-            </p>
+            <h2 className="mb-4 text-xl">🇮🇳 Google Pay (India)</h2>
+            <p className="mb-6 text-sm">Copy the store&apos;s UPI ID.</p>
 
             {upiId ? (
               <button
@@ -285,12 +438,8 @@ function PaymentContent() {
           </section>
 
           <section className="bg-red-600 p-6 text-white">
-            <h2 className="mb-4 text-xl">
-              🇨🇳 Alipay (China)
-            </h2>
-            <p className="mb-6 text-sm">
-              Copy the store&apos;s Alipay ID.
-            </p>
+            <h2 className="mb-4 text-xl">🇨🇳 Alipay (China)</h2>
+            <p className="mb-6 text-sm">Copy the store&apos;s Alipay ID.</p>
 
             {alipayId ? (
               <button
