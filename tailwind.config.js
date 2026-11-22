@@ -1,6 +1,10 @@
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   darkMode: 'class',
@@ -50,17 +54,20 @@ module.exports = {
         mono: ['var(--font-mono)', 'monospace'],
       },
       animation: {
-        'float': 'float 6s ease-in-out infinite',
+        float: 'float 6s ease-in-out infinite',
         'float-delayed': 'float 6s ease-in-out infinite 2s',
         'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
         'spin-slow': 'spinSlow 20s linear infinite',
-        'shimmer': 'shimmer 4s linear infinite',
-        'fade-in-up': 'fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-        'scale-in': 'scaleIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+        shimmer: 'shimmer 4s linear infinite',
+        'fade-in-up':
+          'fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+        'scale-in':
+          'scaleIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-cosmic': 'linear-gradient(135deg, #050A14 0%, #0D1A2E 50%, #050A14 100%)',
+        'gradient-cosmic':
+          'linear-gradient(135deg, #050A14 0%, #0D1A2E 50%, #050A14 100%)',
       },
     },
   },
