@@ -10,6 +10,7 @@ export default function Home() {
             "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')",
         }}
       />
+
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-slate-950" />
 
       {/* Satellite */}
@@ -28,7 +29,9 @@ export default function Home() {
           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-400 font-extrabold text-slate-950">
             SD
           </span>
-          <span className="font-bold tracking-wide">SUPER DIGITAL MARKETS</span>
+          <span className="font-bold tracking-wide">
+            SUPER DIGITAL MARKETS
+          </span>
         </a>
 
         <div className="flex flex-wrap items-center gap-4 text-sm sm:gap-6">
@@ -76,8 +79,9 @@ export default function Home() {
           >
             Browse Products
           </a>
+
           <a
-            href="/products"
+            href="/checkout"
             className="rounded-full bg-green-600 px-8 py-4 text-center text-lg font-bold shadow-lg transition hover:bg-green-500"
           >
             Complete Your Purchase
@@ -92,6 +96,7 @@ export default function Home() {
             <span className="mr-3 inline-block h-3 w-3 rounded-full bg-red-500" />
             Live Sales Trackers
           </h2>
+
           <a
             href="/live-trackers"
             className="text-sm font-semibold text-cyan-300 hover:text-cyan-100"
@@ -109,7 +114,8 @@ export default function Home() {
       </section>
 
       <footer className="relative z-10 border-t border-white/10 bg-black/40 px-5 py-6 text-center text-sm text-slate-400">
-        © {new Date().getFullYear()} SUPER DIGITAL MARKETS · Prices shown in USD
+        © {new Date().getFullYear()} SUPER DIGITAL MARKETS · Prices shown in
+        USD
       </footer>
     </div>
   );
