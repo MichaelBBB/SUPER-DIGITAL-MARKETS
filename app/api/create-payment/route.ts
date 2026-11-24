@@ -7,7 +7,6 @@ export const runtime = 'nodejs';
 
 const PEACH_AUTH_URL =
   'https://dashboard.peachpayments.com/api/oauth/token';
-
 const PEACH_CHECKOUT_URL =
   'https://secure.peachpayments.com/v2/checkout';
 
@@ -56,16 +55,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createClient(
-      supabaseUrl,
-      serviceRoleKey,
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      }
-    );
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
 
     const { data: product, error: productError } = await supabase
       .from('products')
@@ -139,7 +134,10 @@ export async function POST(request: NextRequest) {
         shopperResultUrl: `${siteUrl}/api/payments/return`,
         notificationUrl: `${siteUrl}/api/webhooks/peach`,
         customer: { email: email.trim() },
-        customParameters: { productId: product.id },
+        customParameters: {
+          productId: product.id,
+          productName: product.name,
+        },
       }),
       cache: 'no-store',
     });
@@ -174,6 +172,7 @@ export async function POST(request: NextRequest) {
       .insert({
         session_id: checkout.checkoutId,
         amount_usd: amount,
+        product_name: product.name,
         status: 'pending',
       });
 
