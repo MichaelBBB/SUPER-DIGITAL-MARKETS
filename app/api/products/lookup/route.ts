@@ -16,17 +16,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-    if (!url || !key) {
+    // Prefer the server-side service key. If it is not available,
+    // use the public anon key for this read-only product lookup.
+    const supabaseKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Product lookup configuration missing.', {
+        supabaseUrlPresent: Boolean(supabaseUrl),
+        serviceRoleKeyPresent: Boolean(
+          process.env.SUPABASE_SERVICE_ROLE_KEY
+        ),
+        anonKeyPresent: Boolean(
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        ),
+      });
+
       return NextResponse.json(
-        { error: 'Product lookup is temporarily unavailable.' },
+        { error: 'Product database configuration is incomplete.' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(url, key, {
+    const supabase = createClient(supabaseUrl, supabaseKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
@@ -40,9 +55,20 @@ export async function GET(request: NextRequest) {
       .limit(2);
 
     if (error) {
-      console.error('Product lookup failed:', error.code);
+      // Log diagnostic information only; never log keys.
+      console.error('Supabase product lookup query failed.', {
+        code: error.code,
+        message: error.message,
+        hint: error.hint,
+      });
+
       return NextResponse.json(
-        { error: 'Unable to look up the selected product.' },
+        {
+          error:
+            error.code === '42501'
+              ? 'Product database access is blocked by permissions.'
+              : 'Unable to retrieve the selected product from the database.',
+        },
         { status: 500 }
       );
     }
@@ -68,10 +94,17 @@ export async function GET(request: NextRequest) {
       !product.id ||
       !product.name ||
       product.price_usd == null ||
-      !Number.isFinite(price)
+      !Number.isFinite(price) ||
+      price <= 0
     ) {
+      console.error('Product record is incomplete or invalid.', {
+        productIdPresent: Boolean(product.id),
+        productNamePresent: Boolean(product.name),
+        priceValid: Number.isFinite(price) && price > 0,
+      });
+
       return NextResponse.json(
-        { error: 'The product record is incomplete.' },
+        { error: 'The product record is incomplete or invalid.' },
         { status: 500 }
       );
     }
@@ -86,14 +119,18 @@ export async function GET(request: NextRequest) {
       },
       {
         status: 200,
-        headers: { 'Cache-Control': 'no-store' },
+        headers: {
+          'Cache-Control': 'no-store',
+        },
       }
     );
   } catch (error) {
-    console.error(
-      'Unexpected product lookup error:',
-      error instanceof Error ? error.message : 'Unknown error'
-    );
+    console.error('Unexpected product lookup failure.', {
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Unknown server error',
+    });
 
     return NextResponse.json(
       { error: 'An unexpected product lookup error occurred.' },
