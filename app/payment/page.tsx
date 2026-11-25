@@ -238,13 +238,13 @@ function PaymentContent() {
             <div className="rounded-3xl border border-amber-300/25 bg-gradient-to-br from-amber-950/80 to-orange-900/40 p-6 shadow-xl">
               <div className="mb-3 inline-flex rounded-full bg-amber-300/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-200">Yellow • UPI</div>
               <h2 className="text-xl font-black">Google Pay / UPI</h2>
-              {upiId ? <p className="mt-2 break-all text-sm text-amber-100">Configured UPI ID: <strong>{upiId}</strong></p> : <p className="mt-2 text-sm text-amber-100/80">UPI details are not configured. This option is displayed for information only and does not process a payment here.</p>}
+              <p className="mt-2 text-sm text-amber-100/80">Coming soon. Google Pay / UPI payments are not available yet. Please use the secure Peach Payments checkout above.</p>
             </div>
 
             <div className="rounded-3xl border border-rose-300/25 bg-gradient-to-br from-rose-950/80 to-red-900/40 p-6 shadow-xl">
               <div className="mb-3 inline-flex rounded-full bg-rose-300/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-rose-200">Red • Alipay</div>
               <h2 className="text-xl font-black">Alipay</h2>
-              {alipayId ? <p className="mt-2 break-all text-sm text-rose-100">Configured payment reference: <strong>{alipayId}</strong></p> : <p className="mt-2 text-sm text-rose-100/80">Alipay details are not configured. This option does not process a payment here.</p>}
+              <p className="mt-2 text-sm text-rose-100/80">Coming soon. Alipay merchant onboarding and payment integration are not yet complete. Please use the secure Peach Payments checkout above.</p>
             </div>
 
             <div className="rounded-3xl border border-sky-300/25 bg-gradient-to-br from-sky-950/80 to-blue-900/40 p-6 shadow-xl">
