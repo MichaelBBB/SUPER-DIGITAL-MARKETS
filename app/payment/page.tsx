@@ -28,8 +28,6 @@ function PaymentContent() {
   const [statusMessage, setStatusMessage] = useState('Checking your payment status...');
 
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
-  const upiId = process.env.NEXT_PUBLIC_UPI_ID || '';
-  const alipayId = process.env.NEXT_PUBLIC_ALIPAY_ID || '';
   const bankName = process.env.NEXT_PUBLIC_CAPITEC_BANK_NAME || '';
   const accountName = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NAME || '';
   const accountNumber = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NUMBER || '';
