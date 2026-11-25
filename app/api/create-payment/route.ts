@@ -16,13 +16,61 @@ const PEACH_WEBHOOK_URL =
   'https://super-digital-markets-co9n.vercel.app/api/webhooks/peach';
 
 function safeProviderError(text: string): string {
-  // Limit diagnostic size and redact common credential/token fields.
   return text
     .slice(0, 1500)
     .replace(
       /("(?:access_token|refresh_token|clientSecret|client_secret|token)"\s*:\s*")[^"]*(")/gi,
       '$1[REDACTED]$2'
     );
+}
+
+function safeAuthenticationReason(
+  responseText: string,
+  secrets: string[]
+): string {
+  try {
+    const parsed: unknown = JSON.parse(responseText);
+
+    if (!parsed || typeof parsed !== 'object') {
+      return 'Peach rejected the authentication request without a readable reason.';
+    }
+
+    const data = parsed as Record<string, unknown>;
+
+    const candidate =
+      data.error_description ??
+      data.message ??
+      data.detail ??
+      data.error;
+
+    if (typeof candidate !== 'string' || !candidate.trim()) {
+      return 'Peach rejected the authentication request without a readable reason.';
+    }
+
+    let reason = candidate.slice(0, 300);
+
+    // Never return credential values if Peach echoes them.
+    for (const secret of secrets) {
+      if (secret && secret.length >= 4) {
+        reason = reason.split(secret).join('[REDACTED]');
+      }
+    }
+
+    // Avoid returning text that looks like a token or credential.
+    reason = reason
+      .replace(
+        /\b(Bearer\s+)\S+/gi,
+        '$1[REDACTED]'
+      )
+      .replace(
+        /("(?:access_token|refresh_token|clientSecret|client_secret|token)"\s*:\s*")[^"]*(")/gi,
+        '$1[REDACTED]$2'
+      );
+
+    return reason;
+  } catch {
+    return 'Peach rejected the authentication request without a readable reason.';
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -67,15 +115,17 @@ export async function POST(request: NextRequest) {
       !merchantId ||
       !entityId
     ) {
-      // Do not log environment-variable values.
-      console.error('Create payment: required server configuration is missing.', {
-        supabaseUrlPresent: Boolean(supabaseUrl),
-        serviceRoleKeyPresent: Boolean(serviceRoleKey),
-        peachClientIdPresent: Boolean(clientId),
-        peachClientSecretPresent: Boolean(clientSecret),
-        peachMerchantIdPresent: Boolean(merchantId),
-        peachEntityIdPresent: Boolean(entityId),
-      });
+      console.error(
+        'Create payment: required server configuration is missing.',
+        {
+          supabaseUrlPresent: Boolean(supabaseUrl),
+          serviceRoleKeyPresent: Boolean(serviceRoleKey),
+          peachClientIdPresent: Boolean(clientId),
+          peachClientSecretPresent: Boolean(clientSecret),
+          peachMerchantIdPresent: Boolean(merchantId),
+          peachEntityIdPresent: Boolean(entityId),
+        }
+      );
 
       return NextResponse.json(
         { error: 'Payment service configuration is incomplete.' },
@@ -141,9 +191,18 @@ export async function POST(request: NextRequest) {
         response: safeProviderError(providerText),
       });
 
+      const details = safeAuthenticationReason(providerText, [
+        clientId,
+        clientSecret,
+        merchantId,
+        entityId,
+        serviceRoleKey,
+      ]);
+
       return NextResponse.json(
         {
-          error: `Peach authentication failed (HTTP ${tokenResponse.status}). Please try again later.`,
+          error: `Peach authentication failed (HTTP ${tokenResponse.status}).`,
+          details,
         },
         { status: 502 }
       );
@@ -232,8 +291,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 3: Save the pending payment using the known payments columns.
-    // Do not insert product_name unless that column exists in the database.
+    // Step 3: Save the pending payment.
     const { error: insertError } = await supabase
       .from('payments')
       .insert({
