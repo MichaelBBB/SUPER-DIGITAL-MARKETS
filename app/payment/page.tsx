@@ -36,7 +36,7 @@ function PaymentContent() {
   const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '';
 
   const whatsappUrl = whatsapp
-    ? `https://wa.me/${whatsapp.replace(/[^\d]/g, '')}?text=${encodeURIComponent(
+    ? `https://wa.me/${whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
         `Hello SUPER DIGITAL MARKETS, I need help paying for ${product?.name || item || 'a digital product'}.`
       )}`
     : '';
