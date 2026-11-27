@@ -27,7 +27,6 @@ function PaymentContent() {
   const [error, setError] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
   const [statusMessage, setStatusMessage] = useState('Checking your payment status...');
-  const [copied, setCopied] = useState('');
 
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
   const bankName = process.env.NEXT_PUBLIC_CAPITEC_BANK_NAME || '';
@@ -158,14 +157,6 @@ function PaymentContent() {
     }
   }
 
-  async function copyText(label: string, value: string) {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(label);
-    } catch {
-      setError('Copying was blocked by your browser. Please select and copy the details manually.');
-    }
-  }
 
   if (sessionId) {
     return (
@@ -272,7 +263,6 @@ function PaymentContent() {
         </section>
 
         {error && <div role="alert" className="mt-5 break-words border border-red-500 bg-red-950 p-4 text-sm text-red-100">{error}</div>}
-        {copied && <p className="mt-3 text-sm text-green-300">{copied} copied.</p>}
 
         <footer className="py-8 text-center text-sm text-slate-400">
           <a href="/" className="underline underline-offset-4 hover:text-white">Return to Home</a>
