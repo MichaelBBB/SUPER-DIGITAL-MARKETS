@@ -187,7 +187,7 @@ function PaymentContent() {
         </header>
 
         <section className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div className="border border-slate-700 bg-slate-900 p-6">
+          <div id="card-payment" className="border border-slate-700 bg-slate-900 p-6">
             <h2 className="text-xl font-medium text-cyan-300">💳 Card Payment</h2>
             <p className="mt-4 text-sm text-slate-300">Visa / Mastercard accepted through secure Peach Payments checkout.</p>
             <label htmlFor="payment-email" className="mt-4 block text-sm text-slate-300">Email address for your order</label>
@@ -223,9 +223,9 @@ function PaymentContent() {
 
           <div className="border-t-8 border-yellow-400 bg-yellow-400 p-6 text-slate-950">
             <h2 className="text-xl font-medium">🇮🇳 Google Pay / UPI (India)</h2>
-            <p className="mt-4 text-sm">For customers in India. Google Pay / UPI must be enabled through an eligible merchant payment provider.</p>
+            <p className="mt-4 text-sm">We are working to enable Google Pay and UPI through an approved provider. Until that integration is activated, choose Card Payment above to complete checkout securely.</p>
             {whatsappUrl ? (
-              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-5 block bg-black px-4 py-3 text-center font-medium text-white hover:bg-slate-800">Ask About Google Pay / UPI</a>
+              <a href="#card-payment" className="mt-5 block bg-black px-4 py-3 text-center font-medium text-white hover:bg-slate-800">Continue to Secure Checkout</a>
             ) : (
               <p className="mt-5 bg-black/10 p-3 text-sm">Please use secure Peach card checkout while merchant eligibility is confirmed.</p>
             )}
@@ -234,9 +234,9 @@ function PaymentContent() {
 
           <div className="border-t-8 border-red-600 bg-red-600 p-6 text-white">
             <h2 className="text-xl font-medium">🇨🇳 Alipay / WeChat Pay (China)</h2>
-            <p className="mt-4 text-sm">For customers in China. Merchant onboarding and supported payment processing must be confirmed before accepting payments.</p>
+            <p className="mt-4 text-sm">We are working to enable Alipay and WeChat Pay through an approved provider. Until that integration is activated, choose Card Payment above to complete checkout securely.</p>
             {whatsappUrl ? (
-              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-5 block bg-white px-4 py-3 text-center font-medium text-red-700 hover:bg-red-50">Ask About Alipay / WeChat Pay</a>
+              <a href="#card-payment" className="mt-5 block bg-white px-4 py-3 text-center font-medium text-red-700 hover:bg-red-50">Continue to Secure Checkout</a>
             ) : (
               <p className="mt-5 bg-black/10 p-3 text-sm">Please use secure Peach card checkout while merchant eligibility is confirmed.</p>
             )}
