@@ -28,9 +28,9 @@ function PaymentContent() {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
   const [statusMessage, setStatusMessage] = useState('Checking your payment status...');
 
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '27641061358';
   const bankName = process.env.NEXT_PUBLIC_CAPITEC_BANK_NAME || 'Capitec Bank';
-  const accountName = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NAME || 'SUPER DIGITAL';
+  const accountName = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NAME || 'SUPER DIGITAL MARKETS';
   const accountNumber = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NUMBER || '1975933441';
   const branchCode = process.env.NEXT_PUBLIC_CAPITEC_BRANCH_CODE || '470010 / CABLZAJJ';
   const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '';
@@ -238,6 +238,7 @@ function PaymentContent() {
 
         <section className="mt-8 border border-slate-700 bg-slate-900 p-6">
           <h2 className="text-xl font-medium text-cyan-300">🇿🇦 CAPITEC BANK DETAILS</h2>
+          <div className="mt-5 bg-slate-950 p-4"><p className="text-xs text-slate-400">Cardholder / Contact Name</p><p className="mt-1 font-semibold text-yellow-300">MR MB BLUMENTHAL</p></div>
           {bankName && accountName && accountNumber ? (
             <>
               <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
