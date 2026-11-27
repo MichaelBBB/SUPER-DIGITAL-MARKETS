@@ -29,10 +29,10 @@ function PaymentContent() {
   const [statusMessage, setStatusMessage] = useState('Checking your payment status...');
 
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
-  const bankName = process.env.NEXT_PUBLIC_CAPITEC_BANK_NAME || '';
-  const accountName = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NAME || '';
-  const accountNumber = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NUMBER || '';
-  const branchCode = process.env.NEXT_PUBLIC_CAPITEC_BRANCH_CODE || '';
+  const bankName = process.env.NEXT_PUBLIC_CAPITEC_BANK_NAME || 'Capitec Bank';
+  const accountName = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NAME || 'SUPER DIGITAL';
+  const accountNumber = process.env.NEXT_PUBLIC_CAPITEC_ACCOUNT_NUMBER || '1975933441';
+  const branchCode = process.env.NEXT_PUBLIC_CAPITEC_BRANCH_CODE || '470010 / CABLZAJJ';
   const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '';
 
   const whatsappUrl = whatsapp
@@ -224,22 +224,14 @@ function PaymentContent() {
           <div className="border-t-8 border-yellow-400 bg-yellow-400 p-6 text-slate-950">
             <h2 className="text-xl font-medium">🇮🇳 Google Pay / UPI (India)</h2>
             <p className="mt-4 text-sm">We are working to enable Google Pay and UPI through an approved provider. Until that integration is activated, choose Card Payment above to complete checkout securely.</p>
-            {whatsappUrl ? (
-              <a href="#card-payment" className="mt-5 block bg-black px-4 py-3 text-center font-medium text-white hover:bg-slate-800">Continue to Secure Checkout</a>
-            ) : (
-              <p className="mt-5 bg-black/10 p-3 text-sm">Please use secure Peach card checkout while merchant eligibility is confirmed.</p>
-            )}
+            <a href="#card-payment" className="mt-5 block bg-black px-4 py-3 text-center font-medium text-white hover:bg-slate-800">Continue to Secure Checkout</a>
             <p className="mt-3 text-center text-xs">No unverified UPI ID is displayed or copied.</p>
           </div>
 
           <div className="border-t-8 border-red-600 bg-red-600 p-6 text-white">
             <h2 className="text-xl font-medium">🇨🇳 Alipay / WeChat Pay (China)</h2>
             <p className="mt-4 text-sm">We are working to enable Alipay and WeChat Pay through an approved provider. Until that integration is activated, choose Card Payment above to complete checkout securely.</p>
-            {whatsappUrl ? (
-              <a href="#card-payment" className="mt-5 block bg-white px-4 py-3 text-center font-medium text-red-700 hover:bg-red-50">Continue to Secure Checkout</a>
-            ) : (
-              <p className="mt-5 bg-black/10 p-3 text-sm">Please use secure Peach card checkout while merchant eligibility is confirmed.</p>
-            )}
+            <a href="#card-payment" className="mt-5 block bg-white px-4 py-3 text-center font-medium text-red-700 hover:bg-red-50">Continue to Secure Checkout</a>
             <p className="mt-3 text-center text-xs">No unverified Alipay ID or QR code is displayed.</p>
           </div>
         </section>
